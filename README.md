@@ -1,2 +1,2 @@
 # BoWizzy 
-# PROJECT Managed by (Himanshu) SDE Wizzybox
+# PROJECT SDE Wizzybox
