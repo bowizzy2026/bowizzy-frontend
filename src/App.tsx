@@ -44,6 +44,13 @@ import InterviewerEvaluation from "./pages/(InterviewPrep)/InterviewerEvaluation
 import TakeMockInterview from "./pages/(InterviewPrep)/TakeMockInterview";
 import ProfileForm from "./pages/(Profile)/ProfileForms";
 import ParsingSteps from "./pages/(Profile)/components/ParsingSteps";
+import VideoPractice from "./pages/VideoPractise/VideoPractice";
+import InterviewSteps from "./pages/VideoPractise/Components/InterviewSteps";
+import InterviewQuestion from "./pages/VideoPractise/Components/InterviewQuestion";
+import InterviewComplete from "./pages/VideoPractise/Components/InterviewComplete";
+import InterviewReview from "./pages/VideoPractise/Components/InterviewReview";
+import TemplateSelection from "./pages/(ResumeBuilder)/TemplateSelection";
+import ResumeEditor from "./pages/(ResumeBuilder)/ResumeEditor";
 
 
 
