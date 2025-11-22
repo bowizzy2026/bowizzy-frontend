@@ -1,22 +1,15 @@
 import React, { useState } from "react";
 import DashNav from "@/components/dashnav/dashnav";
 import { useNavigate } from "react-router-dom";
+import { getAllTemplates } from "@/templates/templateRegistry";
 
 export default function ResumeBuilder() {
   const navigate = useNavigate();
+  const templates = getAllTemplates();
 
   const [userResumes, setUserResumes] = useState([
     { id: 1, thumbnail: "url_to_thumbnail", pdfUrl: "url_to_pdf", name: "My Resume 1" },
     { id: 2, thumbnail: "url_to_thumbnail", pdfUrl: "url_to_pdf", name: "My Resume 2" }
-  ]);
-
-  const [templates, setTemplates] = useState([
-    { id: 1, thumbnail: "https://via.placeholder.com/329x439/FFE29F/000000?text=Template+1", name: "Professional" },
-    { id: 2, thumbnail: "https://via.placeholder.com/329x439/A9D4FF/000000?text=Template+2", name: "Creative" },
-    { id: 3, thumbnail: "https://via.placeholder.com/329x439/FFA99F/000000?text=Template+3", name: "Modern" },
-    { id: 4, thumbnail: "https://via.placeholder.com/329x439/D4A9FF/000000?text=Template+4", name: "Minimal" },
-    { id: 5, thumbnail: "https://via.placeholder.com/329x439/A9FFD4/000000?text=Template+5", name: "Executive" },
-    { id: 6, thumbnail: "https://via.placeholder.com/329x439/FFD4A9/000000?text=Template+6", name: "Classic" },
   ]);
 
   const handleNewResume = () => {
@@ -24,11 +17,13 @@ export default function ResumeBuilder() {
   };
 
   const handleResumeClick = (resume: any) => {
-    alert(`Opening resume: ${resume.name}`);
+    // Navigate to editor with existing resume ID
+    navigate(`/resume-editor?resumeId=${resume.id}`);
   };
 
-  const handleTemplateClick = (template: any) => {
-    alert(`Selected template: ${template.name}`);
+  const handleTemplateClick = (templateId: string) => {
+    // Navigate to template selection or directly to editor
+    navigate(`/template-selection`);
   };
 
   return (
@@ -55,6 +50,7 @@ export default function ResumeBuilder() {
                 <img
                   src="https://storage.googleapis.com/tagjs-prod.appspot.com/v1/qhRmgt2LET/4ie3c11r_expires_30_days.png"
                   className="w-[114px] h-[140px] rounded-lg object-fill"
+                  alt="New Resume"
                 />
                 <span className="text-[#3A3A3A] text-sm">New Resume</span>
               </button>
@@ -90,7 +86,7 @@ export default function ResumeBuilder() {
           </div>
 
           <div className="mb-5 px-4 md:px-5">
-            <span className="text-[#1A1A43] text-base font-semibold">Our Reccomended Templates</span>
+            <span className="text-[#1A1A43] text-base font-semibold">Our Recommended Templates</span>
           </div>
 
           <div className="flex flex-col md:flex-row items-center md:items-start gap-6 md:gap-10 mb-10 px-4 md:px-5 flex-wrap justify-center md:justify-start">
@@ -99,10 +95,10 @@ export default function ResumeBuilder() {
                 key={template.id}
                 className="relative w-[329px] rounded-lg shadow-sm border-0 hover:shadow-lg transition-shadow overflow-hidden"
                 style={{ boxShadow: "0px 0px 1px #00000040" }}
-                onClick={() => handleTemplateClick(template)}
+                onClick={() => handleTemplateClick(template.id)}
               >
                 <img
-                  src={template.thumbnail}
+                  src={template.thumbnailUrl}
                   alt={template.name}
                   className="w-full h-[439px] object-cover"
                 />
@@ -113,25 +109,27 @@ export default function ResumeBuilder() {
             ))}
           </div>
 
-          <div className="flex flex-col md:flex-row items-center md:items-start gap-6 md:gap-10 mb-10 px-4 md:px-5 flex-wrap justify-center md:justify-start">
-            {templates.slice(3, 6).map((template) => (
-              <button
-                key={template.id}
-                className="relative w-[329px] rounded-lg shadow-sm border-0 hover:shadow-lg transition-shadow overflow-hidden"
-                style={{ boxShadow: "0px 0px 1px #00000040" }}
-                onClick={() => handleTemplateClick(template)}
-              >
-                <img
-                  src={template.thumbnail}
-                  alt={template.name}
-                  className="w-full h-[439px] object-cover"
-                />
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">
-                  <span className="text-white text-sm font-medium">{template.name}</span>
-                </div>
-              </button>
-            ))}
-          </div>
+          {templates.length > 3 && (
+            <div className="flex flex-col md:flex-row items-center md:items-start gap-6 md:gap-10 mb-10 px-4 md:px-5 flex-wrap justify-center md:justify-start">
+              {templates.slice(3, 6).map((template) => (
+                <button
+                  key={template.id}
+                  className="relative w-[329px] rounded-lg shadow-sm border-0 hover:shadow-lg transition-shadow overflow-hidden"
+                  style={{ boxShadow: "0px 0px 1px #00000040" }}
+                  onClick={() => handleTemplateClick(template.id)}
+                >
+                  <img
+                    src={template.thumbnailUrl}
+                    alt={template.name}
+                    className="w-full h-[439px] object-cover"
+                  />
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">
+                    <span className="text-white text-sm font-medium">{template.name}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
 
         </div>
       </div>

@@ -143,9 +143,16 @@ export const ExperienceDetailsForm: React.FC<ExperienceDetailsFormProps> = ({ da
   };
 
   const toggleWorkExperience = (id: string, enabled: boolean) => {
-    // For now, just keep the experience visible
-    // In future, you can add an 'enabled' field to WorkExperience
-  };
+  const updatedExperiences = data.workExperiences.map((exp) =>
+    exp.id === id ? { ...exp, enabled } : exp
+  );
+
+  onChange({
+    ...data,
+    workExperiences: updatedExperiences,
+  });
+};
+
 
   return (
     <div className="flex flex-col gap-5">
@@ -154,8 +161,8 @@ export const ExperienceDetailsForm: React.FC<ExperienceDetailsFormProps> = ({ da
           key={exp.id}
           title={`Work Experience ${data.workExperiences.length > 1 ? index + 1 : ''}`}
           showToggle={true}
-          enabled={true}
-          onToggle={(enabled) => toggleWorkExperience(exp.id, enabled)}
+          enabled={exp.enabled}
+          onToggle={(enabled) => updateWorkExperience(exp.id, 'enabled', enabled)}
           onRemove={data.workExperiences.length > 1 ? () => removeWorkExperience(exp.id) : undefined}
           showActions={true}
           isCollapsed={collapsedStates[exp.id] || false}

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import ProfileStepper from './components/ProfileStepper';
 import PersonalDetailsForm from './components/forms/PersonalDetailsForm';
 import EducationDetailsForm from './components/forms/EducationDetailsForm';
@@ -6,16 +7,10 @@ import ExperienceDetailsForm from './components/forms/ExperienceDetailsForm';
 import ProjectsForm from './components/forms/ProjectsForm';
 import SkillsLinksForm from './components/forms/SkillsLinksForm';
 import CertificationsForm from './components/forms/CertificationsForm';
-import ResumePreview from './components/resume/ResumePreview';
 import { initialResumeData } from "../../types/resume";
 import type { ResumeData } from '../../types/resume';
 import DashNav from "@/components/dashnav/dashnav";
-
-interface ResumeEditorProps {
-  templateId?: string;
-  existingData?: ResumeData;
-  onSave?: (data: ResumeData) => void;
-}
+import { getTemplateById } from '@/templates/templateRegistry';
 
 const steps = [
   'Personal',
@@ -44,15 +39,31 @@ const nextButtonLabels = [
   'Preview Resume',
 ];
 
-export const ResumeEditor: React.FC<ResumeEditorProps> = ({
-  templateId,
-  existingData,
-  onSave,
-}) => {
+export const ResumeEditor: React.FC = () => {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const templateId = searchParams.get('templateId');
+  const resumeId = searchParams.get('resumeId');
+
   const [currentStep, setCurrentStep] = useState(0);
-  const [resumeData, setResumeData] = useState<ResumeData>(existingData || initialResumeData);
+  const [resumeData, setResumeData] = useState<ResumeData>(initialResumeData);
   const [validationErrors, setValidationErrors] = useState<{ [key: string]: boolean }>({});
-  const [currentPage, setCurrentPage] = useState(1);
+  const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
+
+  useEffect(() => {
+    // Load template
+    if (templateId) {
+      const template = getTemplateById(templateId);
+      setSelectedTemplate(template);
+    }
+
+    // Load existing resume data if resumeId exists
+    if (resumeId) {
+      // TODO: Fetch resume data from API
+      // const data = await fetchResumeData(resumeId);
+      // setResumeData(data);
+    }
+  }, [templateId, resumeId]);
 
   const handleStepClick = (stepIndex: number) => {
     setCurrentStep(stepIndex);
@@ -62,8 +73,8 @@ export const ResumeEditor: React.FC<ResumeEditorProps> = ({
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      // Final step - Preview Resume
-      onSave?.(resumeData);
+      // Save and preview
+      handleSaveResume();
     }
   };
 
@@ -71,6 +82,12 @@ export const ResumeEditor: React.FC<ResumeEditorProps> = ({
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
     }
+  };
+
+  const handleSaveResume = () => {
+    // TODO: Save resume to backend
+    console.log('Saving resume:', resumeData);
+    // After save, you can navigate or show success message
   };
 
   const updatePersonalData = (data: typeof resumeData.personal) => {
@@ -146,11 +163,24 @@ export const ResumeEditor: React.FC<ResumeEditorProps> = ({
     }
   };
 
+  // Render template preview
+  const renderTemplatePreview = () => {
+    if (!selectedTemplate) {
+      return (
+        <div className="flex items-center justify-center h-full">
+          <p className="text-gray-500">No template selected</p>
+        </div>
+      );
+    }
+
+    const TemplateComponent = selectedTemplate.component;
+    return <TemplateComponent data={resumeData} />;
+  };
+
   return (
     <div className="flex flex-col h-screen bg-gray-50 font-['Baloo_2'] overflow-hidden">
       <DashNav heading="Resume Builder" />
       
-      {/* Main Content with 4px gap and white rounded background */}
       <div className="flex-1 flex flex-col overflow-hidden p-4">
         <div className="flex-1 flex flex-col bg-white rounded-lg overflow-hidden">
           {/* Stepper */}
@@ -165,15 +195,13 @@ export const ResumeEditor: React.FC<ResumeEditorProps> = ({
 
           {/* Main Content */}
           <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
-            {/* Form Panel - Complete scroll with hidden scrollbar */}
+            {/* Form Panel */}
             <div className="flex-1 lg:w-[50%] overflow-auto scrollbar-hide">
               <div className="p-4 md:p-6">
-                {/* Step Title */}
                 <h2 className="text-lg font-semibold text-[#1A1A43] mb-5">
                   {stepTitles[currentStep]}
                 </h2>
 
-                {/* Form Content */}
                 <div className="mb-6">
                   {renderCurrentForm()}
                 </div>
@@ -200,22 +228,21 @@ export const ResumeEditor: React.FC<ResumeEditorProps> = ({
               </div>
             </div>
 
-            {/* Resume Preview Panel with border on all sides */}
+            {/* Resume Preview Panel */}
             <div className="hidden lg:flex lg:w-[50%] bg-white overflow-auto scrollbar-hide">
               <div className="flex-1 p-4 overflow-auto scrollbar-hide border border-gray-300 m-4 rounded-lg">
-                <ResumePreview
-                  data={resumeData}
-                  currentPage={currentPage}
-                  totalPages={2}
-                  onPageChange={setCurrentPage}
-                />
+                <div className="flex items-start justify-center">
+                  <div className="transform scale-75 origin-top">
+                    {renderTemplatePreview()}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
       
-      {/* Add custom CSS to hide scrollbar */}
+      {/* Hide scrollbar styles */}
       <style jsx>{`
         .scrollbar-hide::-webkit-scrollbar {
           display: none;

@@ -68,6 +68,7 @@ export interface WorkExperience {
   endDate: string;
   currentlyWorking: boolean;
   description: string;
+  enabled: boolean;
 }
 
 export interface ExperienceDetails {
@@ -91,16 +92,22 @@ export interface Skill {
   id: string;
   skillName: string;
   skillLevel: string;
+  enabled: boolean;
 }
 
 export interface Links {
   linkedinProfile: string;
+  linkedinEnabled: boolean;
   githubProfile: string;
+  githubEnabled: boolean;
   portfolioUrl: string;
+  portfolioEnabled: boolean;
   portfolioDescription: string;
   publicationUrl: string;
+  publicationEnabled: boolean;
   publicationDescription: string;
 }
+
 
 export interface SkillsLinksDetails {
   skills: Skill[];
@@ -186,6 +193,7 @@ export const initialResumeData: ResumeData = {
         endDate: '',
         currentlyWorking: false,
         description: '',
+        enabled: true,
       },
     ],
   },
@@ -203,22 +211,26 @@ export const initialResumeData: ResumeData = {
     },
   ],
   skillsLinks: {
-    skills: [
-      { id: '1', skillName: '', skillLevel: '' },
-      { id: '2', skillName: '', skillLevel: '' },
-    ],
-    links: {
-      linkedinProfile: '',
-      githubProfile: '',
-      portfolioUrl: '',
-      portfolioDescription: '',
-      publicationUrl: '',
-      publicationDescription: '',
-    },
-    linksEnabled: true,
-    technicalSummary: '',
-    technicalSummaryEnabled: true,
+  skills: [
+    { id: '1', skillName: '', skillLevel: '', enabled: true },
+    { id: '2', skillName: '', skillLevel: '', enabled: true },
+  ],
+  links: {
+    linkedinProfile: '',
+    linkedinEnabled: true,
+    githubProfile: '',
+    githubEnabled: true,
+    portfolioUrl: '',
+    portfolioEnabled: true,
+    portfolioDescription: '',
+    publicationUrl: '',
+    publicationEnabled: true,
+    publicationDescription: '',
   },
+  linksEnabled: true,
+  technicalSummary: '',
+  technicalSummaryEnabled: true,
+},
   certifications: [
     {
       id: '1',

@@ -1,6 +1,6 @@
 import React from 'react';
 import type { SkillsLinksDetails, Skill } from 'src/types/resume';
-import { FormInput, FormSelect, FormTextarea, FormSection, AddButton, ToggleSwitch } from '@/pages/(ResumeBuilder)/components/ui';
+import { FormInput, FormSelect, FormTextarea, FormSection, ToggleSwitch } from '@/pages/(ResumeBuilder)/components/ui';
 import { X } from 'lucide-react';
 
 interface SkillsLinksFormProps {
@@ -16,15 +16,11 @@ const skillLevels = [
 ];
 
 export const SkillsLinksForm: React.FC<SkillsLinksFormProps> = ({ data, onChange }) => {
-  // Collapse state for each section
   const [skillsCollapsed, setSkillsCollapsed] = React.useState(false);
   const [linksCollapsed, setLinksCollapsed] = React.useState(false);
   const [technicalSummaryCollapsed, setTechnicalSummaryCollapsed] = React.useState(false);
-
-  // Validation errors state
   const [errors, setErrors] = React.useState<{ [key: string]: string }>({});
 
-  // Validation functions
   const validateSkillName = (value: string) => {
     if (value && !/^[a-zA-Z0-9\s.+#-]+$/.test(value)) {
       return "Invalid characters in skill name";
@@ -34,28 +30,16 @@ export const SkillsLinksForm: React.FC<SkillsLinksFormProps> = ({ data, onChange
 
   const validateUrl = (value: string, type: string) => {
     if (!value) return "";
-    
-    // Basic URL format validation
     const urlPattern = /^(https?:\/\/)?([\w\-]+(\.[\w\-]+)+)([\w\-\.,@?^=%&:/~\+#]*[\w\-@?^=%&/~\+#])?$/;
-    
     if (!urlPattern.test(value)) {
       return `Invalid ${type} URL format`;
     }
-
-    // Specific validation for LinkedIn
-    if (type === "LinkedIn" && value && !value.includes("linkedin.com")) {
-      return "Please enter a valid LinkedIn URL";
-    }
-
-    // Specific validation for GitHub
-    if (type === "GitHub" && value && !value.includes("github.com")) {
-      return "Please enter a valid GitHub URL";
-    }
-
+    if (type === "LinkedIn" && !value.includes("linkedin.com")) return "Please enter a valid LinkedIn URL";
+    if (type === "GitHub" && !value.includes("github.com")) return "Please enter a valid GitHub URL";
     return "";
   };
 
-  const updateSkill = (id: string, field: string, value: string) => {
+  const updateSkill = (id: string, field: string, value: string | boolean) => {
     onChange({
       ...data,
       skills: data.skills.map((skill) =>
@@ -63,9 +47,8 @@ export const SkillsLinksForm: React.FC<SkillsLinksFormProps> = ({ data, onChange
       ),
     });
 
-    // Validate skill name
     if (field === "skillName") {
-      const error = validateSkillName(value);
+      const error = validateSkillName(value as string);
       setErrors((prev) => ({ ...prev, [`skill-${id}-skillName`]: error }));
     }
   };
@@ -75,6 +58,7 @@ export const SkillsLinksForm: React.FC<SkillsLinksFormProps> = ({ data, onChange
       id: Date.now().toString(),
       skillName: '',
       skillLevel: '',
+      enabled: true,
     };
     onChange({
       ...data,
@@ -88,7 +72,6 @@ export const SkillsLinksForm: React.FC<SkillsLinksFormProps> = ({ data, onChange
         ...data,
         skills: data.skills.filter((skill) => skill.id !== id),
       });
-      // Clear errors for removed skill
       setErrors((prev) => {
         const newErrors = { ...prev };
         delete newErrors[`skill-${id}-skillName`];
@@ -97,34 +80,34 @@ export const SkillsLinksForm: React.FC<SkillsLinksFormProps> = ({ data, onChange
     }
   };
 
-  const updateLink = (field: string, value: string) => {
+  const updateLink = (field: string, value: string | boolean) => {
     onChange({
       ...data,
       links: { ...data.links, [field]: value },
     });
 
-    // Validate URLs
-    if (field === "linkedinProfile") {
-      const error = validateUrl(value, "LinkedIn");
-      setErrors((prev) => ({ ...prev, [`link-linkedinProfile`]: error }));
-    } else if (field === "githubProfile") {
-      const error = validateUrl(value, "GitHub");
-      setErrors((prev) => ({ ...prev, [`link-githubProfile`]: error }));
-    } else if (field === "portfolioUrl") {
-      const error = validateUrl(value, "Portfolio");
-      setErrors((prev) => ({ ...prev, [`link-portfolioUrl`]: error }));
-    } else if (field === "publicationUrl") {
-      const error = validateUrl(value, "Publication");
-      setErrors((prev) => ({ ...prev, [`link-publicationUrl`]: error }));
+    if (typeof value === "string") {
+      if (field === "linkedinProfile")
+        setErrors((prev) => ({ ...prev, [`link-linkedinProfile`]: validateUrl(value, "LinkedIn") }));
+      if (field === "githubProfile")
+        setErrors((prev) => ({ ...prev, [`link-githubProfile`]: validateUrl(value, "GitHub") }));
+      if (field === "portfolioUrl")
+        setErrors((prev) => ({ ...prev, [`link-portfolioUrl`]: validateUrl(value, "Portfolio") }));
+      if (field === "publicationUrl")
+        setErrors((prev) => ({ ...prev, [`link-publicationUrl`]: validateUrl(value, "Publication") }));
     }
   };
 
   return (
     <div className="flex flex-col gap-5">
-      {/* Skills Section */}
+
+      {/*  SKILLS SECTION with MASTER TOGGLE */}
       <FormSection
         title="Skills"
         required
+        // showToggle={true}
+        // enabled={data.skillsEnabled}
+        // onToggle={(enabled) => onChange({ ...data, skillsEnabled: enabled })}
         showToggle={false}
         showActions={true}
         isCollapsed={skillsCollapsed}
@@ -142,6 +125,7 @@ export const SkillsLinksForm: React.FC<SkillsLinksFormProps> = ({ data, onChange
                   error={errors[`skill-${skill.id}-skillName`]}
                 />
               </div>
+
               <div className="flex-1">
                 <FormSelect
                   label="Skill Level"
@@ -151,6 +135,7 @@ export const SkillsLinksForm: React.FC<SkillsLinksFormProps> = ({ data, onChange
                   options={skillLevels}
                 />
               </div>
+
               {data.skills.length > 1 && (
                 <button
                   type="button"
@@ -160,13 +145,17 @@ export const SkillsLinksForm: React.FC<SkillsLinksFormProps> = ({ data, onChange
                   <X size={18} />
                 </button>
               )}
+
               <div className="mb-1">
-                <ToggleSwitch enabled={true} onChange={() => {}} />
+                <ToggleSwitch
+                  enabled={skill.enabled}
+                  onChange={(v) => updateSkill(skill.id, "enabled", v)}
+                />
               </div>
             </div>
           </div>
         ))}
-        
+
         <div className="mt-4">
           <button
             type="button"
@@ -178,7 +167,7 @@ export const SkillsLinksForm: React.FC<SkillsLinksFormProps> = ({ data, onChange
         </div>
       </FormSection>
 
-      {/* Links Section */}
+      {/* LINKS SECTION */}
       <FormSection
         title="Links"
         showToggle={true}
@@ -189,6 +178,8 @@ export const SkillsLinksForm: React.FC<SkillsLinksFormProps> = ({ data, onChange
         onCollapseToggle={() => setLinksCollapsed(!linksCollapsed)}
       >
         <div className="space-y-4">
+          
+          {/* LinkedIn */}
           <div className="flex items-center gap-3">
             <div className="flex-1">
               <FormInput
@@ -200,10 +191,14 @@ export const SkillsLinksForm: React.FC<SkillsLinksFormProps> = ({ data, onChange
               />
             </div>
             <div className="mt-5">
-              <ToggleSwitch enabled={true} onChange={() => {}} />
+              <ToggleSwitch
+                enabled={data.links.linkedinEnabled}
+                onChange={(v) => updateLink('linkedinEnabled', v)}
+              />
             </div>
           </div>
 
+          {/* GitHub */}
           <div className="flex items-center gap-3">
             <div className="flex-1">
               <FormInput
@@ -215,10 +210,14 @@ export const SkillsLinksForm: React.FC<SkillsLinksFormProps> = ({ data, onChange
               />
             </div>
             <div className="mt-5">
-              <ToggleSwitch enabled={true} onChange={() => {}} />
+              <ToggleSwitch
+                enabled={data.links.githubEnabled}
+                onChange={(v) => updateLink('githubEnabled', v)}
+              />
             </div>
           </div>
 
+          {/* Portfolio */}
           <div className="flex items-center gap-3">
             <div className="flex-1">
               <FormInput
@@ -230,7 +229,10 @@ export const SkillsLinksForm: React.FC<SkillsLinksFormProps> = ({ data, onChange
               />
             </div>
             <div className="mt-5">
-              <ToggleSwitch enabled={true} onChange={() => {}} />
+              <ToggleSwitch
+                enabled={data.links.portfolioEnabled}
+                onChange={(v) => updateLink('portfolioEnabled', v)}
+              />
             </div>
           </div>
 
@@ -242,6 +244,7 @@ export const SkillsLinksForm: React.FC<SkillsLinksFormProps> = ({ data, onChange
             rows={3}
           />
 
+          {/* Publication */}
           <div className="flex items-center gap-3">
             <div className="flex-1">
               <FormInput
@@ -253,7 +256,10 @@ export const SkillsLinksForm: React.FC<SkillsLinksFormProps> = ({ data, onChange
               />
             </div>
             <div className="mt-5">
-              <ToggleSwitch enabled={true} onChange={() => {}} />
+              <ToggleSwitch
+                enabled={data.links.publicationEnabled}
+                onChange={(v) => updateLink('publicationEnabled', v)}
+              />
             </div>
           </div>
 
@@ -265,16 +271,10 @@ export const SkillsLinksForm: React.FC<SkillsLinksFormProps> = ({ data, onChange
             rows={3}
           />
 
-          <button
-            type="button"
-            className="flex items-center gap-2 text-orange-500 hover:text-orange-600 font-medium text-sm"
-          >
-            <span className="text-lg">+</span> Add Link
-          </button>
         </div>
       </FormSection>
 
-      {/* Technical Summary Section */}
+      {/* TECHNICAL SUMMARY */}
       <FormSection
         title="Technical Summary"
         showToggle={true}
