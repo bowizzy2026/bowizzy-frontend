@@ -32,6 +32,7 @@ import {
 
 import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
+import ResumeBuilder from "./pages/ResumeBuilder";
 import LinkedInOptimization from "./pages/LinkedInOptimization";
 import InterviewPrep from "./pages/InterviewPrep";
 import InterviewPrepSelection from "./pages/(InterviewPrep)/InterviewPrepSelection";
@@ -43,18 +44,15 @@ import InterviewerEvaluation from "./pages/(InterviewPrep)/InterviewerEvaluation
 import TakeMockInterview from "./pages/(InterviewPrep)/TakeMockInterview";
 import ProfileForm from "./pages/(Profile)/ProfileForms";
 import ParsingSteps from "./pages/(Profile)/components/ParsingSteps";
-
-// ⭐ IMPORTS WE ADDED
 import VideoPractice from "./pages/VideoPractise/VideoPractice";
 import InterviewSteps from "./pages/VideoPractise/Components/InterviewSteps";
 import InterviewQuestion from "./pages/VideoPractise/Components/InterviewQuestion";
-
-// ⭐ NEW IMPORT — INTERVIEW COMPLETE PAGE
 import InterviewComplete from "./pages/VideoPractise/Components/InterviewComplete";
 import InterviewReview from "./pages/VideoPractise/Components/InterviewReview";
+import TemplateSelection from "./pages/(ResumeBuilder)/TemplateSelection";
+import ResumeEditor from "./pages/(ResumeBuilder)/ResumeEditor";
 
 
-// ------------------------------------------------------
 
 const isAuthenticated = () => {
   return true;
@@ -67,7 +65,7 @@ const careerMap = [
     label: "Profile",
   },
   {
-    href: "/profile",
+    href: "/ResumeBuilder",
     icon: <FileArchive color="#3B3B3B" size={16} />,
     label: "My resumes",
   },
@@ -408,6 +406,37 @@ function App() {
         </ProtectedRoute>
       ),
     },
+    {
+      path: "ResumeBuilder",
+      Component: () => (
+        <ProtectedRoute>
+          <LayoutWrapper>
+            <ResumeBuilder />
+          </LayoutWrapper>
+        </ProtectedRoute>
+      ),
+    },
+    {
+      path: "template-selection",
+
+      Component: () => (
+        <ProtectedRoute>
+          <LayoutWrapper>
+            <TemplateSelection />
+          </LayoutWrapper>
+        </ProtectedRoute>
+      )
+    },
+    {
+      path: "resume-editor",
+      Component: () => (
+        <ProtectedRoute>
+          <LayoutWrapper>
+            <ResumeEditor />
+          </LayoutWrapper>
+        </ProtectedRoute>
+      )
+    }
   ]);
 
   return <RouterProvider router={router} />;
