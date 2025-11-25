@@ -245,7 +245,7 @@ export const ResumeEditor: React.FC = () => {
       </div>
 
       {/* Hide scrollbar styles */}
-      <style jsx>{`
+      <style>{`
         .scrollbar-hide::-webkit-scrollbar {
           display: none;
         }

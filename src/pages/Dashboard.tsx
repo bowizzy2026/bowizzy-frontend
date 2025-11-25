@@ -1,5 +1,5 @@
 import DashNav from "@/components/dashnav/dashnav";
-import React from 'react';
+// import React from 'react';
 import { Users, Video, FileText, File, Briefcase, Sparkles } from 'lucide-react';
 
 // Mock data structure

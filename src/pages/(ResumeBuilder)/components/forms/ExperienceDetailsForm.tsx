@@ -112,6 +112,7 @@ export const ExperienceDetailsForm: React.FC<ExperienceDetailsFormProps> = ({ da
       endDate: '',
       currentlyWorking: false,
       description: '',
+      enabled: true,
     };
     onChange({
       ...data,

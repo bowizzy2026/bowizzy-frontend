@@ -266,7 +266,7 @@ const GiveMockInterview = () => {
     setBookingData({
       ...bookingData,
       uploadedResume: file.name,
-      selectedResume: 'uploaded' 
+       selectedResume: 0
     });
 
     console.log('='.repeat(80));
@@ -524,7 +524,7 @@ const GiveMockInterview = () => {
                   key={idx}
                   onClick={() => setBookingData({ ...bookingData, selectedResume: idx, uploadedResume: null })}
                   className={`rounded-lg p-3 border-2 ${
-                    bookingData.selectedResume === idx && !bookingData.uploadedResume
+                    bookingData.selectedResume === idx
                       ? 'border-[#F26D3A] bg-[#FFF9F5]'
                       : 'border-[#E5E5E5] bg-white'
                   }`}

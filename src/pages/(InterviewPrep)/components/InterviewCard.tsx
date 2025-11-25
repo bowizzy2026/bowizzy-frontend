@@ -6,8 +6,8 @@ interface InterviewCardProps {
     experience: string;
     date: string;
     time: string;
-    credits: number;
-    priority: string;
+    credits?: number;
+    priority?: string;
   };
   isScheduled: boolean;
   onViewDetails: () => void;
