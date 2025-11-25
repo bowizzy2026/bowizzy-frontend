@@ -13,7 +13,12 @@ export default function Login() {
     setError("");
 
     try {
-      const response = await api.post("/auth/login", { email, password });
+      const response = await api.post("/auth", {
+        type: "login",
+        email: email,
+        password: password,
+      });
+
       const data = response.data;
 
       localStorage.setItem(
@@ -24,12 +29,13 @@ export default function Login() {
           token: data.token,
         })
       );
-      
+
       navigate("/dashboard");
     } catch (err) {
       setError(err.response?.data?.message || "Login error");
     }
   };
+
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-50 font-['Baloo_2'] px-4">
