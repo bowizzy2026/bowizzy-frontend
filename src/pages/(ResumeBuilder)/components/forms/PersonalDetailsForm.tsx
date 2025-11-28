@@ -7,7 +7,7 @@ import {
   TagInput,
   FormSection,
 } from "@/pages/(ResumeBuilder)/components/ui";
-import RichTextEditor from "@/components/ui/RichTextEditor";
+import RichTextEditor from "@/pages/(ResumeBuilder)/components/ui/RichTextEditor";
 import { Lock } from "lucide-react";
 
 interface PersonalDetailsFormProps {

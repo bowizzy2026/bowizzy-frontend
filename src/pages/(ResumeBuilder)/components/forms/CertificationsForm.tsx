@@ -8,7 +8,7 @@ import {
   AddButton,
 } from "@/pages/(ResumeBuilder)/components/ui";
 import { Upload, X } from "lucide-react";
-import RichTextEditor from "@/components/ui/RichTextEditor";
+import RichTextEditor from "@/pages/(ResumeBuilder)/components/ui/RichTextEditor";
 
 interface CertificationsFormProps {
   data: Certificate[];

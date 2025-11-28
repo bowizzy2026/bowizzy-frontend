@@ -1,8 +1,15 @@
-import React from 'react';
-import type { ExperienceDetails, WorkExperience } from 'src/types/resume';
-import { FormInput, FormSelect, FormTextarea, FormSection, AddButton, ToggleSwitch } from '@/pages/(ResumeBuilder)/components/ui';
-import RichTextEditor from '@/components/ui/RichTextEditor';
-import { Calendar } from 'lucide-react';
+import React from "react";
+import type { ExperienceDetails, WorkExperience } from "src/types/resume";
+import {
+  FormInput,
+  FormSelect,
+  FormTextarea,
+  FormSection,
+  AddButton,
+  ToggleSwitch,
+} from "@/pages/(ResumeBuilder)/components/ui";
+import RichTextEditor from "@/pages/(ResumeBuilder)/components/ui/RichTextEditor";
+import { Calendar } from "lucide-react";
 
 interface ExperienceDetailsFormProps {
   data: ExperienceDetails;
@@ -10,41 +17,46 @@ interface ExperienceDetailsFormProps {
 }
 
 const employmentTypes = [
-  { value: 'Full-time', label: 'Full-time' },
-  { value: 'Part-time', label: 'Part-time' },
-  { value: 'Contract', label: 'Contract' },
-  { value: 'Internship', label: 'Internship' },
-  { value: 'Freelance', label: 'Freelance' },
+  { value: "Full-time", label: "Full-time" },
+  { value: "Part-time", label: "Part-time" },
+  { value: "Contract", label: "Contract" },
+  { value: "Internship", label: "Internship" },
+  { value: "Freelance", label: "Freelance" },
 ];
 
 const workModes = [
-  { value: 'On-site', label: 'On-site' },
-  { value: 'Remote', label: 'Remote' },
-  { value: 'Hybrid', label: 'Hybrid' },
+  { value: "On-site", label: "On-site" },
+  { value: "Remote", label: "Remote" },
+  { value: "Hybrid", label: "Hybrid" },
 ];
 
 const locations = [
-  { value: 'Bengaluru', label: 'Bengaluru' },
-  { value: 'Mumbai', label: 'Mumbai' },
-  { value: 'Delhi', label: 'Delhi' },
-  { value: 'Chennai', label: 'Chennai' },
-  { value: 'Hyderabad', label: 'Hyderabad' },
-  { value: 'Pune', label: 'Pune' },
-  { value: 'New York', label: 'New York' },
-  { value: 'San Francisco', label: 'San Francisco' },
+  { value: "Bengaluru", label: "Bengaluru" },
+  { value: "Mumbai", label: "Mumbai" },
+  { value: "Delhi", label: "Delhi" },
+  { value: "Chennai", label: "Chennai" },
+  { value: "Hyderabad", label: "Hyderabad" },
+  { value: "Pune", label: "Pune" },
+  { value: "New York", label: "New York" },
+  { value: "San Francisco", label: "San Francisco" },
 ];
 
-export const ExperienceDetailsForm: React.FC<ExperienceDetailsFormProps> = ({ data, onChange }) => {
+export const ExperienceDetailsForm: React.FC<ExperienceDetailsFormProps> = ({
+  data,
+  onChange,
+}) => {
   // Collapse state for each work experience
-  const [collapsedStates, setCollapsedStates] = React.useState<{ [key: string]: boolean }>({});
-  
+  const [collapsedStates, setCollapsedStates] = React.useState<{
+    [key: string]: boolean;
+  }>({});
+
   // Validation errors state
   const [errors, setErrors] = React.useState<{ [key: string]: string }>({});
 
   const toggleCollapse = (id: string) => {
-    setCollapsedStates(prev => ({
+    setCollapsedStates((prev) => ({
       ...prev,
-      [id]: !prev[id]
+      [id]: !prev[id],
     }));
   };
 
@@ -72,19 +84,23 @@ export const ExperienceDetailsForm: React.FC<ExperienceDetailsFormProps> = ({ da
     return "";
   };
 
-  const updateWorkExperience = (id: string, field: string, value: string | boolean) => {
+  const updateWorkExperience = (
+    id: string,
+    field: string,
+    value: string | boolean
+  ) => {
     const updatedExperiences = data.workExperiences.map((exp) =>
       exp.id === id ? { ...exp, [field]: value } : exp
     );
-    
+
     onChange({
       ...data,
       workExperiences: updatedExperiences,
     });
 
     // Find the updated experience for validation
-    const updatedExp = updatedExperiences.find(exp => exp.id === id);
-    
+    const updatedExp = updatedExperiences.find((exp) => exp.id === id);
+
     // Validate fields
     if (field === "companyName" && typeof value === "string") {
       const error = validateCompanyName(value);
@@ -92,7 +108,11 @@ export const ExperienceDetailsForm: React.FC<ExperienceDetailsFormProps> = ({ da
     } else if (field === "jobTitle" && typeof value === "string") {
       const error = validateJobTitle(value);
       setErrors((prev) => ({ ...prev, [`exp-${id}-jobTitle`]: error }));
-    } else if (field === "startDate" && typeof value === "string" && updatedExp) {
+    } else if (
+      field === "startDate" &&
+      typeof value === "string" &&
+      updatedExp
+    ) {
       const error = validateDateRange(value, updatedExp.endDate);
       setErrors((prev) => ({ ...prev, [`exp-${id}-endDate`]: error }));
     } else if (field === "endDate" && typeof value === "string" && updatedExp) {
@@ -104,15 +124,15 @@ export const ExperienceDetailsForm: React.FC<ExperienceDetailsFormProps> = ({ da
   const addWorkExperience = () => {
     const newExp: WorkExperience = {
       id: Date.now().toString(),
-      companyName: '',
-      jobTitle: '',
-      employmentType: '',
-      location: '',
-      workMode: '',
-      startDate: '',
-      endDate: '',
+      companyName: "",
+      jobTitle: "",
+      employmentType: "",
+      location: "",
+      workMode: "",
+      startDate: "",
+      endDate: "",
       currentlyWorking: false,
-      description: '',
+      description: "",
       enabled: true,
     };
     onChange({
@@ -128,7 +148,7 @@ export const ExperienceDetailsForm: React.FC<ExperienceDetailsFormProps> = ({ da
         workExperiences: data.workExperiences.filter((exp) => exp.id !== id),
       });
       // Clean up collapsed state
-      setCollapsedStates(prev => {
+      setCollapsedStates((prev) => {
         const newState = { ...prev };
         delete newState[id];
         return newState;
@@ -145,27 +165,34 @@ export const ExperienceDetailsForm: React.FC<ExperienceDetailsFormProps> = ({ da
   };
 
   const toggleWorkExperience = (id: string, enabled: boolean) => {
-  const updatedExperiences = data.workExperiences.map((exp) =>
-    exp.id === id ? { ...exp, enabled } : exp
-  );
+    const updatedExperiences = data.workExperiences.map((exp) =>
+      exp.id === id ? { ...exp, enabled } : exp
+    );
 
-  onChange({
-    ...data,
-    workExperiences: updatedExperiences,
-  });
-};
-
+    onChange({
+      ...data,
+      workExperiences: updatedExperiences,
+    });
+  };
 
   return (
     <div className="flex flex-col gap-5">
       {data.workExperiences.map((exp, index) => (
         <FormSection
           key={exp.id}
-          title={`Work Experience ${data.workExperiences.length > 1 ? index + 1 : ''}`}
+          title={`Work Experience ${
+            data.workExperiences.length > 1 ? index + 1 : ""
+          }`}
           showToggle={true}
           enabled={exp.enabled}
-          onToggle={(enabled) => updateWorkExperience(exp.id, 'enabled', enabled)}
-          onRemove={data.workExperiences.length > 1 ? () => removeWorkExperience(exp.id) : undefined}
+          onToggle={(enabled) =>
+            updateWorkExperience(exp.id, "enabled", enabled)
+          }
+          onRemove={
+            data.workExperiences.length > 1
+              ? () => removeWorkExperience(exp.id)
+              : undefined
+          }
           showActions={true}
           isCollapsed={collapsedStates[exp.id] || false}
           onCollapseToggle={() => toggleCollapse(exp.id)}
@@ -174,7 +201,7 @@ export const ExperienceDetailsForm: React.FC<ExperienceDetailsFormProps> = ({ da
             label="Company Name"
             placeholder="Enter Company Name"
             value={exp.companyName}
-            onChange={(v) => updateWorkExperience(exp.id, 'companyName', v)}
+            onChange={(v) => updateWorkExperience(exp.id, "companyName", v)}
             error={errors[`exp-${exp.id}-companyName`]}
           />
 
@@ -183,14 +210,16 @@ export const ExperienceDetailsForm: React.FC<ExperienceDetailsFormProps> = ({ da
               label="Job Title / Role"
               placeholder="Enter Job Title"
               value={exp.jobTitle}
-              onChange={(v) => updateWorkExperience(exp.id, 'jobTitle', v)}
+              onChange={(v) => updateWorkExperience(exp.id, "jobTitle", v)}
               error={errors[`exp-${exp.id}-jobTitle`]}
             />
             <FormSelect
               label="Employment Type"
               placeholder="Select Employment Type"
               value={exp.employmentType}
-              onChange={(v) => updateWorkExperience(exp.id, 'employmentType', v)}
+              onChange={(v) =>
+                updateWorkExperience(exp.id, "employmentType", v)
+              }
               options={employmentTypes}
             />
           </div>
@@ -200,14 +229,14 @@ export const ExperienceDetailsForm: React.FC<ExperienceDetailsFormProps> = ({ da
               label="Location"
               placeholder="Select Location"
               value={exp.location}
-              onChange={(v) => updateWorkExperience(exp.id, 'location', v)}
+              onChange={(v) => updateWorkExperience(exp.id, "location", v)}
               options={locations}
             />
             <FormSelect
               label="Work Mode"
               placeholder="Select Work Mode"
               value={exp.workMode}
-              onChange={(v) => updateWorkExperience(exp.id, 'workMode', v)}
+              onChange={(v) => updateWorkExperience(exp.id, "workMode", v)}
               options={workModes}
             />
           </div>
@@ -218,7 +247,7 @@ export const ExperienceDetailsForm: React.FC<ExperienceDetailsFormProps> = ({ da
                 label="Start Date"
                 placeholder="Select Start Date"
                 value={exp.startDate}
-                onChange={(v) => updateWorkExperience(exp.id, 'startDate', v)}
+                onChange={(v) => updateWorkExperience(exp.id, "startDate", v)}
                 type="month"
               />
             </div>
@@ -227,7 +256,7 @@ export const ExperienceDetailsForm: React.FC<ExperienceDetailsFormProps> = ({ da
                 label="End Date"
                 placeholder="Select End Date"
                 value={exp.endDate}
-                onChange={(v) => updateWorkExperience(exp.id, 'endDate', v)}
+                onChange={(v) => updateWorkExperience(exp.id, "endDate", v)}
                 type="month"
                 disabled={exp.currentlyWorking}
                 error={errors[`exp-${exp.id}-endDate`]}
@@ -240,10 +269,19 @@ export const ExperienceDetailsForm: React.FC<ExperienceDetailsFormProps> = ({ da
               type="checkbox"
               id={`currentlyWorking-${exp.id}`}
               checked={exp.currentlyWorking}
-              onChange={(e) => updateWorkExperience(exp.id, 'currentlyWorking', e.target.checked)}
+              onChange={(e) =>
+                updateWorkExperience(
+                  exp.id,
+                  "currentlyWorking",
+                  e.target.checked
+                )
+              }
               className="w-4 h-4 text-orange-400 border-gray-300 rounded focus:ring-orange-400"
             />
-            <label htmlFor={`currentlyWorking-${exp.id}`} className="text-sm text-gray-600">
+            <label
+              htmlFor={`currentlyWorking-${exp.id}`}
+              className="text-sm text-gray-600"
+            >
               Currently Working here
             </label>
           </div>
@@ -254,7 +292,7 @@ export const ExperienceDetailsForm: React.FC<ExperienceDetailsFormProps> = ({ da
             </label>
             <RichTextEditor
               value={exp.description}
-              onChange={(v) => updateWorkExperience(exp.id, 'description', v)}
+              onChange={(v) => updateWorkExperience(exp.id, "description", v)}
               placeholder="Provide Description / Projects of your Work"
               rows={4}
             />

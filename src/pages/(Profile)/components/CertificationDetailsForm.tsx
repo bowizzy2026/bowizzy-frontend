@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { uploadToCloudinary } from "@/utils/uploadToCloudinary";
 import { deleteFromCloudinary } from "@/utils/deleteFromCloudinary";
-import RichTextEditor from "@/components/ui/RichTextEditor";
+import RichTextEditor from "@/pages/(ResumeBuilder)/components/ui/RichTextEditor";
 
 import {
   updateCertificateDetails,
@@ -802,11 +802,7 @@ export default function CertificationDetailsForm({
                 <RichTextEditor
                   value={certificate.description}
                   onChange={(value) =>
-                    handleCertificateChange(
-                      index,
-                      "description",
-                      value
-                    )
+                    handleCertificateChange(index, "description", value)
                   }
                   placeholder="Provide Description..."
                   rows={5}

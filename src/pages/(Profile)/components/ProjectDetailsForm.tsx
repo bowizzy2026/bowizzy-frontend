@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
 import { ChevronDown, RotateCcw, Trash2, Plus, Save } from "lucide-react";
-import { 
+import {
   getProjectsByUserId,
-  saveProjectsDetails, 
-  updateProjectDetails, 
-  deleteProject
+  saveProjectsDetails,
+  updateProjectDetails,
+  deleteProject,
 } from "@/services/projectService";
-import RichTextEditor from "@/components/ui/RichTextEditor";
+import RichTextEditor from "@/pages/(ResumeBuilder)/components/ui/RichTextEditor";
 
 interface ProjectDetailsFormProps {
   onNext: (data: any) => void;
@@ -37,38 +37,45 @@ export default function ProjectDetailsForm({
   token,
 }: ProjectDetailsFormProps) {
   // Initialize projects, ensuring at least one card is present
-  const initialProjects: Project[] = initialData.projects && initialData.projects.length > 0 
-    ? initialData.projects.map((p: any) => ({
-        ...p,
-        id: p.id || p.project_id?.toString() || Date.now().toString(),
-        isExpanded: p.isExpanded ?? false,
-      }))
-    : [{
-        id: "1",
-        projectTitle: "",
-        projectType: "",
-        startDate: "",
-        endDate: "",
-        currentlyWorking: false,
-        description: "",
-        rolesAndResponsibilities: "",
-        isExpanded: true,
-      }];
+  const initialProjects: Project[] =
+    initialData.projects && initialData.projects.length > 0
+      ? initialData.projects.map((p: any) => ({
+          ...p,
+          id: p.id || p.project_id?.toString() || Date.now().toString(),
+          isExpanded: p.isExpanded ?? false,
+        }))
+      : [
+          {
+            id: "1",
+            projectTitle: "",
+            projectType: "",
+            startDate: "",
+            endDate: "",
+            currentlyWorking: false,
+            description: "",
+            rolesAndResponsibilities: "",
+            isExpanded: true,
+          },
+        ];
 
   const [projects, setProjects] = useState<Project[]>(initialProjects);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
-  
+
   // State for tracking changes and feedback
-  const [projectChanges, setProjectChanges] = useState<Record<string, string[]>>({});
-  const [projectFeedback, setProjectFeedback] = useState<Record<string, string>>({});
-  
+  const [projectChanges, setProjectChanges] = useState<
+    Record<string, string[]>
+  >({});
+  const [projectFeedback, setProjectFeedback] = useState<
+    Record<string, string>
+  >({});
+
   // Refs for tracking initial data and deleted IDs
   const initialProjectsRef = useRef<Record<string, Project>>({});
   const deletedProjectIds = useRef<number[]>([]);
 
   // Initialize refs on mount
   useEffect(() => {
-    projects.forEach(p => {
+    projects.forEach((p) => {
       initialProjectsRef.current[p.id] = { ...p };
     });
   }, []);
@@ -76,24 +83,34 @@ export default function ProjectDetailsForm({
   // Check Project changes
   useEffect(() => {
     const changes: Record<string, string[]> = {};
-    projects.forEach(current => {
+    projects.forEach((current) => {
       const initial = initialProjectsRef.current[current.id];
       const changedFields: string[] = [];
-      
+
       // Compare fields
-      if (current.projectTitle !== (initial?.projectTitle || "")) changedFields.push('projectTitle');
-      if (current.projectType !== (initial?.projectType || "")) changedFields.push('projectType');
-      if (current.startDate !== (initial?.startDate || "")) changedFields.push('startDate');
-      if (current.endDate !== (initial?.endDate || "")) changedFields.push('endDate');
-      if (current.currentlyWorking !== (initial?.currentlyWorking || false)) changedFields.push('currentlyWorking');
-      if (current.description !== (initial?.description || "")) changedFields.push('description');
-      if (current.rolesAndResponsibilities !== (initial?.rolesAndResponsibilities || "")) changedFields.push('rolesAndResponsibilities');
-      
+      if (current.projectTitle !== (initial?.projectTitle || ""))
+        changedFields.push("projectTitle");
+      if (current.projectType !== (initial?.projectType || ""))
+        changedFields.push("projectType");
+      if (current.startDate !== (initial?.startDate || ""))
+        changedFields.push("startDate");
+      if (current.endDate !== (initial?.endDate || ""))
+        changedFields.push("endDate");
+      if (current.currentlyWorking !== (initial?.currentlyWorking || false))
+        changedFields.push("currentlyWorking");
+      if (current.description !== (initial?.description || ""))
+        changedFields.push("description");
+      if (
+        current.rolesAndResponsibilities !==
+        (initial?.rolesAndResponsibilities || "")
+      )
+        changedFields.push("rolesAndResponsibilities");
+
       if (changedFields.length > 0) {
         changes[current.id] = changedFields;
       } else if (!current.project_id && current.projectTitle) {
-         // Treat new/unsaved card as 'changed' if title is filled
-         changes[current.id] = ['new'];
+        // Treat new/unsaved card as 'changed' if title is filled
+        changes[current.id] = ["new"];
       }
     });
     setProjectChanges(changes);
@@ -115,11 +132,12 @@ export default function ProjectDetailsForm({
     }
     return "";
   };
-  
+
   // Helper to format date for API payload (YYYY-MM to YYYY-MM-01)
   const normalizeMonthToDate = (val: string): string | null => {
     if (!val) return null;
-    if (typeof val === "string" && /^\d{4}-\d{2}$/.test(val)) return `${val}-01`;
+    if (typeof val === "string" && /^\d{4}-\d{2}$/.test(val))
+      return `${val}-01`;
     return val;
   };
 
@@ -131,14 +149,14 @@ export default function ProjectDetailsForm({
   ) => {
     const updated = [...projects];
     updated[index] = { ...updated[index], [field]: value, isExpanded: true };
-    
-    if (field === 'currentlyWorking' && value === true) {
-        updated[index].endDate = "";
-        setErrors((prevErrors) => {
-            const newErrors = { ...prevErrors };
-            delete newErrors[`project-${index}-endDate`];
-            return newErrors;
-        });
+
+    if (field === "currentlyWorking" && value === true) {
+      updated[index].endDate = "";
+      setErrors((prevErrors) => {
+        const newErrors = { ...prevErrors };
+        delete newErrors[`project-${index}-endDate`];
+        return newErrors;
+      });
     }
 
     setProjects(updated);
@@ -146,7 +164,10 @@ export default function ProjectDetailsForm({
     // Validation logic
     if (field === "projectTitle" && typeof value === "string") {
       const error = validateProjectTitle(value);
-      setErrors((prev) => ({ ...prev, [`project-${index}-projectTitle`]: error }));
+      setErrors((prev) => ({
+        ...prev,
+        [`project-${index}-projectTitle`]: error,
+      }));
     } else if (field === "startDate" && typeof value === "string") {
       const error = validateDateRange(value, updated[index].endDate);
       setErrors((prev) => ({ ...prev, [`project-${index}-endDate`]: error }));
@@ -158,11 +179,11 @@ export default function ProjectDetailsForm({
 
   // Handler for saving individual Project card (PUT/POST call)
   const handleSaveProject = async (project: Project) => {
-    const isNew = !project.project_id; 
+    const isNew = !project.project_id;
     const projectChangesList = projectChanges[project.id];
-    const index = projects.findIndex(p => p.id === project.id);
+    const index = projects.findIndex((p) => p.id === project.id);
     const prefix = `project-${index}`;
-    
+
     // Check local validation errors
     if (errors[`${prefix}-projectTitle`] || errors[`${prefix}-endDate`]) return;
 
@@ -172,90 +193,170 @@ export default function ProjectDetailsForm({
       if (isNew) {
         // New record, construct full payload for POST
         const projectPayload = {
-            project_title: project.projectTitle || "",
-            project_type: project.projectType || "",
-            start_date: normalizeMonthToDate(project.startDate),
-            end_date: normalizeMonthToDate(project.endDate),
-            currently_working: project.currentlyWorking,
-            description: project.description || "",
-            roles_responsibilities: project.rolesAndResponsibilities || "",
+          project_title: project.projectTitle || "",
+          project_type: project.projectType || "",
+          start_date: normalizeMonthToDate(project.startDate),
+          end_date: normalizeMonthToDate(project.endDate),
+          currently_working: project.currentlyWorking,
+          description: project.description || "",
+          roles_responsibilities: project.rolesAndResponsibilities || "",
         };
 
         // Skip saving empty new cards
         if (!project.projectTitle) {
-            setProjectFeedback(prev => ({ ...prev, [project.id]: "Project Title is required to save." }));
-            setTimeout(() => setProjectFeedback(prev => { const updated = { ...prev }; delete updated[project.id]; return updated; }), 3000);
-            return;
+          setProjectFeedback((prev) => ({
+            ...prev,
+            [project.id]: "Project Title is required to save.",
+          }));
+          setTimeout(
+            () =>
+              setProjectFeedback((prev) => {
+                const updated = { ...prev };
+                delete updated[project.id];
+                return updated;
+              }),
+            3000
+          );
+          return;
         }
 
-        const response = await saveProjectsDetails(userId, token, [projectPayload]);
-        
+        const response = await saveProjectsDetails(userId, token, [
+          projectPayload,
+        ]);
+
         // The API POST response is an array of created objects
         const newProjectId = response?.[0]?.project_id;
 
         if (newProjectId) {
-            const updatedProject: Project = { ...project, project_id: newProjectId };
-            
-            // Update local state and refs
-            setProjects(prev => prev.map(p => p.id === project.id ? updatedProject : p));
-            initialProjectsRef.current[project.id] = updatedProject;
-            
-            setProjectFeedback(prev => ({ ...prev, [project.id]: "Saved successfully!" }));
+          const updatedProject: Project = {
+            ...project,
+            project_id: newProjectId,
+          };
+
+          // Update local state and refs
+          setProjects((prev) =>
+            prev.map((p) => (p.id === project.id ? updatedProject : p))
+          );
+          initialProjectsRef.current[project.id] = updatedProject;
+
+          setProjectFeedback((prev) => ({
+            ...prev,
+            [project.id]: "Saved successfully!",
+          }));
         } else {
-            console.warn("POST successful but failed to retrieve new project_id.");
-            setProjectFeedback(prev => ({ ...prev, [project.id]: "Saved successfully, but ID retrieval failed (relying on next step sync)." }));
+          console.warn(
+            "POST successful but failed to retrieve new project_id."
+          );
+          setProjectFeedback((prev) => ({
+            ...prev,
+            [project.id]:
+              "Saved successfully, but ID retrieval failed (relying on next step sync).",
+          }));
         }
 
-        setProjectChanges(prev => { const updated = { ...prev }; delete updated[project.id]; return updated; });
-        
-
+        setProjectChanges((prev) => {
+          const updated = { ...prev };
+          delete updated[project.id];
+          return updated;
+        });
       } else {
         // Existing record (PUT logic)
         if (!projectChangesList || projectChangesList.length === 0) {
-            setProjectFeedback(prev => ({ ...prev, [project.id]: "No changes to save." }));
-            setTimeout(() => setProjectFeedback(prev => { const updated = { ...prev }; delete updated[project.id]; return updated; }), 3000);
-            return;
+          setProjectFeedback((prev) => ({
+            ...prev,
+            [project.id]: "No changes to save.",
+          }));
+          setTimeout(
+            () =>
+              setProjectFeedback((prev) => {
+                const updated = { ...prev };
+                delete updated[project.id];
+                return updated;
+              }),
+            3000
+          );
+          return;
         }
 
         const minimalPayload: Record<string, any> = {};
-        
-        projectChangesList.forEach(field => {
-          switch(field) {
-            case 'projectTitle': minimalPayload.project_title = project.projectTitle; break;
-            case 'projectType': minimalPayload.project_type = project.projectType; break;
-            case 'startDate': minimalPayload.start_date = normalizeMonthToDate(project.startDate); break;
-            case 'endDate': minimalPayload.end_date = normalizeMonthToDate(project.endDate); break;
-            case 'description': minimalPayload.description = project.description; break;
-            case 'rolesAndResponsibilities': minimalPayload.roles_responsibilities = project.rolesAndResponsibilities; break;
-            case 'currentlyWorking': minimalPayload.currently_working = project.currentlyWorking; break;
+
+        projectChangesList.forEach((field) => {
+          switch (field) {
+            case "projectTitle":
+              minimalPayload.project_title = project.projectTitle;
+              break;
+            case "projectType":
+              minimalPayload.project_type = project.projectType;
+              break;
+            case "startDate":
+              minimalPayload.start_date = normalizeMonthToDate(
+                project.startDate
+              );
+              break;
+            case "endDate":
+              minimalPayload.end_date = normalizeMonthToDate(project.endDate);
+              break;
+            case "description":
+              minimalPayload.description = project.description;
+              break;
+            case "rolesAndResponsibilities":
+              minimalPayload.roles_responsibilities =
+                project.rolesAndResponsibilities;
+              break;
+            case "currentlyWorking":
+              minimalPayload.currently_working = project.currentlyWorking;
+              break;
           }
         });
-        
+
         // Handle date logic when currentlyWorking changes
         if (minimalPayload.currently_working === true) {
-             minimalPayload.end_date = null;
+          minimalPayload.end_date = null;
         } else if (minimalPayload.currently_working === false) {
-             minimalPayload.end_date = normalizeMonthToDate(project.endDate);
+          minimalPayload.end_date = normalizeMonthToDate(project.endDate);
         }
-        
-        await updateProjectDetails(userId, token, project.project_id!, minimalPayload);
-        
+
+        await updateProjectDetails(
+          userId,
+          token,
+          project.project_id!,
+          minimalPayload
+        );
+
         // Update local state and refs
         initialProjectsRef.current[project.id] = { ...project };
-        setProjectChanges(prev => { const updated = { ...prev }; delete updated[project.id]; return updated; });
-        setProjectFeedback(prev => ({ ...prev, [project.id]: "Updated successfully!" }));
+        setProjectChanges((prev) => {
+          const updated = { ...prev };
+          delete updated[project.id];
+          return updated;
+        });
+        setProjectFeedback((prev) => ({
+          ...prev,
+          [project.id]: "Updated successfully!",
+        }));
       }
 
       // Clear general feedback after 3 seconds
       setTimeout(() => {
-        setProjectFeedback(prev => { const updated = { ...prev }; delete updated[project.id]; return updated; });
+        setProjectFeedback((prev) => {
+          const updated = { ...prev };
+          delete updated[project.id];
+          return updated;
+        });
       }, 3000);
-
     } catch (error) {
       console.error("Error saving project:", error);
       const feedback = isNew ? "Failed to save." : "Failed to update.";
-      setProjectFeedback(prev => ({ ...prev, [project.id]: feedback }));
-      setTimeout(() => setProjectFeedback(prev => { const updated = { ...prev }; delete updated[project.id]; return updated; }), 3000);
+      setProjectFeedback((prev) => ({ ...prev, [project.id]: feedback }));
+      setTimeout(
+        () =>
+          setProjectFeedback((prev) => {
+            const updated = { ...prev };
+            delete updated[project.id];
+            return updated;
+          }),
+        3000
+      );
     }
   };
 
@@ -274,7 +375,7 @@ export default function ProjectDetailsForm({
     const project = projects[index];
     const initial = initialProjectsRef.current[project.id];
     const updated = [...projects];
-    
+
     updated[index] = {
       ...project,
       projectTitle: initial?.projectTitle || "",
@@ -285,20 +386,28 @@ export default function ProjectDetailsForm({
       description: initial?.description || "",
       rolesAndResponsibilities: initial?.rolesAndResponsibilities || "",
     };
-    
+
     setProjects(updated);
 
     // Clear changes and errors for this project
-    setProjectChanges(prev => { const updatedChanges = { ...prev }; delete updatedChanges[project.id]; return updatedChanges; });
+    setProjectChanges((prev) => {
+      const updatedChanges = { ...prev };
+      delete updatedChanges[project.id];
+      return updatedChanges;
+    });
     setErrors((prev) => {
       const newErrors = { ...prev };
       delete newErrors[`project-${index}-projectTitle`];
       delete newErrors[`project-${index}-endDate`];
       return newErrors;
     });
-    setProjectFeedback(prev => { const updated = { ...prev }; delete updated[project.id]; return updated; });
+    setProjectFeedback((prev) => {
+      const updated = { ...prev };
+      delete updated[project.id];
+      return updated;
+    });
   };
-  
+
   // Handler for creating a new empty card
   const addProject = () => {
     const newProject: Project = {
@@ -318,36 +427,62 @@ export default function ProjectDetailsForm({
   // Handler for removing an experience card and performing DELETE API call if necessary
   const removeProject = async (index: number) => {
     const project = projects[index];
-    
-    if (projects.length === 1) return; 
+
+    if (projects.length === 1) return;
 
     if (project.project_id) {
       try {
         await deleteProject(userId, token, project.project_id);
         deletedProjectIds.current.push(project.project_id);
-        setProjectFeedback(prev => ({ ...prev, [project.id]: "Deleted successfully!" }));
-        setTimeout(() => setProjectFeedback(prev => { const updated = { ...prev }; delete updated[project.id]; return updated; }), 3000);
+        setProjectFeedback((prev) => ({
+          ...prev,
+          [project.id]: "Deleted successfully!",
+        }));
+        setTimeout(
+          () =>
+            setProjectFeedback((prev) => {
+              const updated = { ...prev };
+              delete updated[project.id];
+              return updated;
+            }),
+          3000
+        );
       } catch (error) {
         console.error("Error deleting project:", error);
-        setProjectFeedback(prev => ({ ...prev, [project.id]: "Failed to delete." }));
-        setTimeout(() => setProjectFeedback(prev => { const updated = { ...prev }; delete updated[project.id]; return updated; }), 3000);
+        setProjectFeedback((prev) => ({
+          ...prev,
+          [project.id]: "Failed to delete.",
+        }));
+        setTimeout(
+          () =>
+            setProjectFeedback((prev) => {
+              const updated = { ...prev };
+              delete updated[project.id];
+              return updated;
+            }),
+          3000
+        );
         return; // Stop removal if API call fails
       }
     }
-    
+
     // Remove from state and clear associated data/errors
     const id = project.id;
     setProjects(projects.filter((_, i) => i !== index));
     delete initialProjectsRef.current[id];
-    setProjectChanges(prev => { const updated = { ...prev }; delete updated[id]; return updated; });
-    
+    setProjectChanges((prev) => {
+      const updated = { ...prev };
+      delete updated[id];
+      return updated;
+    });
+
     // Clear errors for removed project
     setErrors((prev) => {
       const newErrors = { ...prev };
-      Object.keys(newErrors).forEach(key => {
-          if (key.startsWith(`project-${index}-`)) {
-              delete newErrors[key];
-          }
+      Object.keys(newErrors).forEach((key) => {
+        if (key.startsWith(`project-${index}-`)) {
+          delete newErrors[key];
+        }
       });
       return newErrors;
     });
@@ -355,22 +490,35 @@ export default function ProjectDetailsForm({
 
   // Check if there are any unsaved changes in any section
   const hasUnsavedChanges = Object.keys(projectChanges).length > 0;
-  
+
   // Final submission handler
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (hasUnsavedChanges) {
-        Object.keys(projectChanges).forEach(id => {
-            setProjectFeedback(prev => ({ ...prev, [id]: "Please save your changes before proceeding" }));
-            setTimeout(() => setProjectFeedback(prev => { const updated = { ...prev }; delete updated[id]; return updated; }), 3000);
-        });
-        return;
+      Object.keys(projectChanges).forEach((id) => {
+        setProjectFeedback((prev) => ({
+          ...prev,
+          [id]: "Please save your changes before proceeding",
+        }));
+        setTimeout(
+          () =>
+            setProjectFeedback((prev) => {
+              const updated = { ...prev };
+              delete updated[id];
+              return updated;
+            }),
+          3000
+        );
+      });
+      return;
     }
-    
+
     // Filter out completely empty cards before sending to next step
-    const validProjects = projects.filter(p => p.projectTitle || p.project_id);
-    
+    const validProjects = projects.filter(
+      (p) => p.projectTitle || p.project_id
+    );
+
     onNext({
       projects: validProjects,
       deletedProjectIds: deletedProjectIds.current,
@@ -393,18 +541,18 @@ export default function ProjectDetailsForm({
             Project {index + 1}
           </h3>
           <div className="flex gap-2 items-center">
-             {changed && (
-                <button
-                    type="button"
-                    onClick={() => handleSaveProject(project)}
-                    className="w-5 h-5 flex items-center justify-center rounded-full border-2 border-green-600 hover:bg-green-50 transition-colors"
-                    title="Save changes"
-                >
-                    <Save
-                        className="w-3 h-3 text-green-600 cursor-pointer"
-                        strokeWidth={2.5}
-                    />
-                </button>
+            {changed && (
+              <button
+                type="button"
+                onClick={() => handleSaveProject(project)}
+                className="w-5 h-5 flex items-center justify-center rounded-full border-2 border-green-600 hover:bg-green-50 transition-colors"
+                title="Save changes"
+              >
+                <Save
+                  className="w-3 h-3 text-green-600 cursor-pointer"
+                  strokeWidth={2.5}
+                />
+              </button>
             )}
             <button
               type="button"
@@ -443,11 +591,15 @@ export default function ProjectDetailsForm({
             )}
           </div>
         </div>
-        
+
         {feedback && (
-          <div className={`p-4 text-sm ${
-            feedback.includes("successfully") ? "bg-green-50 text-green-700 border border-green-200" : "bg-red-50 text-red-700 border border-red-200"
-          }`}>
+          <div
+            className={`p-4 text-sm ${
+              feedback.includes("successfully")
+                ? "bg-green-50 text-green-700 border border-green-200"
+                : "bg-red-50 text-red-700 border border-red-200"
+            }`}
+          >
             {feedback}
           </div>
         )}
@@ -492,7 +644,11 @@ export default function ProjectDetailsForm({
                     <select
                       value={project.projectType}
                       onChange={(e) =>
-                        handleProjectChange(index, "projectType", e.target.value)
+                        handleProjectChange(
+                          index,
+                          "projectType",
+                          e.target.value
+                        )
                       }
                       className="w-full px-3 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent text-xs sm:text-sm appearance-none bg-white pr-8"
                     >
@@ -616,7 +772,10 @@ export default function ProjectDetailsForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="px-3 sm:px-4 md:px-6 lg:px-8 py-4 md:py-6">
+    <form
+      onSubmit={handleSubmit}
+      className="px-3 sm:px-4 md:px-6 lg:px-8 py-4 md:py-6"
+    >
       <div className="max-w-6xl mx-auto">
         {/* Step Header */}
         <div className="mb-4 md:mb-6">
@@ -655,7 +814,9 @@ export default function ProjectDetailsForm({
             type="submit"
             disabled={hasUnsavedChanges}
             style={{
-              background: hasUnsavedChanges ? "#BDBDBD" : "linear-gradient(180deg, #FF9D48 0%, #FF8251 100%)",
+              background: hasUnsavedChanges
+                ? "#BDBDBD"
+                : "linear-gradient(180deg, #FF9D48 0%, #FF8251 100%)",
             }}
             className="px-6 sm:px-8 py-2.5 sm:py-3 bg-orange-400 hover:bg-orange-500 text-white rounded-xl font-medium text-xs sm:text-sm transition-colors shadow-sm cursor-pointer disabled:cursor-not-allowed"
           >
