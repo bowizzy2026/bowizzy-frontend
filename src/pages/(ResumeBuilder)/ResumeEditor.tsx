@@ -12,6 +12,7 @@ import type { ResumeData } from "../../types/resume";
 import DashNav from "@/components/dashnav/dashnav";
 import { getTemplateById } from "@/templates/templateRegistry";
 import ResumePreviewModal from "./components/ui/ResumePreviewModal";
+import { getPersonalDetailsByUserId } from "@/services/personalService";
 
 const steps = [
   "Personal",
@@ -47,7 +48,6 @@ export const ResumeEditor: React.FC = () => {
   const resumeId = searchParams.get("resumeId");
   const [currentPreviewPage, setCurrentPreviewPage] = useState(0);
 
-
   const [currentStep, setCurrentStep] = useState(0);
   const [resumeData, setResumeData] = useState<ResumeData>(initialResumeData);
   const [validationErrors, setValidationErrors] = useState<{
@@ -55,6 +55,29 @@ export const ResumeEditor: React.FC = () => {
   }>({});
   const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [loading, setLoading] = useState(true);
+  
+  // Auth data from localStorage
+  const [userId, setUserId] = useState<string>("");
+  const [token, setToken] = useState<string>("");
+  const [personalDetailsId, setPersonalDetailsId] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Get user data from localStorage
+    const userDataStr = localStorage.getItem("user");
+    if (userDataStr) {
+      try {
+        const userData = JSON.parse(userDataStr);
+        setUserId(userData.user_id);
+        setToken(userData.token);
+      } catch (error) {
+        console.error("Error parsing user data:", error);
+        navigate("/login");
+      }
+    } else {
+      navigate("/login");
+    }
+  }, [navigate]);
 
   useEffect(() => {
     // Load template
@@ -62,14 +85,60 @@ export const ResumeEditor: React.FC = () => {
       const template = getTemplateById(templateId);
       setSelectedTemplate(template);
     }
+  }, [templateId]);
 
-    // Load existing resume data if resumeId exists
-    if (resumeId) {
-      // TODO: Fetch resume data from API
-      // const data = await fetchResumeData(resumeId);
-      // setResumeData(data);
-    }
-  }, [templateId, resumeId]);
+  useEffect(() => {
+    // Fetch personal details when userId and token are available
+    const fetchPersonalDetails = async () => {
+      if (!userId || !token) return;
+
+      try {
+        setLoading(true);
+        
+        const response = await getPersonalDetailsByUserId(userId, token);
+        console.log(response)
+        if (response) {
+          // Map backend response to frontend structure
+          const personalData = {
+            profilePhotoUrl: response.profile_photo_url || "",
+            firstName: response.first_name || "",
+            middleName: response.middle_name || "",
+            lastName: response.last_name || "",
+            email: response.email || "",
+            mobileNumber: response.mobile_number || "",
+            dateOfBirth: response.date_of_birth || "",
+            gender: response.gender ? response.gender.charAt(0).toUpperCase() + response.gender.slice(1) : "",
+            languagesKnown: response.languages_known || [],
+            address: response.address || "",
+            country: response.country || "India",
+            state: response.state || "",
+            city: response.city || "",
+            pincode: response.pincode || "",
+            nationality: response.nationality || "",
+            passportNumber: response.passport_number || "",
+            aboutCareerObjective: response.about || "",
+          };
+
+          setResumeData((prev) => ({
+            ...prev,
+            personal: personalData,
+          }));
+
+          // console.log(personalData);
+
+          // Store personal_details_id for future updates
+          setPersonalDetailsId(response.personal_id || null);
+        }
+      } catch (error) {
+        console.error("Error fetching personal details:", error);
+        // If 404, it means no data exists yet - that's okay
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPersonalDetails();
+  }, [userId, token]);
 
   const handleStepClick = (stepIndex: number) => {
     setCurrentStep(stepIndex);
@@ -121,12 +190,27 @@ export const ResumeEditor: React.FC = () => {
   };
 
   const renderCurrentForm = () => {
+    // Show loading state while fetching data
+    if (loading && currentStep === 0) {
+      return (
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-gray-300 border-t-orange-400"></div>
+            <p className="mt-4 text-gray-600">Loading personal details...</p>
+          </div>
+        </div>
+      );
+    }
+
     switch (currentStep) {
       case 0:
         return (
           <PersonalDetailsForm
             data={resumeData.personal}
             onChange={updatePersonalData}
+            userId={userId}
+            token={token}
+            personalDetailsId={personalDetailsId}
           />
         );
       case 1:
@@ -169,22 +253,16 @@ export const ResumeEditor: React.FC = () => {
     }
   };
 
-
   const handlePageChange = (direction: "next" | "prev") => {
     if (!selectedTemplate) return;
     const totalPages = selectedTemplate.pageCount || 1;
 
     if (direction === "next") {
-      setCurrentPreviewPage((prev) =>
-        prev < totalPages - 1 ? prev + 1 : prev
-      );
+      setCurrentPreviewPage((prev) => (prev < totalPages - 1 ? prev + 1 : prev));
     } else {
-      setCurrentPreviewPage((prev) =>
-        prev > 0 ? prev - 1 : prev
-      );
+      setCurrentPreviewPage((prev) => (prev > 0 ? prev - 1 : prev));
     }
   };
-
 
   // Render template preview
   const renderTemplatePreview = () => {
@@ -197,13 +275,7 @@ export const ResumeEditor: React.FC = () => {
     }
 
     const TemplateComponent = selectedTemplate.component;
-      return (
-        <TemplateComponent
-          data={resumeData}
-          page={currentPreviewPage}   // pass page number
-        />
-      );
-
+    return <TemplateComponent data={resumeData} page={currentPreviewPage} />;
   };
 
   return (
@@ -259,40 +331,40 @@ export const ResumeEditor: React.FC = () => {
             <div className="hidden lg:flex lg:w-[50%] bg-white overflow-auto scrollbar-hide">
               <div className="flex-1 p-4 overflow-auto scrollbar-hide border border-gray-300 m-4 rounded-lg">
                 <div className="relative w-full h-full flex items-start justify-center">
-  
-                {/* Pagination Top Right */}
-                {selectedTemplate && (
-                  <div className="absolute top-2 right-4 flex items-center gap-3 bg-white px-3 py-1 rounded-full shadow-md text-sm font-medium">
-                    <button
-                      onClick={() => handlePageChange("prev")}
-                      className="px-2 py-1 disabled:opacity-30"
-                      disabled={currentPreviewPage === 0}
-                    >
-                      ◀
-                    </button>
+                  {/* Pagination Top Right */}
+                  {selectedTemplate && (
+                    <div className="absolute top-2 right-4 flex items-center gap-3 bg-white px-3 py-1 rounded-full shadow-md text-sm font-medium">
+                      <button
+                        onClick={() => handlePageChange("prev")}
+                        className="px-2 py-1 disabled:opacity-30"
+                        disabled={currentPreviewPage === 0}
+                      >
+                        ◀
+                      </button>
 
-                    <div>
-                      {currentPreviewPage + 1} / {selectedTemplate.pageCount || 1}
+                      <div>
+                        {currentPreviewPage + 1} /{" "}
+                        {selectedTemplate.pageCount || 1}
+                      </div>
+
+                      <button
+                        onClick={() => handlePageChange("next")}
+                        className="px-2 py-1 disabled:opacity-30"
+                        disabled={
+                          currentPreviewPage ===
+                          (selectedTemplate.pageCount || 1) - 1
+                        }
+                      >
+                        ▶
+                      </button>
                     </div>
+                  )}
 
-                    <button
-                      onClick={() => handlePageChange("next")}
-                      className="px-2 py-1 disabled:opacity-30"
-                      disabled={
-                        currentPreviewPage === (selectedTemplate.pageCount || 1) - 1
-                      }
-                    >
-                      ▶
-                    </button>
+                  {/* Render Resume Template */}
+                  <div className="transform scale-75 origin-top mt-8">
+                    {renderTemplatePreview()}
                   </div>
-                )}
-
-                {/* Render Resume Template */}
-                <div className="transform scale-75 origin-top mt-8">
-                  {renderTemplatePreview()}
                 </div>
-              </div>
-
               </div>
             </div>
           </div>

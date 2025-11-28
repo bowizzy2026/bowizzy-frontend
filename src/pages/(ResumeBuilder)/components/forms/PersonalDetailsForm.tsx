@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import type { PersonalDetails } from "src/types/resume";
 import {
   FormInput,
@@ -6,13 +6,19 @@ import {
   FormTextarea,
   TagInput,
   FormSection,
+  RichTextEditor,
 } from "@/pages/(ResumeBuilder)/components/ui";
-import RichTextEditor from "@/pages/(ResumeBuilder)/components/ui/RichTextEditor";
-import { Lock } from "lucide-react";
+import { Lock, X, Save, ChevronDown, ChevronUp } from "lucide-react";
+import { uploadToCloudinary } from "@/utils/uploadToCloudinary";
+import { deleteFromCloudinary } from "@/utils/deleteFromCloudinary";
+import { updatePersonalDetails } from "@/services/personalService";
 
 interface PersonalDetailsFormProps {
   data: PersonalDetails;
   onChange: (data: PersonalDetails) => void;
+  userId: string;
+  token: string;
+  personalDetailsId: string | null;
 }
 
 const countries = [
@@ -43,17 +49,102 @@ const genders = [
 export const PersonalDetailsForm: React.FC<PersonalDetailsFormProps> = ({
   data,
   onChange,
+  userId,
+  token,
+  personalDetailsId,
 }) => {
-  const [locationEnabled, setLocationEnabled] = React.useState(true);
-  const [personalInfoCollapsed, setPersonalInfoCollapsed] =
-    React.useState(false);
+  const [personalInfoCollapsed, setPersonalInfoCollapsed] = useState(false);
+  const [languagesCollapsed, setLanguagesCollapsed] = useState(false);
   const [locationDetailsCollapsed, setLocationDetailsCollapsed] =
-    React.useState(false);
+    useState(false);
   const [careerObjectiveCollapsed, setCareerObjectiveCollapsed] =
-    React.useState(false);
-  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+    useState(false);
 
-  // Validation function
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [languagesEnabled, setLanguagesEnabled] = useState(true);
+  const [locationEnabled, setLocationEnabled] = useState(true);
+
+  const [languagesChanged, setLanguagesChanged] = useState(false);
+  const [locationChanged, setLocationChanged] = useState(false);
+  const [careerObjectiveChanged, setCareerObjectiveChanged] = useState(false);
+
+  const [languagesFeedback, setLanguagesFeedback] = useState("");
+  const [locationFeedback, setLocationFeedback] = useState("");
+  const [careerObjectiveFeedback, setCareerObjectiveFeedback] = useState("");
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const initialLanguages = useRef<string[]>(data.languagesKnown || []);
+  const initialLocation = useRef({
+    address: data.address || "",
+    country: data.country || "",
+    state: data.state || "",
+    city: data.city || "",
+    pincode: data.pincode || "",
+    nationality: data.nationality || "",
+    passportNumber: data.passportNumber || "",
+  });
+  const initialCareerObjective = useRef<string | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  const [changedLocationFields, setChangedLocationFields] = useState<string[]>(
+    []
+  );
+
+  useEffect(() => {
+    const hasChanged =
+      JSON.stringify(data.languagesKnown) !==
+      JSON.stringify(initialLanguages.current);
+    setLanguagesChanged(hasChanged);
+  }, [data.languagesKnown]);
+
+  useEffect(() => {
+    const changedFields: string[] = [];
+
+    if (data.address !== initialLocation.current.address)
+      changedFields.push("address");
+    if (data.country !== initialLocation.current.country)
+      changedFields.push("country");
+    if (data.state !== initialLocation.current.state)
+      changedFields.push("state");
+    if (data.city !== initialLocation.current.city) changedFields.push("city");
+    if (data.pincode !== initialLocation.current.pincode)
+      changedFields.push("pincode");
+    if (data.nationality !== initialLocation.current.nationality)
+      changedFields.push("nationality");
+    if (data.passportNumber !== initialLocation.current.passportNumber)
+      changedFields.push("passportNumber");
+
+    setChangedLocationFields(changedFields);
+    setLocationChanged(changedFields.length > 0);
+  }, [
+    data.address,
+    data.country,
+    data.state,
+    data.city,
+    data.pincode,
+    data.nationality,
+    data.passportNumber,
+  ]);
+
+  // Initialize the ref only once when component mounts or data first loads
+  useEffect(() => {
+    if (!isInitialized) {
+      initialCareerObjective.current = data.aboutCareerObjective || "";
+      setIsInitialized(true);
+    }
+  }, [isInitialized, data.aboutCareerObjective]);
+
+  useEffect(() => {
+    if (!isInitialized) return;
+
+    const currentValue = data.aboutCareerObjective || "";
+    const initialValue = initialCareerObjective.current || "";
+    const hasChanged = currentValue !== initialValue;
+
+    setCareerObjectiveChanged(hasChanged);
+  }, [data.aboutCareerObjective, isInitialized]);
+
   const validateField = (name: string, value: string) => {
     let error = "";
 
@@ -84,6 +175,20 @@ export const PersonalDetailsForm: React.FC<PersonalDetailsFormProps> = ({
           error = "Must be 10 digits";
         }
         break;
+
+      case "pincode":
+        if (value && !/^\d{0,6}$/.test(value)) {
+          error = "Only 6 digits allowed";
+        } else if (value && value.length > 0 && value.length < 6) {
+          error = "Must be 6 digits";
+        }
+        break;
+
+      case "passportNumber":
+        if (value && !/^[A-Z0-9]*$/.test(value)) {
+          error = "Only uppercase letters and numbers";
+        }
+        break;
     }
 
     return error;
@@ -93,7 +198,6 @@ export const PersonalDetailsForm: React.FC<PersonalDetailsFormProps> = ({
     field: K,
     value: PersonalDetails[K]
   ) => {
-    // Special handling for mobile number - prevent input if over 10 digits
     if (
       field === "mobileNumber" &&
       typeof value === "string" &&
@@ -102,40 +206,295 @@ export const PersonalDetailsForm: React.FC<PersonalDetailsFormProps> = ({
       return;
     }
 
+    if (field === "pincode" && typeof value === "string" && value.length > 6) {
+      return;
+    }
+
+    console.log("Updating field:", field, "with value:", value);
     onChange({ ...data, [field]: value });
 
-    // Validate on change for string fields
     if (typeof value === "string") {
       const error = validateField(field, value);
       setErrors((prev) => ({ ...prev, [field]: error }));
     }
   };
 
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const cloudinaryRes = await uploadToCloudinary(file);
+
+      onChange({
+        ...data,
+        profilePhotoUrl: cloudinaryRes.url,
+      });
+
+      if (personalDetailsId) {
+        const payload = {
+          profile_photo_url: cloudinaryRes.url,
+        };
+        await updatePersonalDetails(userId, token, personalDetailsId, payload);
+      }
+
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    } catch (error) {
+      console.error("Error uploading photo:", error);
+    }
+  };
+
+  const handlePhotoDelete = async () => {
+    try {
+      if (personalDetailsId) {
+        const payload = {
+          profile_photo_url: "",
+        };
+        await updatePersonalDetails(userId, token, personalDetailsId, payload);
+      }
+
+      onChange({
+        ...data,
+        profilePhotoUrl: "",
+      });
+
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    } catch (error) {
+      console.error("Error deleting photo:", error);
+    }
+  };
+
+  const handleUpdateLanguages = async () => {
+    if (!personalDetailsId) {
+      setLanguagesFeedback("Unable to save: Missing personal details ID");
+      setTimeout(() => setLanguagesFeedback(""), 3000);
+      return;
+    }
+
+    try {
+      const payload = {
+        languages_known: data.languagesKnown,
+      };
+
+      await updatePersonalDetails(userId, token, personalDetailsId, payload);
+      initialLanguages.current = [...data.languagesKnown];
+      setLanguagesChanged(false);
+      setLanguagesFeedback("Languages updated successfully!");
+      setTimeout(() => setLanguagesFeedback(""), 3000);
+    } catch (error) {
+      console.error("Error updating languages:", error);
+      setLanguagesFeedback("Failed to update languages");
+      setTimeout(() => setLanguagesFeedback(""), 3000);
+    }
+  };
+
+  const handleUpdateLocation = async () => {
+    if (!personalDetailsId || changedLocationFields.length === 0) {
+      if (!personalDetailsId) {
+        setLocationFeedback("Unable to save: Missing personal details ID");
+        setTimeout(() => setLocationFeedback(""), 3000);
+      }
+      return;
+    }
+
+    try {
+      const payload: any = {};
+
+      changedLocationFields.forEach((field) => {
+        switch (field) {
+          case "address":
+            payload.address = data.address;
+            break;
+          case "country":
+            payload.country = data.country;
+            break;
+          case "state":
+            payload.state = data.state;
+            break;
+          case "city":
+            payload.city = data.city;
+            break;
+          case "pincode":
+            payload.pincode = data.pincode;
+            break;
+          case "nationality":
+            payload.nationality = data.nationality;
+            break;
+          case "passportNumber":
+            payload.passport_number = data.passportNumber;
+            break;
+        }
+      });
+
+      await updatePersonalDetails(userId, token, personalDetailsId, payload);
+
+      initialLocation.current = {
+        address: data.address,
+        country: data.country,
+        state: data.state,
+        city: data.city,
+        pincode: data.pincode,
+        nationality: data.nationality,
+        passportNumber: data.passportNumber,
+      };
+
+      setLocationChanged(false);
+      setChangedLocationFields([]);
+      setLocationFeedback("Location updated successfully!");
+      setTimeout(() => setLocationFeedback(""), 3000);
+    } catch (error) {
+      console.error("Error updating location:", error);
+      setLocationFeedback("Failed to update location");
+      setTimeout(() => setLocationFeedback(""), 3000);
+    }
+  };
+
+  const handleUpdateCareerObjective = async () => {
+    if (!personalDetailsId) {
+      setCareerObjectiveFeedback("Unable to save: Missing personal details ID");
+      setTimeout(() => setCareerObjectiveFeedback(""), 3000);
+      return;
+    }
+
+    try {
+      const payload = {
+        about: data.aboutCareerObjective,
+      };
+
+      // console.log(payload)
+
+      await updatePersonalDetails(userId, token, personalDetailsId, payload);
+
+      initialCareerObjective.current = data.aboutCareerObjective ?? "";
+      setCareerObjectiveChanged(false);
+      setCareerObjectiveFeedback("Career Objective updated successfully!");
+      setTimeout(() => setCareerObjectiveFeedback(""), 3000);
+    } catch (error) {
+      console.error("Error updating career objective:", error);
+      setCareerObjectiveFeedback("Failed to update Career Objective");
+      setTimeout(() => setCareerObjectiveFeedback(""), 3000);
+    }
+  };
+
+  const CollapseButton = ({
+    isCollapsed,
+    onClick,
+  }: {
+    isCollapsed: boolean;
+    onClick: () => void;
+  }) => (
+    <button
+      type="button"
+      onClick={onClick}
+      className="w-7 h-7 flex items-center justify-center border border-gray-400 rounded-full text-gray-600 hover:text-gray-800 hover:border-gray-600 transition-colors"
+      aria-expanded={!isCollapsed}
+      aria-controls="section-content"
+    >
+      {isCollapsed ? (
+        <ChevronDown size={14} strokeWidth={2.2} />
+      ) : (
+        <ChevronUp size={14} strokeWidth={2.2} />
+      )}
+    </button>
+  );
+
   return (
     <div className="flex flex-col gap-5">
-      {/* Photo Upload Notice */}
-      <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl border border-gray-100">
-        <div className="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center">
-          <Lock size={20} className="text-gray-500" />
+      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+        <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-b border-gray-100">
+          <span className="text-sm font-semibold text-gray-800">
+            Profile Photo
+          </span>
         </div>
-        <span className="text-sm text-gray-600">
-          This Template does not support photo upload
-        </span>
+        <div className="p-4">
+          <div className="flex flex-col items-center">
+            <div
+              onClick={() =>
+                !data.profilePhotoUrl && fileInputRef.current?.click()
+              }
+              className={`relative w-32 h-32 bg-gray-100 rounded-lg border-2 ${
+                data.profilePhotoUrl
+                  ? "border-gray-300"
+                  : "border-dashed border-gray-300"
+              } flex items-center justify-center overflow-hidden ${
+                !data.profilePhotoUrl
+                  ? "cursor-pointer hover:border-orange-400 transition-colors group"
+                  : ""
+              }`}
+            >
+              {data.profilePhotoUrl ? (
+                <>
+                  <img
+                    src={data.profilePhotoUrl}
+                    alt="Profile"
+                    className="w-full h-full object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handlePhotoDelete();
+                    }}
+                    className="absolute top-2 right-2 p-1 bg-white rounded-full shadow-md hover:bg-red-100 z-10 transition-colors"
+                    title="Delete photo"
+                  >
+                    <X className="w-4 h-4 text-red-500" />
+                  </button>
+                </>
+              ) : (
+                <svg
+                  className="w-12 h-12 text-gray-400 group-hover:text-orange-400 transition-colors"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                  />
+                </svg>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="mt-2 text-sm text-gray-700 hover:text-orange-400 font-medium transition-colors"
+            >
+              {data.profilePhotoUrl ? "Change Photo" : "Upload Profile Photo"}
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handlePhotoUpload}
+              className="hidden"
+            />
+          </div>
+        </div>
       </div>
 
-      {/* Personal Info Section */}
-      <FormSection
-        title="Personal Info"
-        required
-        showToggle={false}
-        showActions={true}
-        isCollapsed={personalInfoCollapsed}
-        onCollapseToggle={() =>
-          setPersonalInfoCollapsed(!personalInfoCollapsed)
-        }
-      >
+      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+        <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-b border-gray-100">
+          <span className="text-sm font-semibold text-gray-800">
+            Personal Info
+          </span>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2">
+              <Lock size={14} className="text-orange-500" />
+              <span className="text-xs text-orange-600 font-medium">
+                Read-only
+              </span>
+            </div>
+            <CollapseButton
+              isCollapsed={personalInfoCollapsed}
+              onClick={() => setPersonalInfoCollapsed(!personalInfoCollapsed)}
+            />
+          </div>
+        </div>
         {!personalInfoCollapsed && (
-          <>
+          <div className="p-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <FormInput
                 label="First Name"
@@ -143,6 +502,7 @@ export const PersonalDetailsForm: React.FC<PersonalDetailsFormProps> = ({
                 value={data.firstName}
                 onChange={(v) => updateField("firstName", v)}
                 error={errors.firstName}
+                disabled={true}
               />
               <FormInput
                 label="Middle Name"
@@ -150,6 +510,7 @@ export const PersonalDetailsForm: React.FC<PersonalDetailsFormProps> = ({
                 value={data.middleName}
                 onChange={(v) => updateField("middleName", v)}
                 error={errors.middleName}
+                disabled={true}
               />
               <FormInput
                 label="Last Name"
@@ -157,6 +518,7 @@ export const PersonalDetailsForm: React.FC<PersonalDetailsFormProps> = ({
                 value={data.lastName}
                 onChange={(v) => updateField("lastName", v)}
                 error={errors.lastName}
+                disabled={true}
               />
             </div>
 
@@ -168,9 +530,10 @@ export const PersonalDetailsForm: React.FC<PersonalDetailsFormProps> = ({
                 onChange={(v) => updateField("email", v)}
                 type="email"
                 error={errors.email}
+                disabled={true}
               />
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs text-gray-600 font-medium mb-1">
                   Mobile Number
                 </label>
                 <div className="flex gap-2">
@@ -180,6 +543,7 @@ export const PersonalDetailsForm: React.FC<PersonalDetailsFormProps> = ({
                     onChange={() => {}}
                     options={[{ value: "+91", label: "+91" }]}
                     className="w-20"
+                    disabled={true}
                   />
                   <FormInput
                     label=""
@@ -188,36 +552,116 @@ export const PersonalDetailsForm: React.FC<PersonalDetailsFormProps> = ({
                     onChange={(v) => updateField("mobileNumber", v)}
                     className="flex-1"
                     error={errors.mobileNumber}
+                    disabled={true}
                   />
                 </div>
               </div>
             </div>
 
-            <div className="mt-4">
-              <TagInput
-                label="Language(s) Known"
-                placeholder="Add Languages known to you..."
-                tags={data.languagesKnown}
-                onChange={(v) => updateField("languagesKnown", v)}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+              <FormInput
+                label="Date of Birth"
+                value={data.dateOfBirth}
+                onChange={(v) => updateField("dateOfBirth", v)}
+                type="date"
+                disabled={true}
+              />
+              <FormSelect
+                label="Gender"
+                value={data.gender}
+                onChange={(v) => updateField("gender", v)}
+                options={genders}
+                disabled={true}
               />
             </div>
-          </>
+          </div>
         )}
-      </FormSection>
+      </div>
 
-      {/* Location Details Section */}
-      <FormSection
-        title="Location Details"
-        enabled={locationEnabled}
-        onToggle={setLocationEnabled}
-        showActions={true}
-        isCollapsed={locationDetailsCollapsed}
-        onCollapseToggle={() =>
-          setLocationDetailsCollapsed(!locationDetailsCollapsed)
-        }
-      >
-        {!locationDetailsCollapsed && (
-          <>
+      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+        <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-b border-gray-100">
+          <span className="text-sm font-semibold text-gray-800">
+            Language(s) Known
+          </span>
+          <div className="flex items-center gap-2">
+            {languagesChanged && (
+              <button
+                type="button"
+                onClick={handleUpdateLanguages}
+                className="w-7 h-7 flex items-center justify-center border border-green-600 rounded-full text-green-600 hover:bg-green-50 transition-colors"
+                title="Save changes"
+              >
+                <Save size={14} strokeWidth={2.2} />
+              </button>
+            )}
+            <CollapseButton
+              isCollapsed={languagesCollapsed}
+              onClick={() => setLanguagesCollapsed(!languagesCollapsed)}
+            />
+          </div>
+        </div>
+
+        {languagesEnabled && !languagesCollapsed && (
+          <div className="p-4">
+            {languagesFeedback && (
+              <div
+                className={`mb-4 p-3 rounded-lg text-sm ${
+                  languagesFeedback.includes("success")
+                    ? "bg-green-50 text-green-700 border border-green-200"
+                    : "bg-red-50 text-red-700 border border-red-200"
+                }`}
+              >
+                {languagesFeedback}
+              </div>
+            )}
+            <TagInput
+              label=""
+              placeholder="Add Languages known to you..."
+              tags={data.languagesKnown}
+              onChange={(v) => updateField("languagesKnown", v)}
+            />
+          </div>
+        )}
+      </div>
+
+      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+        <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-b border-gray-100">
+          <span className="text-sm font-semibold text-gray-800">
+            Location Details
+          </span>
+          <div className="flex items-center gap-2">
+            {locationChanged && (
+              <button
+                type="button"
+                onClick={handleUpdateLocation}
+                className="w-7 h-7 flex items-center justify-center border border-green-600 rounded-full text-green-600 hover:bg-green-50 transition-colors"
+                title="Save changes"
+              >
+                <Save size={14} strokeWidth={2.2} />
+              </button>
+            )}
+            <CollapseButton
+              isCollapsed={locationDetailsCollapsed}
+              onClick={() =>
+                setLocationDetailsCollapsed(!locationDetailsCollapsed)
+              }
+            />
+          </div>
+        </div>
+
+        {locationEnabled && !locationDetailsCollapsed && (
+          <div className="p-4">
+            {locationFeedback && (
+              <div
+                className={`mb-4 p-3 rounded-lg text-sm ${
+                  locationFeedback.includes("success")
+                    ? "bg-green-50 text-green-700 border border-green-200"
+                    : "bg-red-50 text-red-700 border border-red-200"
+                }`}
+              >
+                {locationFeedback}
+              </div>
+            )}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormSelect
                 label="Country"
@@ -235,7 +679,7 @@ export const PersonalDetailsForm: React.FC<PersonalDetailsFormProps> = ({
               />
             </div>
 
-            <div className="mt-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
               <FormSelect
                 label="City"
                 placeholder="Select City"
@@ -249,31 +693,98 @@ export const PersonalDetailsForm: React.FC<PersonalDetailsFormProps> = ({
                   { value: "Hyderabad", label: "Hyderabad" },
                 ]}
               />
+              <FormInput
+                label="Pincode"
+                placeholder="Enter Pincode"
+                value={data.pincode}
+                onChange={(v) => updateField("pincode", v)}
+                error={errors.pincode}
+              />
             </div>
-          </>
-        )}
-      </FormSection>
 
-      {/* About / Career Objective Section */}
-      <FormSection
-        title="About / Career Objective"
-        required
-        showToggle={false}
-        showActions={true}
-        isCollapsed={careerObjectiveCollapsed}
-        onCollapseToggle={() =>
-          setCareerObjectiveCollapsed(!careerObjectiveCollapsed)
-        }
-      >
-        {!careerObjectiveCollapsed && (
-          <RichTextEditor
-            value={data.aboutCareerObjective}
-            onChange={(v) => updateField("aboutCareerObjective", v)}
-            placeholder="Provide Career Objective"
-            rows={5}
-          />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+              <FormInput
+                label="Address"
+                placeholder="Enter Address"
+                value={data.address}
+                onChange={(v) => updateField("address", v)}
+              />
+              <FormInput
+                label="Nationality"
+                placeholder="Enter Nationality"
+                value={data.nationality}
+                onChange={(v) => updateField("nationality", v)}
+              />
+            </div>
+
+            <div className="mt-4">
+              <FormInput
+                label="Passport Number"
+                placeholder="Enter Passport Number"
+                value={data.passportNumber}
+                onChange={(v) => updateField("passportNumber", v.toUpperCase())}
+                error={errors.passportNumber}
+              />
+            </div>
+          </div>
         )}
-      </FormSection>
+      </div>
+
+      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+        <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-b border-gray-100">
+          <span className="text-sm font-semibold text-gray-800">
+            About / Career Objective{" "}
+            <span className="text-red-500 ml-1">*</span>
+          </span>
+
+          <div className="flex items-center gap-2">
+            {careerObjectiveChanged && (
+              <button
+                type="button"
+                onClick={handleUpdateCareerObjective}
+                className="w-7 h-7 flex items-center justify-center border border-green-600 rounded-full text-green-600 hover:bg-green-50 transition-colors"
+                title="Save changes"
+              >
+                <Save size={14} strokeWidth={2.2} />
+              </button>
+            )}
+
+            <CollapseButton
+              isCollapsed={careerObjectiveCollapsed}
+              onClick={() =>
+                setCareerObjectiveCollapsed(!careerObjectiveCollapsed)
+              }
+            />
+          </div>
+        </div>
+
+        {!careerObjectiveCollapsed && (
+          <div className="p-4">
+            {careerObjectiveFeedback && (
+              <div
+                className={`mb-4 p-3 rounded-lg text-sm ${
+                  careerObjectiveFeedback.includes("success")
+                    ? "bg-green-50 text-green-700 border border-green-200"
+                    : "bg-red-50 text-red-700 border border-red-200"
+                }`}
+              >
+                {careerObjectiveFeedback}
+              </div>
+            )}
+
+            {/* Rich Text Editor Added Here */}
+            <RichTextEditor
+              value={data.aboutCareerObjective}
+              onChange={(v) => {
+                updateField("aboutCareerObjective", v);
+                setCareerObjectiveChanged(true); // enable save button when user types
+              }}
+              placeholder="Provide Career Objective"
+              rows={6}
+            />
+          </div>
+        )}
+      </div>
     </div>
   );
 };
