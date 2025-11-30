@@ -16,6 +16,9 @@ import {
   updateLinkDetails,
   saveLinksDetails,
   deleteLink,
+  getTechnicalSummary,
+  saveTechnicalSummary,
+  updateTechnicalSummary,
 } from "@/services/skillsLinksService";
 
 interface SkillsLinksFormProps {
@@ -23,6 +26,7 @@ interface SkillsLinksFormProps {
   onChange: (data: SkillsLinksDetails) => void;
   userId: string;
   token: string;
+  technicalSummaryId?: number | null;
 }
 
 const skillLevels = [
@@ -37,6 +41,7 @@ export const SkillsLinksForm: React.FC<SkillsLinksFormProps> = ({
   onChange,
   userId,
   token,
+  technicalSummaryId: initialTechnicalSummaryId,
 }) => {
   const [skillsCollapsed, setSkillsCollapsed] = useState(false);
   const [linksCollapsed, setLinksCollapsed] = useState(false);
@@ -47,14 +52,26 @@ export const SkillsLinksForm: React.FC<SkillsLinksFormProps> = ({
   // State for tracking changes and feedback
   const [skillChanges, setSkillChanges] = useState<Record<string, string[]>>({});
   const [linkChanges, setLinkChanges] = useState<boolean>(false);
+  const [technicalSummaryChanges, setTechnicalSummaryChanges] = useState<boolean>(false);
   const [skillFeedback, setSkillFeedback] = useState<Record<string, string>>({});
   const [linkFeedback, setLinkFeedback] = useState<string>("");
+  const [technicalSummaryFeedback, setTechnicalSummaryFeedback] = useState<string>("");
 
   // Refs for tracking initial data
   const initialSkillsRef = useRef<Record<string, Skill>>({});
   const initialLinksRef = useRef(data.links);
+  const initialTechnicalSummaryRef = useRef(data.technicalSummary);
   const deletedSkillIds = useRef<number[]>([]);
   const deletedLinkIds = useRef<string[]>([]);
+  const [technicalSummaryId, setTechnicalSummaryId] = useState<number | null>(
+    initialTechnicalSummaryId || null
+  );
+
+  useEffect(() => {
+    if (initialTechnicalSummaryId !== undefined) {
+      setTechnicalSummaryId(initialTechnicalSummaryId);
+    }
+  }, [initialTechnicalSummaryId]);
 
   // Initialize refs on mount
   useEffect(() => {
@@ -62,6 +79,7 @@ export const SkillsLinksForm: React.FC<SkillsLinksFormProps> = ({
       initialSkillsRef.current[s.id] = { ...s };
     });
     initialLinksRef.current = { ...data.links };
+    initialTechnicalSummaryRef.current = data.technicalSummary;
   }, []);
 
   // Check Skill changes
@@ -100,6 +118,12 @@ export const SkillsLinksForm: React.FC<SkillsLinksFormProps> = ({
 
     setLinkChanges(hasChanged);
   }, [data.links]);
+
+  // Check Technical Summary changes
+  useEffect(() => {
+    const hasChanged = data.technicalSummary !== initialTechnicalSummaryRef.current;
+    setTechnicalSummaryChanges(hasChanged);
+  }, [data.technicalSummary]);
 
   const validateSkillName = (value: string) => {
     if (value && !/^[a-zA-Z0-9\s.+#-]+$/.test(value)) {
@@ -366,6 +390,47 @@ export const SkillsLinksForm: React.FC<SkillsLinksFormProps> = ({
       });
       return newErrors;
     });
+  };
+
+  // Handler for saving technical summary
+  const handleSaveTechnicalSummary = async () => {
+    if (!technicalSummaryChanges) {
+      setTechnicalSummaryFeedback("No changes to save.");
+      setTimeout(() => setTechnicalSummaryFeedback(""), 3000);
+      return;
+    }
+
+    try {
+      if (technicalSummaryId) {
+        // Update existing
+        await updateTechnicalSummary(userId, token, technicalSummaryId, data.technicalSummary);
+      } else {
+        // Create new
+        const response = await saveTechnicalSummary(userId, token, data.technicalSummary);
+        if (response && response.summary_id) {
+          setTechnicalSummaryId(response.summary_id);
+        }
+      }
+      
+      initialTechnicalSummaryRef.current = data.technicalSummary;
+      setTechnicalSummaryChanges(false);
+      setTechnicalSummaryFeedback("Technical summary saved successfully!");
+      setTimeout(() => setTechnicalSummaryFeedback(""), 3000);
+    } catch (error) {
+      console.error("Error saving technical summary:", error);
+      setTechnicalSummaryFeedback("Failed to save technical summary.");
+      setTimeout(() => setTechnicalSummaryFeedback(""), 3000);
+    }
+  };
+
+  // Handler for resetting technical summary
+  const handleResetTechnicalSummary = () => {
+    onChange({
+      ...data,
+      technicalSummary: initialTechnicalSummaryRef.current,
+    });
+    setTechnicalSummaryChanges(false);
+    setTechnicalSummaryFeedback("");
   };
 
   const updateSkill = (id: string, field: string, value: string | boolean) => {
@@ -752,6 +817,44 @@ export const SkillsLinksForm: React.FC<SkillsLinksFormProps> = ({
           setTechnicalSummaryCollapsed(!technicalSummaryCollapsed)
         }
       >
+        <div className="flex items-center justify-end gap-2 mb-4">
+          {technicalSummaryFeedback && (
+            <span
+              className={`text-xs px-2 py-1 rounded-full ${
+                technicalSummaryFeedback.includes("successfully")
+                  ? "bg-green-100 text-green-700"
+                  : "bg-red-100 text-red-700"
+              }`}
+            >
+              {technicalSummaryFeedback}
+            </span>
+          )}
+          {technicalSummaryChanges && (
+            <button
+              type="button"
+              onClick={handleSaveTechnicalSummary}
+              className="w-6 h-6 flex items-center justify-center rounded-full border-2 border-green-600 hover:bg-green-50 transition-colors"
+              title="Save technical summary"
+            >
+              <Save
+                className="w-3 h-3 text-green-600 cursor-pointer"
+                strokeWidth={2.5}
+              />
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={handleResetTechnicalSummary}
+            className="w-6 h-6 flex items-center justify-center rounded-full border-2 border-gray-600 hover:bg-gray-100 transition-colors"
+            title="Reset to saved value"
+          >
+            <RotateCcw
+              className="w-3 h-3 text-gray-600 cursor-pointer"
+              strokeWidth={2.5}
+            />
+          </button>
+        </div>
+
         <RichTextEditor
           placeholder="Provide Career Objective"
           value={data.technicalSummary}

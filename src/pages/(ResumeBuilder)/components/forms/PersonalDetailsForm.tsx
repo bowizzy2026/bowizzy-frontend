@@ -8,7 +8,7 @@ import {
   FormSection,
   RichTextEditor,
 } from "@/pages/(ResumeBuilder)/components/ui";
-import { Lock, X, Save, ChevronDown, ChevronUp } from "lucide-react";
+import { Lock, X, Save, ChevronDown, ChevronUp, RotateCcw } from "lucide-react";
 import { uploadToCloudinary } from "@/utils/uploadToCloudinary";
 import { deleteFromCloudinary } from "@/utils/deleteFromCloudinary";
 import { updatePersonalDetails } from "@/services/personalService";
@@ -288,6 +288,15 @@ export const PersonalDetailsForm: React.FC<PersonalDetailsFormProps> = ({
     }
   };
 
+  const handleResetLanguages = () => {
+    onChange({
+      ...data,
+      languagesKnown: [...initialLanguages.current],
+    });
+    setLanguagesChanged(false);
+    setLanguagesFeedback("");
+  };
+
   const handleUpdateLocation = async () => {
     if (!personalDetailsId || changedLocationFields.length === 0) {
       if (!personalDetailsId) {
@@ -349,6 +358,22 @@ export const PersonalDetailsForm: React.FC<PersonalDetailsFormProps> = ({
     }
   };
 
+  const handleResetLocation = () => {
+    onChange({
+      ...data,
+      address: initialLocation.current.address,
+      country: initialLocation.current.country,
+      state: initialLocation.current.state,
+      city: initialLocation.current.city,
+      pincode: initialLocation.current.pincode,
+      nationality: initialLocation.current.nationality,
+      passportNumber: initialLocation.current.passportNumber,
+    });
+    setLocationChanged(false);
+    setChangedLocationFields([]);
+    setLocationFeedback("");
+  };
+
   const handleUpdateCareerObjective = async () => {
     if (!personalDetailsId) {
       setCareerObjectiveFeedback("Unable to save: Missing personal details ID");
@@ -361,8 +386,6 @@ export const PersonalDetailsForm: React.FC<PersonalDetailsFormProps> = ({
         about: data.aboutCareerObjective,
       };
 
-      // console.log(payload)
-
       await updatePersonalDetails(userId, token, personalDetailsId, payload);
 
       initialCareerObjective.current = data.aboutCareerObjective ?? "";
@@ -374,6 +397,15 @@ export const PersonalDetailsForm: React.FC<PersonalDetailsFormProps> = ({
       setCareerObjectiveFeedback("Failed to update Career Objective");
       setTimeout(() => setCareerObjectiveFeedback(""), 3000);
     }
+  };
+
+  const handleResetCareerObjective = () => {
+    onChange({
+      ...data,
+      aboutCareerObjective: initialCareerObjective.current ?? "",
+    });
+    setCareerObjectiveChanged(false);
+    setCareerObjectiveFeedback("");
   };
 
   const CollapseButton = ({
@@ -583,37 +615,46 @@ export const PersonalDetailsForm: React.FC<PersonalDetailsFormProps> = ({
           <span className="text-sm font-semibold text-gray-800">
             Language(s) Known
           </span>
-          <div className="flex items-center gap-2">
-            {languagesChanged && (
-              <button
-                type="button"
-                onClick={handleUpdateLanguages}
-                className="w-7 h-7 flex items-center justify-center border border-green-600 rounded-full text-green-600 hover:bg-green-50 transition-colors"
-                title="Save changes"
-              >
-                <Save size={14} strokeWidth={2.2} />
-              </button>
-            )}
-            <CollapseButton
-              isCollapsed={languagesCollapsed}
-              onClick={() => setLanguagesCollapsed(!languagesCollapsed)}
-            />
-          </div>
+          <CollapseButton
+            isCollapsed={languagesCollapsed}
+            onClick={() => setLanguagesCollapsed(!languagesCollapsed)}
+          />
         </div>
 
         {languagesEnabled && !languagesCollapsed && (
           <div className="p-4">
-            {languagesFeedback && (
-              <div
-                className={`mb-4 p-3 rounded-lg text-sm ${
-                  languagesFeedback.includes("success")
-                    ? "bg-green-50 text-green-700 border border-green-200"
-                    : "bg-red-50 text-red-700 border border-red-200"
-                }`}
+            <div className="flex items-center justify-end gap-2 mb-4">
+              {languagesFeedback && (
+                <span
+                  className={`text-xs px-2 py-1 rounded-full ${
+                    languagesFeedback.includes("success")
+                      ? "bg-green-100 text-green-700"
+                      : "bg-red-100 text-red-700"
+                  }`}
+                >
+                  {languagesFeedback}
+                </span>
+              )}
+              {languagesChanged && (
+                <button
+                  type="button"
+                  onClick={handleUpdateLanguages}
+                  className="w-6 h-6 flex items-center justify-center rounded-full border-2 border-green-600 hover:bg-green-50 transition-colors"
+                  title="Save changes"
+                >
+                  <Save className="w-3 h-3 text-green-600" strokeWidth={2.5} />
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={handleResetLanguages}
+                className="w-6 h-6 flex items-center justify-center rounded-full border-2 border-gray-600 hover:bg-gray-100 transition-colors"
+                title="Reset to saved values"
               >
-                {languagesFeedback}
-              </div>
-            )}
+                <RotateCcw className="w-3 h-3 text-gray-600" strokeWidth={2.5} />
+              </button>
+            </div>
+
             <TagInput
               label=""
               placeholder="Add Languages known to you..."
@@ -629,39 +670,48 @@ export const PersonalDetailsForm: React.FC<PersonalDetailsFormProps> = ({
           <span className="text-sm font-semibold text-gray-800">
             Location Details
           </span>
-          <div className="flex items-center gap-2">
-            {locationChanged && (
-              <button
-                type="button"
-                onClick={handleUpdateLocation}
-                className="w-7 h-7 flex items-center justify-center border border-green-600 rounded-full text-green-600 hover:bg-green-50 transition-colors"
-                title="Save changes"
-              >
-                <Save size={14} strokeWidth={2.2} />
-              </button>
-            )}
-            <CollapseButton
-              isCollapsed={locationDetailsCollapsed}
-              onClick={() =>
-                setLocationDetailsCollapsed(!locationDetailsCollapsed)
-              }
-            />
-          </div>
+          <CollapseButton
+            isCollapsed={locationDetailsCollapsed}
+            onClick={() =>
+              setLocationDetailsCollapsed(!locationDetailsCollapsed)
+            }
+          />
         </div>
 
         {locationEnabled && !locationDetailsCollapsed && (
           <div className="p-4">
-            {locationFeedback && (
-              <div
-                className={`mb-4 p-3 rounded-lg text-sm ${
-                  locationFeedback.includes("success")
-                    ? "bg-green-50 text-green-700 border border-green-200"
-                    : "bg-red-50 text-red-700 border border-red-200"
-                }`}
+            <div className="flex items-center justify-end gap-2 mb-4">
+              {locationFeedback && (
+                <span
+                  className={`text-xs px-2 py-1 rounded-full ${
+                    locationFeedback.includes("success")
+                      ? "bg-green-100 text-green-700"
+                      : "bg-red-100 text-red-700"
+                  }`}
+                >
+                  {locationFeedback}
+                </span>
+              )}
+              {locationChanged && (
+                <button
+                  type="button"
+                  onClick={handleUpdateLocation}
+                  className="w-6 h-6 flex items-center justify-center rounded-full border-2 border-green-600 hover:bg-green-50 transition-colors"
+                  title="Save changes"
+                >
+                  <Save className="w-3 h-3 text-green-600" strokeWidth={2.5} />
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={handleResetLocation}
+                className="w-6 h-6 flex items-center justify-center rounded-full border-2 border-gray-600 hover:bg-gray-100 transition-colors"
+                title="Reset to saved values"
               >
-                {locationFeedback}
-              </div>
-            )}
+                <RotateCcw className="w-3 h-3 text-gray-600" strokeWidth={2.5} />
+              </button>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormSelect
                 label="Country"
@@ -737,47 +787,53 @@ export const PersonalDetailsForm: React.FC<PersonalDetailsFormProps> = ({
             <span className="text-red-500 ml-1">*</span>
           </span>
 
-          <div className="flex items-center gap-2">
-            {careerObjectiveChanged && (
-              <button
-                type="button"
-                onClick={handleUpdateCareerObjective}
-                className="w-7 h-7 flex items-center justify-center border border-green-600 rounded-full text-green-600 hover:bg-green-50 transition-colors"
-                title="Save changes"
-              >
-                <Save size={14} strokeWidth={2.2} />
-              </button>
-            )}
-
-            <CollapseButton
-              isCollapsed={careerObjectiveCollapsed}
-              onClick={() =>
-                setCareerObjectiveCollapsed(!careerObjectiveCollapsed)
-              }
-            />
-          </div>
+          <CollapseButton
+            isCollapsed={careerObjectiveCollapsed}
+            onClick={() =>
+              setCareerObjectiveCollapsed(!careerObjectiveCollapsed)
+            }
+          />
         </div>
 
         {!careerObjectiveCollapsed && (
           <div className="p-4">
-            {careerObjectiveFeedback && (
-              <div
-                className={`mb-4 p-3 rounded-lg text-sm ${
-                  careerObjectiveFeedback.includes("success")
-                    ? "bg-green-50 text-green-700 border border-green-200"
-                    : "bg-red-50 text-red-700 border border-red-200"
-                }`}
+            <div className="flex items-center justify-end gap-2 mb-4">
+              {careerObjectiveFeedback && (
+                <span
+                  className={`text-xs px-2 py-1 rounded-full ${
+                    careerObjectiveFeedback.includes("success")
+                      ? "bg-green-100 text-green-700"
+                      : "bg-red-100 text-red-700"
+                  }`}
+                >
+                  {careerObjectiveFeedback}
+                </span>
+              )}
+              {careerObjectiveChanged && (
+                <button
+                  type="button"
+                  onClick={handleUpdateCareerObjective}
+                  className="w-6 h-6 flex items-center justify-center rounded-full border-2 border-green-600 hover:bg-green-50 transition-colors"
+                  title="Save changes"
+                >
+                  <Save className="w-3 h-3 text-green-600" strokeWidth={2.5} />
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={handleResetCareerObjective}
+                className="w-6 h-6 flex items-center justify-center rounded-full border-2 border-gray-600 hover:bg-gray-100 transition-colors"
+                title="Reset to saved value"
               >
-                {careerObjectiveFeedback}
-              </div>
-            )}
+                <RotateCcw className="w-3 h-3 text-gray-600" strokeWidth={2.5} />
+              </button>
+            </div>
 
-            {/* Rich Text Editor Added Here */}
             <RichTextEditor
               value={data.aboutCareerObjective}
               onChange={(v) => {
                 updateField("aboutCareerObjective", v);
-                setCareerObjectiveChanged(true); // enable save button when user types
+                setCareerObjectiveChanged(true);
               }}
               placeholder="Provide Career Objective"
               rows={6}

@@ -70,6 +70,47 @@ export const deleteLink = async (userId, token, linkId) => {
 };
 
 
+
+// Get technical summary for a user
+export const getTechnicalSummary = async (userId, token) => {
+    const response = await api.get(`/users/${userId}/technical-summary`, {
+        headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+};
+
+// Create technical summary (POST)
+export const saveTechnicalSummary = async (userId, token, summary) => {
+    console.log("Saving technical summary:", summary);
+    const response = await api.post(`/users/${userId}/technical-summary`, 
+        { summary }, 
+        {
+            headers: { Authorization: `Bearer ${token}` },
+        }
+    );
+    return response.data;
+};
+
+// Update technical summary (PUT)
+export const updateTechnicalSummary = async (userId, token, summaryId, summary) => {
+    const response = await api.put(`/users/${userId}/technical-summary/${summaryId}`, 
+        { summary }, 
+        {
+            headers: { Authorization: `Bearer ${token}` },
+        }
+    );
+    return response.data;
+};
+
+// Delete technical summary (DELETE)
+export const deleteTechnicalSummary = async (userId, token, summaryId) => {
+    const response = await api.delete(`/users/${userId}/technical-summary/${summaryId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+}
+
+
 // --- BULK SAVE FROM FORM (Used by Proceed to Next) ---
 
 // Transform form data to API format and handle bulk save/update/delete

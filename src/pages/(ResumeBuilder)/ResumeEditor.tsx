@@ -27,6 +27,7 @@ import { getCertificatesByUserId } from "@/services/certificateService";
 import {
   getSkillsByUserId,
   getLinksByUserId,
+  getTechnicalSummary,
 } from "@/services/skillsLinksService";
 
 const steps = [
@@ -336,6 +337,7 @@ export const ResumeEditor: React.FC = () => {
     Record<string, number>
   >({});
   const [deleteExperienceIds, setDeleteExperienceIds] = useState<number[]>([]);
+  const [technicalSummaryId, setTechnicalSummaryId] = useState<number | null>(null);
 
   // 1. Initial user and token check
   useEffect(() => {
@@ -514,6 +516,27 @@ export const ResumeEditor: React.FC = () => {
         isError = true;
       }
 
+      // --- Technical Summary Details ---
+      try {
+        const apiResponse = await getTechnicalSummary(currentUserId, currentToken);
+        console.log("Fetched Technical Summary:", apiResponse);
+
+        if (apiResponse) {
+          setResumeData((prev) => ({
+            ...prev,
+            skillsLinks: {
+              ...prev.skillsLinks,
+              technicalSummary: apiResponse.summary || "",
+              technicalSummaryEnabled: !!apiResponse.summary,
+            },
+          }));
+          setTechnicalSummaryId(apiResponse.summary_id || null);
+        }
+      } catch (error) {
+        console.error("Error fetching technical summary:", error);
+        isError = true;
+      }
+
       // --- Certificates Details ---
       try {
         const apiResponse = await getCertificatesByUserId(
@@ -667,6 +690,7 @@ export const ResumeEditor: React.FC = () => {
             onChange={updateSkillsLinksData}
             userId={userId}
             token={token}
+            technicalSummaryId={technicalSummaryId}
           />
         );
       case 5:
