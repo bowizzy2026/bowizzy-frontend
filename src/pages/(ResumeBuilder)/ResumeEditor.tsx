@@ -738,7 +738,7 @@ export const ResumeEditor: React.FC = () => {
                     <button
                       type="button"
                       onClick={handlePrevious}
-                      className="px-6 py-2.5 text-sm font-medium text-orange-500 bg-white border border-orange-400 rounded-full hover:bg-orange-50 transition-colors"
+                      className="px-6 py-2.5 text-sm font-medium text-orange-500 bg-white border border-orange-400 rounded-full hover:bg-orange-50 transition-colors cursor-pointer"
                     >
                       Previous
                     </button>
@@ -746,7 +746,7 @@ export const ResumeEditor: React.FC = () => {
                   <button
                     type="button"
                     onClick={handleNext}
-                    className="px-6 py-2.5 text-sm font-medium text-white bg-orange-400 rounded-full hover:bg-orange-500 transition-colors"
+                    className="px-6 py-2.5 text-sm font-medium text-white bg-orange-400 rounded-full hover:bg-orange-500 transition-colors cursor-pointer"
                     disabled={loading}
                   >
                     {loading ? "Loading..." : nextButtonLabels[currentStep]}

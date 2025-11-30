@@ -250,7 +250,7 @@ export default function Register() {
               type="submit"
               disabled={!agree}
               className={`w-full py-3 rounded-lg text-white font-medium ${
-                agree ? "bg-gray-700 hover:bg-gray-800" : "bg-gray-300 cursor-not-allowed"
+                agree ? "bg-gray-700 hover:bg-gray-800" : "bg-gray-300 cursor-not-allowed cursor-pointer"
               }`}
             >
               Sign Up
@@ -258,7 +258,7 @@ export default function Register() {
 
             <p className="text-sm text-gray-700">
               Already have an account?{" "}
-              <span onClick={() => navigate("/login")} className="text-orange-500 cursor-pointer font-medium hover:underline">
+              <span onClick={() => navigate("/login")} className="text-orange-500 cursor-pointer font-medium hover:underline cursor-pointer">
                 Sign in.
               </span>
             </p>

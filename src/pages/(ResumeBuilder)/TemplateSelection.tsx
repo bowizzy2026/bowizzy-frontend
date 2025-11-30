@@ -51,15 +51,15 @@ export default function TemplateSelection() {
                 />
 
                 {/* Hover Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-end p-6">
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-end p-6 cursor-pointer">
                   <span className="text-white text-lg font-semibold mb-3">{template.name}</span>
-                  <div className="px-6 py-2 bg-white text-[#1A1A43] rounded-lg font-medium text-sm">
+                  <div className="px-6 py-2 bg-white text-[#1A1A43] rounded-lg font-medium text-sm cursor-pointer">
                     Use This Template
                   </div>
                 </div>
 
                 {/* Template Name at Bottom */}
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4 group-hover:opacity-0 transition-opacity">
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4 group-hover:opacity-0 transition-opacity cursor-pointer">
                   <span className="text-white text-sm font-medium">{template.name}</span>
                 </div>
               </button>

@@ -93,7 +93,7 @@ export default function Login() {
 
             <button
               type="submit"
-              className="w-full py-3 rounded-lg text-white font-medium"
+              className="w-full py-3 rounded-lg text-white font-medium cursor-pointer"
               style={{
                 background:
                   "linear-gradient(180deg, #FF9D48 0%, #FF8251 100%)",
@@ -111,11 +111,11 @@ export default function Login() {
               </button>
             </div>
 
-            <p className="text-center text-sm text-gray-600">
+            <p className="text-center text-sm text-gray-600 cursor-pointer">
               Don’t have an account?{" "}
               <span
                 onClick={() => navigate("/signup")}
-                className="text-orange-500 cursor-pointer font-medium hover:underline"
+                className="text-orange-500 cursor-pointer font-medium hover:underline cursor-pointer"
               >
                 Sign Up
               </span>
