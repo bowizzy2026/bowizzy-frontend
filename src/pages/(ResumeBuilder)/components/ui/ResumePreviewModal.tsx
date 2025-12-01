@@ -375,24 +375,25 @@ export const ResumePreviewModal: React.FC<ResumePreviewModalProps> = ({
       />
 
       {/* Modal Container - Slides from right */}
-      <div className="fixed right-50 top-0 bottom-0 z-50 flex items-center">
+      <div className="fixed right-0 top-0 bottom-0 z-50 flex items-center">
         {/* Resume Preview Modal */}
         <div
-          className=" h-[560px] overflow-auto scrollbar-hide"
-          style={{ width: "650px" }}
+          className=" h-[calc(100vh-160px)] overflow-auto scrollbar-hide"
+          style={{ width: "calc(100vw - 320px)", maxWidth: "1100px" }}
         >
           <div className="p-8 flex justify-center ">
             <div className="flex flex-col items-center">
               {/* Resume Preview */}
               <div
-                className="shadow-lg"
+                className="shadow-lg w-full"
                 style={{
                   transform: "scale(1)",
                   transformOrigin: "center",
+                  maxWidth: "100%",
                 }}
               >
                 {/* Wrap the template with the ref so it can be captured as PDF */}
-                <div ref={pdfRef}>
+                <div ref={pdfRef} style={{ width: "100%", boxSizing: "border-box" }}>
                   {TemplateComponent && <TemplateComponent data={resumeData} />}
                 </div>
               </div>
@@ -401,7 +402,7 @@ export const ResumePreviewModal: React.FC<ResumePreviewModalProps> = ({
         </div>
 
         {/* Action Buttons - Positioned on the right edge */}
-        <div className="flex flex-col gap-4 ml-4">
+        <div className="flex flex-col gap-2 ml-0 transform -translate-x-30">
           {/* Back to Edit Button */}
           <button
             onClick={onClose}
