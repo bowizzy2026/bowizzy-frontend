@@ -126,14 +126,17 @@ export default function Profile() {
   };
 
   const handleFileRemove = (e) => {
-    e.stopPropagation(); // Prevents triggering handleBrowseClick
+    e.stopPropagation();
     setSelectedFile(null);
     setFileError("");
-    const fileInput = document.getElementById("file-upload-input");
+
+    const fileInput = document.getElementById(
+      "file-upload-input"
+    ) as HTMLInputElement | null;
+
     if (fileInput) {
-      fileInput.value = ""; // Clear the input field for re-selection
+      fileInput.value = "";
     }
-    console.log("File removed");
   };
 
   const handleAddDetailsMyself = () => {
