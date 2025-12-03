@@ -12,7 +12,7 @@ import {
   Bell,
   Share2,
   Menu,
-  X, // <-- Import the X icon for the remove button
+  X,
 } from "lucide-react";
 import DashNav from "@/components/dashnav/dashnav";
 import { useNavigate } from "react-router-dom";
