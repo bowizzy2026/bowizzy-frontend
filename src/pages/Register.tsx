@@ -235,7 +235,7 @@ export default function Register() {
                     setDateOfBirth(val);
 
                     if (!isAdult(val)) {
-                      setFieldError("dob", "You must be 18+");
+                      setFieldError("dob", "You must above 18 years");
                     } else {
                       setFieldError("dob", "");
                     }
@@ -274,11 +274,19 @@ export default function Register() {
                   </span>
                   <input
                     value={linkedinUsername}
-                    onChange={(e) => {
-                      const extracted = extractLinkedinUsername(e.target.value);
-                      setLinkedinUsername(extracted);
-                      setFieldError("linkedin", extracted ? "" : "Invalid LinkedIn");
-                    }}
+                      onChange={(e) => {
+                        let val = e.target.value;
+
+                        if (val.startsWith("http")) {
+                          setFieldError("linkedin", "Do not enter full URL");
+                          val = val.replace(/^https?:\/\/(www\.)?linkedin\.com\/in\//, "");
+                        } else {
+                          setFieldError("linkedin", "");
+                        }
+
+                        const extracted = extractLinkedinUsername(val);
+                        setLinkedinUsername(extracted);
+                      }}
                     className="w-full px-4 py-3 border rounded-r-lg"
                   />
                 </div>
