@@ -8,111 +8,111 @@ const InterviewPrep = () => {
 
   // State to hold interview data - set to [] for empty state, or add data to show dashboard
   const [upcomingInterviews] = useState([
-    // {
-    //   id: 1,
-    //   type: "Mock Interview",
-    //   date: "August 23rd 2025",
-    //   time: "11:00 AM - 11:00 AM",
-    //   status: "scheduled",
-    //   image:
-    //     "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=600&h=400&fit=crop",
-    // },
-    // {
-    //   id: 2,
-    //   type: "Job Role Interview",
-    //   date: "August 28rd 2025",
-    //   time: "11:00 AM - 12:00 PM",
-    //   status: "scheduled",
-    //   image:
-    //     "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=600&h=400&fit=crop",
-    // },
-    // {
-    //   id: 3,
-    //   type: "Video Practice",
-    //   date: "September 02nd 2025",
-    //   time: "01:03 PM - 02:00 PM",
-    //   status: "waiting",
-    //   image:
-    //     "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=600&h=400&fit=crop",
-    // },
-    // {
-    //   id: 4,
-    //   type: "Mock Interview",
-    //   date: "August 23rd 2025",
-    //   time: "11:00 AM - 11:00 AM",
-    //   status: "scheduled",
-    //   image:
-    //     "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=600&h=400&fit=crop",
-    // },
-    // {
-    //   id: 5,
-    //   type: "Job Role Interview",
-    //   date: "August 28rd 2025",
-    //   time: "11:00 AM - 12:00 PM",
-    //   status: "scheduled",
-    //   image:
-    //     "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=600&h=400&fit=crop",
-    // },
-    // {
-    //   id: 6,
-    //   type: "Video Practice",
-    //   date: "September 02nd 2025",
-    //   time: "01:03 PM - 02:00 PM",
-    //   status: "waiting",
-    //   image:
-    //     "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=600&h=400&fit=crop",
-    // },
+    {
+      id: 1,
+      type: "Mock Interview",
+      date: "August 23rd 2025",
+      time: "11:00 AM - 11:00 AM",
+      status: "scheduled",
+      image:
+        "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=600&h=400&fit=crop",
+    },
+    {
+      id: 2,
+      type: "Job Role Interview",
+      date: "August 28rd 2025",
+      time: "11:00 AM - 12:00 PM",
+      status: "scheduled",
+      image:
+        "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=600&h=400&fit=crop",
+    },
+    {
+      id: 3,
+      type: "Video Practice",
+      date: "September 02nd 2025",
+      time: "01:03 PM - 02:00 PM",
+      status: "waiting",
+      image:
+        "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=600&h=400&fit=crop",
+    },
+    {
+      id: 4,
+      type: "Mock Interview",
+      date: "August 23rd 2025",
+      time: "11:00 AM - 11:00 AM",
+      status: "scheduled",
+      image:
+        "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=600&h=400&fit=crop",
+    },
+    {
+      id: 5,
+      type: "Job Role Interview",
+      date: "August 28rd 2025",
+      time: "11:00 AM - 12:00 PM",
+      status: "scheduled",
+      image:
+        "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=600&h=400&fit=crop",
+    },
+    {
+      id: 6,
+      type: "Video Practice",
+      date: "September 02nd 2025",
+      time: "01:03 PM - 02:00 PM",
+      status: "waiting",
+      image:
+        "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=600&h=400&fit=crop",
+    },
   ]);
 
   const [pastInterviews] = useState([
-    // {
-    //   id: 1,
-    //   type: "Mock Interview",
-    //   completedDate: "August 18th, 2025",
-    //   image:
-    //     "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=600&h=400&fit=crop",
-    // },
-    // {
-    //   id: 2,
-    //   type: "Video Practice",
-    //   completedDate: "August 7th, 2025",
-    //   image:
-    //     "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=600&h=400&fit=crop",
-    // },
-    // {
-    //   id: 3,
-    //   type: "Video Practice",
-    //   completedDate: "August 18th, 2025",
-    //   image:
-    //     "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=600&h=400&fit=crop",
-    // },
-    // {
-    //   id: 4,
-    //   type: "Mock Interview",
-    //   date: "August 23rd 2025",
-    //   time: "11:00 AM - 11:00 AM",
-    //   status: "scheduled",
-    //   image:
-    //     "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=600&h=400&fit=crop",
-    // },
-    // {
-    //   id: 5,
-    //   type: "Job Role Interview",
-    //   date: "August 28rd 2025",
-    //   time: "11:00 AM - 12:00 PM",
-    //   status: "scheduled",
-    //   image:
-    //     "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=600&h=400&fit=crop",
-    // },
-    // {
-    //   id: 6,
-    //   type: "Video Practice",
-    //   date: "September 02nd 2025",
-    //   time: "01:03 PM - 02:00 PM",
-    //   status: "waiting",
-    //   image:
-    //     "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=600&h=400&fit=crop",
-    // },
+    {
+      id: 1,
+      type: "Mock Interview",
+      completedDate: "August 18th, 2025",
+      image:
+        "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=600&h=400&fit=crop",
+    },
+    {
+      id: 2,
+      type: "Video Practice",
+      completedDate: "August 7th, 2025",
+      image:
+        "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=600&h=400&fit=crop",
+    },
+    {
+      id: 3,
+      type: "Video Practice",
+      completedDate: "August 18th, 2025",
+      image:
+        "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=600&h=400&fit=crop",
+    },
+    {
+      id: 4,
+      type: "Mock Interview",
+      date: "August 23rd 2025",
+      time: "11:00 AM - 11:00 AM",
+      status: "scheduled",
+      image:
+        "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=600&h=400&fit=crop",
+    },
+    {
+      id: 5,
+      type: "Job Role Interview",
+      date: "August 28rd 2025",
+      time: "11:00 AM - 12:00 PM",
+      status: "scheduled",
+      image:
+        "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=600&h=400&fit=crop",
+    },
+    {
+      id: 6,
+      type: "Video Practice",
+      date: "September 02nd 2025",
+      time: "01:03 PM - 02:00 PM",
+      status: "waiting",
+      image:
+        "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=600&h=400&fit=crop",
+    },
   ]);
 
   // State to control "see all" expansion
