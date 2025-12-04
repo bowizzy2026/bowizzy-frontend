@@ -40,7 +40,8 @@ interface Certificate {
   isExpanded: boolean;
   uploadedFileUrl?: string;
   uploadedFileType?: string;
-  certificate_id?: number; // DB ID
+  certificate_id?: number;
+  cloudDeleteToken?: string;
 }
 
 export default function CertificationDetailsForm({

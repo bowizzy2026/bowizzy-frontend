@@ -154,6 +154,7 @@ export interface Certificate {
 
   uploadedFile?: File | null;
   uploadedFileName?: string;
+  cloudDeleteToken?: string;
 }
 
 export interface ResumeData {
@@ -266,16 +267,20 @@ export const initialResumeData: ResumeData = {
   },
 
   certifications: [
-    {
-      id: '1',
-      certificateType: '',
-      certificateTitle: '',
-      domain: '',
-      providedBy: '',
-      date: '',
-      description: '',
-      certificateUrl: '',
-      enabled: true,
-    },
-  ],
+  {
+    id: '1',
+    certificateType: '',
+    certificateTitle: '',
+    domain: '',
+    providedBy: '',
+    date: '',
+    description: '',
+    certificateUrl: '',
+    enabled: true,
+    uploadedFile: null,
+    uploadedFileName: '',
+    cloudDeleteToken: undefined,
+  },
+],
+
 };
