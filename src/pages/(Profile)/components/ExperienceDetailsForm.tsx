@@ -139,16 +139,26 @@ export default function ExperienceDetailsForm({
 
   // Validation functions
   const validateCompanyName = (value: string) => {
-    if (value && !/^[a-zA-Z0-9\s.,&'-]+$/.test(value)) {
-      return "Invalid characters in company name";
+    if (!value.trim()) return "Company name is required";
+
+    const regex = /^[a-zA-Z0-9\s.,&'-]+$/;
+
+    if (!regex.test(value)) {
+      return "Invalid company name";
     }
+
     return "";
   };
 
   const validateJobTitle = (value: string) => {
-    if (value && !/^[a-zA-Z0-9\s./-]+$/.test(value)) {
-      return "Invalid characters in job title";
+    if (!value.trim()) return "Job title is required";
+
+    const regex = /^[a-zA-Z0-9\s./-]+$/;
+
+    if (!regex.test(value)) {
+      return "Invalid job title";
     }
+
     return "";
   };
 
