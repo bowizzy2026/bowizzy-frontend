@@ -300,6 +300,14 @@ export default function EducationDetailsForm({
     return isNaN(n) ? val : n;
   };
 
+  // Helper to get current month in YYYY-MM format (for blocking future dates)
+  const getCurrentMonth = (): string => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    return `${year}-${month}`;
+  };
+
   // Handler for SSLC data changes
   const handleSslcChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -1442,6 +1450,7 @@ export default function EducationDetailsForm({
                     name="yearOfPassing"
                     value={sslcData.yearOfPassing}
                     onChange={handleSslcChange}
+                    max={getCurrentMonth()}
                     className="w-full px-3 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent text-xs sm:text-sm"
                   />
                 </div>
@@ -1621,6 +1630,7 @@ export default function EducationDetailsForm({
                     name="yearOfPassing"
                     value={puData.yearOfPassing}
                     onChange={handlePuChange}
+                    max={getCurrentMonth()}
                     className="w-full px-3 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent text-xs sm:text-sm"
                   />
                 </div>
