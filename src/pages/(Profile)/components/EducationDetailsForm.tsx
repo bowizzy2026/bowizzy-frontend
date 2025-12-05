@@ -264,9 +264,17 @@ export default function EducationDetailsForm({
 
   // Helper function to validate institution/board names
   const validateInstitutionName = (value: string) => {
-    if (value && !/^[a-zA-Z0-9\s.,'&()-]+$/.test(value)) {
-      return "Invalid characters: only alphanumeric, spaces, and .,'&()- allowed";
+    if (!value || !value.trim()) return "Institution name is required";
+
+    const regex = /^[a-zA-Z\s.,&'\-]+$/;
+
+    if (!regex.test(value)) {
+      return "Invalid institution name (numbers not allowed)";
     }
+    if (!/[a-zA-Z]/.test(value)) {
+      return "Institution name must include a letter";
+    }
+
     return "";
   };
 
