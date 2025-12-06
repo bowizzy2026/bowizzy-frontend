@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import ProfileStepper from "./components/ProfileStepper";
+import ProfileStepper from "./components/ui/ProfileStepper";
 import PersonalDetailsForm from "./components/forms/PersonalDetailsForm";
 import EducationDetailsForm from "./components/forms/EducationDetailsForm";
 import ExperienceDetailsForm from "./components/forms/ExperienceDetailsForm";
@@ -8,17 +8,12 @@ import ProjectsForm from "./components/forms/ProjectsForm";
 import SkillsLinksForm from "./components/forms/SkillsLinksForm";
 import CertificationsForm from "./components/forms/CertificationsForm";
 import { initialResumeData } from "../../types/resume";
-import type {
-  ResumeData,
-  EducationDetails,
-  HigherEducation,
-  WorkExperience,
-  Project,
-  Certificate,
-} from "../../types/resume";
+import type { ResumeData } from "../../types/resume";
 import DashNav from "@/components/dashnav/dashnav";
 import { getTemplateById } from "@/templates/templateRegistry";
 import ResumePreviewModal from "./components/ui/ResumePreviewModal";
+import PageBreakMarkers from "./components/PageBreakMarkers";
+import { usePageMarkers } from "@/hooks/usePageMarkers";
 import { getPersonalDetailsByUserId } from "@/services/personalService";
 import { getEducationByUserId } from "@/services/educationService";
 import { getExperienceByUserId } from "@/services/experienceService";
@@ -29,6 +24,9 @@ import {
   getLinksByUserId,
   getTechnicalSummary,
 } from "@/services/skillsLinksService";
+
+// Import print styles
+import "@/styles/print.css";
 
 const steps = [
   "Personal",
@@ -57,18 +55,11 @@ const nextButtonLabels = [
   "Preview Resume",
 ];
 
-const mapEducationApiToLocal = (
-  apiData: any[]
-): {
-  educationData: EducationDetails;
-  idMap: Record<string, number>;
-  deleteIds: number[];
-} => {
-  const educationData: EducationDetails = JSON.parse(
-    JSON.stringify(initialResumeData.education)
-  );
+// Helper functions for API mapping (keep your existing mapping functions)
+const mapEducationApiToLocal = (apiData: any[]) => {
+  const educationData = JSON.parse(JSON.stringify(initialResumeData.education));
   const idMap: Record<string, number> = {};
-  const higherEducations: HigherEducation[] = [];
+  const higherEducations: any[] = [];
 
   apiData.forEach((item) => {
     const localId = item.education_id.toString();
@@ -79,18 +70,13 @@ const mapEducationApiToLocal = (
       instituteName: item.institution_name || "",
       boardType: item.board_type || "",
       resultFormat: item.result_format
-        ? item.result_format.charAt(0).toUpperCase() +
-          item.result_format.slice(1)
+        ? item.result_format.charAt(0).toUpperCase() + item.result_format.slice(1)
         : "",
       result: item.result?.toString() || "",
     };
 
     if (item.education_type === "sslc") {
-      educationData.sslc = {
-        ...educationData.sslc,
-        ...baseData,
-        yearOfPassing: item.end_year || "",
-      };
+      educationData.sslc = { ...educationData.sslc, ...baseData, yearOfPassing: item.end_year || "" };
       educationData.sslcEnabled = true;
     } else if (item.education_type === "puc") {
       educationData.preUniversity = {
@@ -111,30 +97,21 @@ const mapEducationApiToLocal = (
         startYear: item.start_year || "",
         endYear: item.end_year || "",
         resultFormat: item.result_format
-          ? item.result_format.charAt(0).toUpperCase() +
-            item.result_format.slice(1)
+          ? item.result_format.charAt(0).toUpperCase() + item.result_format.slice(1)
           : "",
         result: item.result?.toString() || "",
         currentlyPursuing: item.currently_working_here || false,
       });
-
       educationData.higherEducationEnabled = true;
     }
   });
 
   educationData.higherEducation = higherEducations;
-
   return { educationData, idMap, deleteIds: [] };
 };
 
-const mapExperienceApiToLocal = (apiData: {
-  job_role: string;
-  experiences: any[];
-}): {
-  experienceData: typeof initialResumeData.experience;
-  idMap: Record<string, number>;
-} => {
-  const experiences: WorkExperience[] = apiData.experiences.map((item) => ({
+const mapExperienceApiToLocal = (apiData: any) => {
+  const experiences = apiData.experiences.map((item: any) => ({
     id: item.experience_id.toString(),
     experience_id: item.experience_id,
     companyName: item.company_name || "",
@@ -149,40 +126,24 @@ const mapExperienceApiToLocal = (apiData: {
     enabled: true,
   }));
 
-  const idMap = experiences.reduce((acc, exp) => {
-    acc[exp.id] = exp.experience_id as number;
+  const idMap = experiences.reduce((acc: any, exp: any) => {
+    acc[exp.id] = exp.experience_id;
     return acc;
-  }, {} as Record<string, number>);
+  }, {});
 
   return {
     experienceData: {
       jobRole: apiData.job_role || "",
-      workExperiences:
-        experiences.length > 0
-          ? experiences
-          : initialResumeData.experience.workExperiences,
+      workExperiences: experiences.length > 0 ? experiences : initialResumeData.experience.workExperiences,
       experienceEnabled: true,
     },
     idMap,
   };
 };
 
-const mapProjectsApiToLocal = (apiData: any[]): Project[] => {
+const mapProjectsApiToLocal = (apiData: any[]) => {
   if (!apiData || apiData.length === 0) {
-    return [
-      {
-        id: "1",
-        project_id: undefined,
-        projectTitle: "",
-        projectType: "",
-        startDate: "",
-        endDate: "",
-        currentlyWorking: false,
-        description: "",
-        rolesResponsibilities: "",
-        enabled: true,
-      },
-    ];
+    return [{ ...initialResumeData.projects[0] }];
   }
 
   return apiData.map((item) => ({
@@ -199,23 +160,9 @@ const mapProjectsApiToLocal = (apiData: any[]): Project[] => {
   }));
 };
 
-const mapCertificatesApiToLocal = (apiData: any[]): Certificate[] => {
+const mapCertificatesApiToLocal = (apiData: any[]) => {
   if (!apiData || apiData.length === 0) {
-    return [
-      {
-        id: "1",
-        certificate_id: undefined,
-        certificateType: "",
-        certificateTitle: "",
-        domain: "",
-        providedBy: "",
-        date: "",
-        description: "",
-        certificateUrl: "",
-        uploadedFileName: "",
-        enabled: true,
-      },
-    ];
+    return [{ ...initialResumeData.certifications[0] }];
   }
 
   return apiData.map((item) => ({
@@ -235,14 +182,7 @@ const mapCertificatesApiToLocal = (apiData: any[]): Certificate[] => {
 
 const mapSkillsApiToLocal = (apiData: any[]) => {
   if (!apiData || apiData.length === 0) {
-    return [
-      {
-        id: "1",
-        skillName: "",
-        skillLevel: "",
-        enabled: true,
-      },
-    ];
+    return [{ id: "1", skillName: "", skillLevel: "", enabled: true }];
   }
 
   return apiData.map((item) => ({
@@ -255,7 +195,7 @@ const mapSkillsApiToLocal = (apiData: any[]) => {
 };
 
 const mapLinksApiToLocal = (apiData: any[]) => {
-  const linksObject = {
+  const linksObject: any = {
     linkedinProfile: "",
     githubProfile: "",
     portfolioUrl: "",
@@ -266,10 +206,10 @@ const mapLinksApiToLocal = (apiData: any[]) => {
     githubEnabled: false,
     portfolioEnabled: false,
     publicationEnabled: false,
-    link_id_linkedin: undefined as string | undefined,
-    link_id_github: undefined as string | undefined,
-    link_id_portfolio: undefined as string | undefined,
-    link_id_publication: undefined as string | undefined,
+    link_id_linkedin: undefined,
+    link_id_github: undefined,
+    link_id_portfolio: undefined,
+    link_id_publication: undefined,
   };
 
   if (!apiData || apiData.length === 0) {
@@ -310,36 +250,28 @@ export const ResumeEditor: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const templateId = searchParams.get("templateId");
-  const resumeId = searchParams.get("resumeId");
-  const [currentPreviewPage, setCurrentPreviewPage] = useState(0);
 
   const [currentStep, setCurrentStep] = useState(0);
   const [resumeData, setResumeData] = useState<ResumeData>(initialResumeData);
-  const [validationErrors, setValidationErrors] = useState<{
-    [key: string]: boolean;
-  }>({});
+  const [validationErrors, setValidationErrors] = useState<{ [key: string]: boolean }>({});
   const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const [userId, setUserId] = useState<string>("");
   const [token, setToken] = useState<string>("");
-  const [personalDetailsId, setPersonalDetailsId] = useState<string | null>(
-    null
-  );
-
-  const [educationDataIdMap, setEducationDataIdMap] = useState<
-    Record<string, number>
-  >({});
+  const [personalDetailsId, setPersonalDetailsId] = useState<string | null>(null);
+  const [educationDataIdMap, setEducationDataIdMap] = useState<Record<string, number>>({});
   const [deleteEducationIds, setDeleteEducationIds] = useState<number[]>([]);
-
-  const [experienceDataIdMap, setExperienceDataIdMap] = useState<
-    Record<string, number>
-  >({});
+  const [experienceDataIdMap, setExperienceDataIdMap] = useState<Record<string, number>>({});
   const [deleteExperienceIds, setDeleteExperienceIds] = useState<number[]>([]);
   const [technicalSummaryId, setTechnicalSummaryId] = useState<number | null>(null);
 
-  // 1. Initial user and token check
+  // Ref for preview content to calculate page markers
+  const previewContentRef = useRef<HTMLDivElement>(null);
+  const { markers, totalPages } = usePageMarkers(previewContentRef, [resumeData, selectedTemplate]);
+
+  // User and token check
   useEffect(() => {
     const userDataStr = localStorage.getItem("user");
     if (userDataStr) {
@@ -356,7 +288,7 @@ export const ResumeEditor: React.FC = () => {
     }
   }, [navigate]);
 
-  // 2. Template loading
+  // Template loading
   useEffect(() => {
     if (templateId) {
       const template = getTemplateById(templateId);
@@ -364,222 +296,113 @@ export const ResumeEditor: React.FC = () => {
     }
   }, [templateId]);
 
-  // Function to fetch all data on mount
+  // Fetch all data
   const fetchAllData = useCallback(
     async (currentUserId: string, currentToken: string) => {
       if (!currentUserId || !currentToken) return;
 
       setLoading(true);
-      let isError = false;
 
-      // --- Personal Details ---
       try {
-        const response = await getPersonalDetailsByUserId(
-          currentUserId,
-          currentToken
-        );
-        console.log("Fetched Personal Details:", response);
-        if (response) {
+        // Personal Details
+        const personalResponse = await getPersonalDetailsByUserId(currentUserId, currentToken);
+        if (personalResponse) {
           const personalData = {
-            profilePhotoUrl: response.profile_photo_url || "",
-            firstName: response.first_name || "",
-            middleName: response.middle_name || "",
-            lastName: response.last_name || "",
-            email: response.email || "",
-            mobileNumber: response.mobile_number || "",
-            dateOfBirth: response.date_of_birth || "",
-            gender: response.gender
-              ? response.gender.charAt(0).toUpperCase() +
-                response.gender.slice(1)
+            profilePhotoUrl: personalResponse.profile_photo_url || "",
+            firstName: personalResponse.first_name || "",
+            middleName: personalResponse.middle_name || "",
+            lastName: personalResponse.last_name || "",
+            email: personalResponse.email || "",
+            mobileNumber: personalResponse.mobile_number || "",
+            dateOfBirth: personalResponse.date_of_birth || "",
+            gender: personalResponse.gender
+              ? personalResponse.gender.charAt(0).toUpperCase() + personalResponse.gender.slice(1)
               : "",
-            languagesKnown: response.languages_known || [],
-            address: response.address || "",
-            country: response.country || "India",
-            state: response.state || "",
-            city: response.city || "",
-            pincode: response.pincode || "",
-            nationality: response.nationality || "",
-            passportNumber: response.passport_number || "",
-            aboutCareerObjective: response.about || "",
+            languagesKnown: personalResponse.languages_known || [],
+            address: personalResponse.address || "",
+            country: personalResponse.country || "India",
+            state: personalResponse.state || "",
+            city: personalResponse.city || "",
+            pincode: personalResponse.pincode || "",
+            nationality: personalResponse.nationality || "",
+            passportNumber: personalResponse.passport_number || "",
+            aboutCareerObjective: personalResponse.about || "",
           };
-
-          setResumeData((prev) => ({
-            ...prev,
-            personal: personalData,
-          }));
-
-          setPersonalDetailsId(response.personal_id || null);
+          setResumeData((prev) => ({ ...prev, personal: personalData }));
+          setPersonalDetailsId(personalResponse.personal_id || null);
         }
-      } catch (error) {
-        console.error("Error fetching personal details:", error);
-        isError = true;
-      }
 
-      // --- Education Details ---
-      try {
-        const apiResponse = await getEducationByUserId(
-          currentUserId,
-          currentToken
-        );
-        console.log("Fetched Education Details:", apiResponse);
-
-        if (apiResponse && apiResponse.length > 0) {
-          const { educationData, idMap } = mapEducationApiToLocal(apiResponse);
+        // Education Details
+        const educationResponse = await getEducationByUserId(currentUserId, currentToken);
+        if (educationResponse && educationResponse.length > 0) {
+          const { educationData, idMap } = mapEducationApiToLocal(educationResponse);
           setResumeData((prev) => ({ ...prev, education: educationData }));
           setEducationDataIdMap(idMap);
-        } else {
-          setResumeData((prev) => ({
-            ...prev,
-            education: initialResumeData.education,
-          }));
-          setEducationDataIdMap({});
         }
-      } catch (error) {
-        console.error("Error fetching education details:", error);
-        isError = true;
-      }
 
-      // --- Experience Details ---
-      try {
-        const apiResponse = await getExperienceByUserId(
-          currentUserId,
-          currentToken
-        );
-        console.log("Fetched Experience Details:", apiResponse);
-
-        if (apiResponse && apiResponse.experiences) {
-          const { experienceData, idMap } =
-            mapExperienceApiToLocal(apiResponse);
+        // Experience Details
+        const experienceResponse = await getExperienceByUserId(currentUserId, currentToken);
+        if (experienceResponse && experienceResponse.experiences) {
+          const { experienceData, idMap } = mapExperienceApiToLocal(experienceResponse);
           setResumeData((prev) => ({ ...prev, experience: experienceData }));
           setExperienceDataIdMap(idMap);
-        } else {
-          setResumeData((prev) => ({
-            ...prev,
-            experience: initialResumeData.experience,
-          }));
-          setExperienceDataIdMap({});
         }
-      } catch (error) {
-        console.error("Error fetching experience details:", error);
-        isError = true;
-      }
 
-      // --- Projects Details ---
-      try {
-        const apiResponse = await getProjectsByUserId(
-          currentUserId,
-          currentToken
-        );
-        console.log("Fetched Projects Details:", apiResponse);
-
-        const projectsData = mapProjectsApiToLocal(apiResponse);
+        // Projects
+        const projectsResponse = await getProjectsByUserId(currentUserId, currentToken);
+        const projectsData = mapProjectsApiToLocal(projectsResponse);
         setResumeData((prev) => ({ ...prev, projects: projectsData }));
-      } catch (error) {
-        console.error("Error fetching projects details:", error);
-        isError = true;
-        setResumeData((prev) => ({
-          ...prev,
-          projects: initialResumeData.projects,
-        }));
-      }
 
-      // --- Skills Details ---
-      try {
-        const apiResponse = await getSkillsByUserId(
-          currentUserId,
-          currentToken
-        );
-        console.log("Fetched Skills Details:", apiResponse);
-
-        const skillsData = mapSkillsApiToLocal(apiResponse);
+        // Skills
+        const skillsResponse = await getSkillsByUserId(currentUserId, currentToken);
+        const skillsData = mapSkillsApiToLocal(skillsResponse);
         setResumeData((prev) => ({
           ...prev,
           skillsLinks: { ...prev.skillsLinks, skills: skillsData },
         }));
-      } catch (error) {
-        console.error("Error fetching skills details:", error);
-        isError = true;
-      }
 
-      // --- Links Details ---
-      try {
-        const apiResponse = await getLinksByUserId(currentUserId, currentToken);
-        console.log("Fetched Links Details:", apiResponse);
-
-        const linksData = mapLinksApiToLocal(apiResponse);
+        // Links
+        const linksResponse = await getLinksByUserId(currentUserId, currentToken);
+        const linksData = mapLinksApiToLocal(linksResponse);
         setResumeData((prev) => ({
           ...prev,
           skillsLinks: { ...prev.skillsLinks, links: linksData },
         }));
-      } catch (error) {
-        console.error("Error fetching links details:", error);
-        isError = true;
-      }
 
-      // --- Technical Summary Details ---
-      try {
-        const apiResponse = await getTechnicalSummary(currentUserId, currentToken);
-        console.log("Fetched Technical Summary:", apiResponse);
-
-        if (apiResponse) {
+        // Technical Summary
+        const summaryResponse = await getTechnicalSummary(currentUserId, currentToken);
+        if (summaryResponse) {
           setResumeData((prev) => ({
             ...prev,
             skillsLinks: {
               ...prev.skillsLinks,
-              technicalSummary: apiResponse.summary || "",
-              technicalSummaryEnabled: !!apiResponse.summary,
+              technicalSummary: summaryResponse.summary || "",
+              technicalSummaryEnabled: !!summaryResponse.summary,
             },
           }));
-          setTechnicalSummaryId(apiResponse.summary_id || null);
+          setTechnicalSummaryId(summaryResponse.summary_id || null);
         }
+
+        // Certificates
+        const certificatesResponse = await getCertificatesByUserId(currentUserId, currentToken);
+        const certificatesData = mapCertificatesApiToLocal(certificatesResponse);
+        setResumeData((prev) => ({ ...prev, certifications: certificatesData }));
       } catch (error) {
-        console.error("Error fetching technical summary:", error);
-        isError = true;
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
       }
-
-      // --- Certificates Details ---
-      try {
-        const apiResponse = await getCertificatesByUserId(
-          currentUserId,
-          currentToken
-        );
-        console.log("Fetched Certificates Details:", apiResponse);
-
-        const certificatesData = mapCertificatesApiToLocal(apiResponse);
-        setResumeData((prev) => ({
-          ...prev,
-          certifications: certificatesData,
-        }));
-      } catch (error) {
-        console.error("Error fetching certificates details:", error);
-        isError = true;
-        setResumeData((prev) => ({
-          ...prev,
-          certifications: initialResumeData.certifications,
-        }));
-      }
-
-      // --- Skills & Links (No API call, using initial data or relying on local state for now) ---
-      // Assuming Skills & Links data is handled client-side if no dedicated API exists.
-      // If there was an API, it would be called here.
-
-      setLoading(false);
     },
     []
   );
 
-  // 3. Effect to call fetchAllData when userId and token are available
   useEffect(() => {
     if (userId && token) {
       fetchAllData(userId, token);
     }
   }, [userId, token, fetchAllData]);
 
-  // Removed individual fetch effects that were dependent on currentStep, as all data is fetched on mount now.
-
   const handleStepClick = (stepIndex: number) => {
-    // We can still set loading briefly if navigating to a step that involves significant rendering or if we add a debounce/throttle to the form logic.
-    // However, since data is already fetched, we primarily just change the step.
     setCurrentStep(stepIndex);
   };
 
@@ -595,10 +418,6 @@ export const ResumeEditor: React.FC = () => {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
     }
-  };
-
-  const handleSaveResume = () => {
-    console.log("Saving resume:", resumeData);
   };
 
   const updatePersonalData = (data: typeof resumeData.personal) => {
@@ -707,19 +526,6 @@ export const ResumeEditor: React.FC = () => {
     }
   };
 
-  const handlePageChange = (direction: "next" | "prev") => {
-    if (!selectedTemplate) return;
-    const totalPages = selectedTemplate.pageCount || 1;
-
-    if (direction === "next") {
-      setCurrentPreviewPage((prev) =>
-        prev < totalPages - 1 ? prev + 1 : prev
-      );
-    } else {
-      setCurrentPreviewPage((prev) => (prev > 0 ? prev - 1 : prev));
-    }
-  };
-
   const renderTemplatePreview = () => {
     if (!selectedTemplate) {
       return (
@@ -729,8 +535,8 @@ export const ResumeEditor: React.FC = () => {
       );
     }
 
-    const TemplateComponent = selectedTemplate.component;
-    return <TemplateComponent data={resumeData} page={currentPreviewPage} />;
+    const DisplayComponent = selectedTemplate.displayComponent || selectedTemplate.component;
+    return <DisplayComponent data={resumeData} />;
   };
 
   return (
@@ -782,36 +588,19 @@ export const ResumeEditor: React.FC = () => {
             <div className="hidden lg:flex lg:w-[50%] bg-white overflow-auto scrollbar-hide">
               <div className="flex-1 p-4 overflow-auto scrollbar-hide border border-gray-300 m-4 rounded-lg">
                 <div className="relative w-full h-full flex items-start justify-center">
-                  {/* {selectedTemplate && (
-                    <div className="absolute top-2 right-4 flex items-center gap-3 bg-white px-3 py-1 rounded-full shadow-md text-sm font-medium">
-                      <button
-                        onClick={() => handlePageChange("prev")}
-                        className="px-2 py-1 disabled:opacity-30"
-                        disabled={currentPreviewPage === 0}
-                      >
-                        ◀
-                      </button>
-
-                      <div>
-                        {currentPreviewPage + 1} /{" "}
-                        {selectedTemplate.pageCount || 1}
-                      </div>
-
-                      <button
-                        onClick={() => handlePageChange("next")}
-                        className="px-2 py-1 disabled:opacity-30"
-                        disabled={
-                          currentPreviewPage ===
-                          (selectedTemplate.pageCount || 1) - 1
-                        }
-                      >
-                        ▶
-                      </button>
+                  {/* Page info */}
+                  {totalPages > 1 && (
+                    <div className="absolute top-2 right-4 bg-white px-3 py-1 rounded-full shadow-md text-sm font-medium z-10">
+                      {totalPages} {totalPages === 1 ? 'Page' : 'Pages'}
                     </div>
-                  )} */}
+                  )}
 
-                  <div className="transform scale-75 origin-top mt-8">
-                    {renderTemplatePreview()}
+                  {/* Preview content with markers */}
+                  <div className="relative transform scale-75 origin-top -mt-4">
+                    <div ref={previewContentRef} className="relative">
+                      {renderTemplatePreview()}
+                      <PageBreakMarkers markers={markers} />
+                    </div>
                   </div>
                 </div>
               </div>
