@@ -1,0 +1,128 @@
+/* ============================================
+   PRINT STYLES FOR PDF EXPORT
+   ============================================ */
+
+@media print {
+  /* Hide everything by default */
+  body * {
+    visibility: hidden;
+  }
+
+  /* Show only print content */
+  .print-version,
+  .print-version * {
+    visibility: visible;
+  }
+
+  .print-version {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+
+  /* Hide page break markers in PDF */
+  .page-break-marker {
+    display: none !important;
+  }
+
+  /* A4 Page Setup */
+  @page {
+    size: A4 portrait;
+    margin: 2px 0; /* 2px top and bottom margin for the page */
+  }
+
+  /* Ensure content respects page margins */
+  .print-version {
+    padding-top: 2px;
+    padding-bottom: 2px;
+  }
+
+  /* Page break control */
+  .resume-section {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  .resume-section h2,
+  .resume-section h3 {
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+
+  .work-item,
+  .education-item,
+  .project-item,
+  .skill-item,
+  .certification-item {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Force page breaks where needed */
+  .force-page-break {
+    page-break-before: always;
+    break-before: page;
+  }
+
+  /* Preserve colors and backgrounds */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  /* Ensure full page width */
+  html, body {
+    width: 210mm;
+    height: 297mm;
+  }
+}
+
+/* ============================================
+   LIVE PREVIEW STYLES (NON-PRINT)
+   ============================================ */
+
+.resume-preview-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+}
+
+.resume-preview-content {
+  position: relative;
+  width: 210mm;
+  min-height: 297mm;
+  margin: 0 auto;
+  background: white;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Create visual gap effect for page break areas */
+.page-break-spacer-before,
+.page-break-spacer-after {
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Ensure content doesn't overlap with spacers */
+.resume-preview-content > * {
+  position: relative;
+}
+
+/* Hide print version in live preview */
+.print-version {
+  display: none;
+}
+
+/* Show print version only when printing */
+@media print {
+  .resume-preview-wrapper,
+  .resume-preview-content {
+    display: none;
+  }
+
+  .print-version {
+    display: block !important;
+  }
+}

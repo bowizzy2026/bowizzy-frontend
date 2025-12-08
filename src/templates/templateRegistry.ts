@@ -1,43 +1,64 @@
-// import ModernProfessionalTemplate from '../pages/(ResumeBuilder)/templates/ModernProfessional';
-import ModernProfessionalTemplate2 from './ModernProfessionalTemplate2';
-import ModernProfessionalTemplate from './ModernProfessionalTemplate';
+import Template1Display from './display/Template1Display';
+import Template2Display from './display/Template2Display';
+import Template3Display from './display/Template3Display';
+import Template1PDF from './pdf/Template1PDF';
+import Template2PDF from './pdf/Template2PDF';
+import Template3PDF from './pdf/Template3PDF';
+
 export interface TemplateInfo {
   id: string;
   name: string;
-  thumbnailUrl: string;
-  component: React.ComponentType<any>;
   category: string;
-  description?: string;
+  thumbnail: string;
+  component: React.ComponentType<any>; // Legacy - for backward compatibility
+  displayComponent: React.ComponentType<any>; // For live preview
+  pdfComponent?: React.ComponentType<any>; // For PDF export (optional)
+  pageCount?: number;
 }
 
-export const TEMPLATE_REGISTRY: TemplateInfo[] = [
+// Template Registry
+const TEMPLATE_REGISTRY: TemplateInfo[] = [
   {
-    id: 'modern-professional',
-    name: 'Professional',
-    thumbnailUrl: '/resume-templates/thumbnails/modern-professional.png',
-    component: ModernProfessionalTemplate,
+    id: 'template1',
+    name: 'Executive Professional',
     category: 'Professional',
-    description: 'A clean two-column layout perfect for marketing and business professionals'
+    thumbnail: '/resume-templates/thumbnails/template1.jpg',
+    component: Template1Display,
+    displayComponent: Template1Display,
+    pdfComponent: Template1PDF,
+    pageCount: 1,
   },
-  { 
-    id: 'twopage',
-    name: 'Professional',
-    thumbnailUrl: '/resume-templates/thumbnails/modern-professional.png',
-    component: ModernProfessionalTemplate2,
+  {
+    id: 'template2',
+    name: 'Modern Minimalist',
     category: 'Professional',
-    description: 'A clean two-column layout perfect for marketing and business professionals'
-
+    thumbnail: '/resume-templates/thumbnails/template2.jpg',
+    displayComponent: Template2Display,
+    pdfComponent: Template2PDF,
+    pageCount: 1,
   },
+  {
+    id: 'template3',
+    name: 'Creative Designer',
+    category: 'Creative',
+    thumbnail: './resume-templates/thumbnails/template3.jpg',
+    displayComponent: Template3Display,
+    pdfComponent: Template3PDF,
+    pageCount: 1,
+  },
+  // Add more templates here...
 ];
 
 export const getTemplateById = (id: string): TemplateInfo | undefined => {
   return TEMPLATE_REGISTRY.find(template => template.id === id);
 };
 
+export const getTemplatesByCategory = (category: string): TemplateInfo[] => {
+  return TEMPLATE_REGISTRY.filter(template => template.category === category);
+};
+
 export const getAllTemplates = (): TemplateInfo[] => {
   return TEMPLATE_REGISTRY;
 };
 
-export const getTemplatesByCategory = (category: string): TemplateInfo[] => {
-  return TEMPLATE_REGISTRY.filter(template => template.category === category);
-};
+export default TEMPLATE_REGISTRY;
