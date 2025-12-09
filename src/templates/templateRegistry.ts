@@ -2,10 +2,12 @@ import Template1Display from './display/Template1Display';
 import Template2Display from './display/Template2Display';
 import Template3Display from './display/Template3Display';
 import Template4Display from './display/Template4Display';
+import Template5Display from './display/Template5Display';
 import Template1PDF from './pdf/Template1PDF';
 import Template2PDF from './pdf/Template2PDF';
 import Template3PDF from './pdf/Template3PDF';
 import Template4PDF from './pdf/Template4PDF';
+import Template5PDF from './pdf/Template5PDF';
 
 export interface TemplateInfo {
   id: string;
@@ -55,6 +57,15 @@ const TEMPLATE_REGISTRY: TemplateInfo[] = [
     thumbnail: '/resume-templates/thumbnails/template4.jpg',
     displayComponent: Template4Display,
     pdfComponent: Template4PDF,
+    pageCount: 1,
+  },
+  {
+    id: 'template5',
+    name: 'Classic Serif Resume',
+    category: 'Professional',
+    thumbnail: '/resume-templates/thumbnails/template5.jpg',
+    displayComponent: Template5Display,
+    pdfComponent: Template5PDF,
     pageCount: 1,
   },
   // Add more templates here...
