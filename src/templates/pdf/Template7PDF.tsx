@@ -4,7 +4,7 @@ import type { ResumeData } from '@/types/resume';
 
 const styles = StyleSheet.create({
   page: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     backgroundColor: '#ffffff',
     fontFamily: 'Helvetica',
     fontSize: 10,
@@ -12,6 +12,10 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
     paddingLeft: 40,
     paddingRight: 40,
+  },
+  twoColumnContainer: {
+    flexDirection: 'row',
+    width: '100%',
   },
   leftColumn: {
     width: '60%',
@@ -42,10 +46,10 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#004b87',
     textTransform: 'uppercase',
-    letterSpacing: 1.5,
-    marginBottom: 8,
-    paddingBottom: 4,
-    borderBottomWidth: 2,
+    letterSpacing: 1,
+    marginBottom: 10,
+    paddingBottom: 6,
+    borderBottomWidth: 1,
     borderBottomColor: '#004b87',
   },
   section: {
@@ -61,17 +65,17 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   itemSubtitle: {
-    fontSize: 9,
+    fontSize: 10,
     color: '#666',
     marginBottom: 2,
   },
   itemDate: {
     fontSize: 9,
-    color: '#888',
+    color: '#999',
   },
   itemCoursework: {
     fontSize: 9,
-    color: '#888',
+    color: '#999',
     marginTop: 4,
   },
   experienceItem: {
@@ -85,25 +89,25 @@ const styles = StyleSheet.create({
   },
   experienceDate: {
     fontSize: 9,
-    color: '#888',
+    color: '#999',
     marginBottom: 4,
   },
   description: {
-    fontSize: 9,
-    color: '#555',
+    fontSize: 10,
+    color: '#444',
     lineHeight: 1.5,
   },
   listItem: {
-    fontSize: 9,
-    color: '#555',
+    fontSize: 10,
+    color: '#444',
     marginBottom: 4,
-    paddingLeft: 8,
-    marginLeft: -8,
+    paddingLeft: 0,
+    marginLeft: 0,
   },
   contactInfo: {
-    fontSize: 9,
-    color: '#555',
-    lineHeight: 1.8,
+    fontSize: 10,
+    color: '#444',
+    lineHeight: 1.6,
   },
 });
 
@@ -131,15 +135,18 @@ const Template7PDF: React.FC<Template7PDFProps> = ({ data }) => {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        {/* Left Column */}
-        <View style={styles.leftColumn}>
-          {/* Header */}
-          <View style={styles.header}>
-            <Text style={styles.name}>
-              {personal.firstName.toUpperCase()} {personal.lastName.toUpperCase()}
-            </Text>
-            <Text style={styles.jobTitle}>{experience.jobRole}</Text>
-          </View>
+        {/* Header - Full Width */}
+        <View style={styles.header}>
+          <Text style={styles.name}>
+            {personal.firstName.toUpperCase()} {personal.lastName.toUpperCase()}
+          </Text>
+          <Text style={styles.jobTitle}>{experience.jobRole}</Text>
+        </View>
+
+        {/* Two Column Container */}
+        <View style={styles.twoColumnContainer}>
+          {/* Left Column */}
+          <View style={styles.leftColumn}>
 
           {/* Profile */}
           {personal.aboutCareerObjective && (
@@ -228,6 +235,7 @@ const Template7PDF: React.FC<Template7PDFProps> = ({ data }) => {
               ))}
             </View>
           )}
+          </View>
         </View>
       </Page>
     </Document>
