@@ -7,6 +7,7 @@ import Template6Display from './display/Template6Display';
 import Template7Display from './display/Template7Display';
 import Template8Display from './display/Template8Display';
 import Template9Display from './display/Template9Display';
+import Template10Display from './display/Template10Display';
 import Template1PDF from './pdf/Template1PDF';
 import Template2PDF from './pdf/Template2PDF';
 import Template3PDF from './pdf/Template3PDF';
@@ -16,6 +17,7 @@ import Template6PDF from './pdf/Template6PDF';
 import Template7PDF from './pdf/Template7PDF';
 import Template8PDF from './pdf/Template8PDF';
 import Template9PDF from './pdf/Template9PDF';
+import Template10PDF from './pdf/Template10PDF';
 
 export interface TemplateInfo {
   id: string;
@@ -110,6 +112,15 @@ const TEMPLATE_REGISTRY: TemplateInfo[] = [
     thumbnail: '/resume-templates/thumbnails/template9.jpg',
     displayComponent: Template9Display,
     pdfComponent: Template9PDF,
+    pageCount: 1,
+  },
+  {
+    id: 'template10',
+    name: 'Modern Sidebar Dark',
+    category: 'Professional',
+    thumbnail: '/resume-templates/thumbnails/template10.jpg',
+    displayComponent: Template10Display,
+    pdfComponent: Template10PDF,
     pageCount: 1,
   },
   // Add more templates here...
