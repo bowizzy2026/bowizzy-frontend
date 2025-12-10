@@ -31,7 +31,7 @@ export default function ResumeBuilder() {
       <DashNav heading="Resume Builder" />
 
       <div className="flex-1 bg-gray-50 overflow-auto">
-        <div className="bg-white rounded-lg m-3 md:m-5 w-full max-w-[1210px] mx-auto">
+        <div className="bg-white rounded-lg m-3 md:m-5 w-full max-w-[1210px] mx-auto flex flex-col" style={{ minHeight: '0' }}>
           
           <div className="flex flex-col mt-5 mb-10 gap-2 px-4 md:px-5">
             <span className="text-[#1A1A43] text-base font-semibold">
@@ -89,39 +89,20 @@ export default function ResumeBuilder() {
             <span className="text-[#1A1A43] text-base font-semibold">Our Recommended Templates</span>
           </div>
 
-          <div className="flex flex-col md:flex-row items-center md:items-start gap-6 md:gap-10 mb-10 px-4 md:px-5 flex-wrap justify-center md:justify-start">
-            {templates.slice(0, 3).map((template) => (
-              <button
-                key={template.id}
-                className="relative w-[329px] rounded-lg shadow-sm border-0 hover:shadow-lg transition-shadow overflow-hidden"
-                style={{ boxShadow: "0px 0px 1px #00000040" }}
-                onClick={() => handleTemplateClick(template.id)}
-              >
-                <img
-                  src={template.thumbnail}
-                  alt={template.name}
-                  className="w-full h-[439px] object-cover"
-                />
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">
-                  <span className="text-white text-sm font-medium">{template.name}</span>
-                </div>
-              </button>
-            ))}
-          </div>
-
-          {templates.length > 3 && (
-            <div className="flex flex-col md:flex-row items-center md:items-start gap-6 md:gap-10 mb-10 px-4 md:px-5 flex-wrap justify-center md:justify-start">
-              {templates.slice(3, 6).map((template) => (
+          {/* Templates: responsive grid (scrollable) - shows all templates */}
+          <div className="mb-10 px-4 md:px-5 flex-1 overflow-auto">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-10 p-4" style={{ paddingBottom: 12 }}>
+              {templates.map((template) => (
                 <button
                   key={template.id}
-                  className="relative w-[329px] rounded-lg shadow-sm border-0 hover:shadow-lg transition-shadow overflow-hidden"
+                  className="relative w-full rounded-lg shadow-sm border-0 hover:shadow-lg transition-shadow overflow-hidden"
                   style={{ boxShadow: "0px 0px 1px #00000040" }}
                   onClick={() => handleTemplateClick(template.id)}
                 >
                   <img
                     src={template.thumbnail}
                     alt={template.name}
-                    className="w-full h-[439px] object-cover"
+                    className="w-full h-[260px] md:h-[320px] lg:h-[439px] object-cover"
                   />
                   <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">
                     <span className="text-white text-sm font-medium">{template.name}</span>
@@ -129,7 +110,7 @@ export default function ResumeBuilder() {
                 </button>
               ))}
             </div>
-          )}
+          </div>
 
         </div>
       </div>
