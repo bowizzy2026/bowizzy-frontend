@@ -6,6 +6,7 @@ import Template5Display from './display/Template5Display';
 import Template6Display from './display/Template6Display';
 import Template7Display from './display/Template7Display';
 import Template8Display from './display/Template8Display';
+import Template9Display from './display/Template9Display';
 import Template1PDF from './pdf/Template1PDF';
 import Template2PDF from './pdf/Template2PDF';
 import Template3PDF from './pdf/Template3PDF';
@@ -14,6 +15,7 @@ import Template5PDF from './pdf/Template5PDF';
 import Template6PDF from './pdf/Template6PDF';
 import Template7PDF from './pdf/Template7PDF';
 import Template8PDF from './pdf/Template8PDF';
+import Template9PDF from './pdf/Template9PDF';
 
 export interface TemplateInfo {
   id: string;
@@ -99,6 +101,15 @@ const TEMPLATE_REGISTRY: TemplateInfo[] = [
     thumbnail: '/resume-templates/thumbnails/template8.jpg',
     displayComponent: Template8Display,
     pdfComponent: Template8PDF,
+    pageCount: 1,
+  },
+  {
+    id: 'template9',
+    name: 'Sidebar Professional',
+    category: 'Professional',
+    thumbnail: '/resume-templates/thumbnails/template9.jpg',
+    displayComponent: Template9Display,
+    pdfComponent: Template9PDF,
     pageCount: 1,
   },
   // Add more templates here...
