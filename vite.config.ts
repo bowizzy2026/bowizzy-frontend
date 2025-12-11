@@ -17,6 +17,8 @@ export default defineConfig({
     // Added PWA plugin
     VitePWA({
       registerType: "autoUpdate",
+      strategies: "generateSW",
+      filename: "sw.js",
       includeAssets: ["favicon.ico"],
       manifest: {
         name: "Bowizzy App",
@@ -31,7 +33,7 @@ export default defineConfig({
         ]
       },
       workbox: {
-        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // allow files up to 5MB
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
       }
     })
   ],
