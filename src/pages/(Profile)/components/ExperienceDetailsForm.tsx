@@ -156,18 +156,16 @@ export default function ExperienceDetailsForm({
   const validateJobTitle = (value: string) => {
     if (!value.trim()) return "Job title is required";
 
+    // Validate allowed characters (letters, numbers, spaces and common punctuation)
+    // Also ensure there is at least one letter (reject number-only titles like "122233").
     const regex = /^[a-zA-Z0-9\s./-]+$/;
 
     if (!regex.test(value)) {
       return "Invalid job title";
     }
 
-    if (!/\d/.test(value)) {
-      return "Job title must include a number";
-    }
-
     if (!/[a-zA-Z]/.test(value)) {
-      return "Job title must include a letter";
+      return "Job title must contain at least one letter";
     }
 
     return "";

@@ -161,8 +161,9 @@ export const ExperienceDetailsForm: React.FC<ExperienceDetailsFormProps> = ({
     if (value && !/^[a-zA-Z0-9\s./-]+$/.test(value)) {
       return "Invalid characters in job title";
     }
+    // Ensure job title is not numbers-only; require at least one letter
     if (value && !/[a-zA-Z]/.test(value)) {
-      return "Job title must include at least one letter";
+      return "Job title must contain at least one letter";
     }
     return "";
   };
