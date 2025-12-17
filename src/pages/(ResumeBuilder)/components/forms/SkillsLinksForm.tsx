@@ -133,12 +133,14 @@ export const SkillsLinksForm: React.FC<SkillsLinksFormProps> = ({
   }, [data.technicalSummary]);
 
   const validateSkillName = (value: string) => {
-    if (value && !/^[a-zA-Z0-9\s.+#-]+$/.test(value)) {
+    if (!value) return "";
+    if (!/^[a-zA-Z0-9\s.+#-]+$/.test(value)) {
       return "Invalid characters in skill name";
     }
-    if (value && (!/[a-zA-Z]/.test(value) || !/\d/.test(value))) {
-      return "Skill must include both letters and numbers";
+    if (/^\d+$/.test(value.trim())) {
+      return "Skill cannot be only numbers";
     }
+
     return "";
   };
 
