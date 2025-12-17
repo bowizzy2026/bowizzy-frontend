@@ -514,23 +514,41 @@ export const ResumeEditor: React.FC = () => {
         }));
 
         // Technical Summary
-        const summaryResponse = await getTechnicalSummary(currentUserId, currentToken);
-        if (summaryResponse) {
-          setResumeData((prev) => ({
-            ...prev,
-            skillsLinks: {
-              ...prev.skillsLinks,
-              technicalSummary: summaryResponse.summary || "",
-              technicalSummaryEnabled: !!summaryResponse.summary,
-            },
-          }));
-          setTechnicalSummaryId(summaryResponse.summary_id || null);
+        try {
+          const summaryResponse = await getTechnicalSummary(currentUserId, currentToken);
+          if (summaryResponse && typeof summaryResponse.summary === "string") {
+            setResumeData((prev) => ({
+              ...prev,
+              skillsLinks: {
+                ...prev.skillsLinks,
+                technicalSummary: summaryResponse.summary || "",
+                technicalSummaryEnabled: !!summaryResponse.summary,
+              },
+            }));
+            setTechnicalSummaryId(summaryResponse.summary_id || null);
+          } else {
+            console.info("No technical summary returned", summaryResponse);
+            setResumeData((prev) => ({
+              ...prev,
+              skillsLinks: {
+                ...prev.skillsLinks,
+                technicalSummary: "",
+                technicalSummaryEnabled: false,
+              },
+            }));
+            setTechnicalSummaryId(null);
+          }
+        } catch (err) {
+          console.error("Failed to fetch technical summary:", err);
         }
 
-        // Certificates
+        try {
           const certificatesResponse = await getCertificatesByUserId(currentUserId, currentToken);
           const certificatesData = mapCertificatesApiToLocal(certificatesResponse);
           setResumeData((prev) => ({ ...prev, certifications: certificatesData }));
+        } catch (err) {
+          console.error("Failed to fetch certificates:", err);
+        }
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
