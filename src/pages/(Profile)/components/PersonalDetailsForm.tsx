@@ -214,6 +214,8 @@ export default function PersonalDetailsForm({
         // Error check for partial input (user can't type special chars, but must be alphanumeric and length is 8)
         if (value && !/^[A-Z0-9]*$/.test(value)) {
           error = "Only uppercase letters and numbers allowed";
+        } else if (value && !/(?=.*[A-Z])(?=.*\d)/.test(value)) {
+          error = "Must contain at least one letter and one number";
         } else if (value && value.length > 0 && value.length < 8) {
           error = "Must be 8 characters";
         } else if (value && value.length > 8) {
@@ -1100,7 +1102,7 @@ export default function PersonalDetailsForm({
                     name="passportNumber"
                     value={formData.passportNumber}
                     onChange={handleInputChange}
-                    placeholder="Enter Passport Number"
+                    placeholder="Enter Passport Number (letters + numbers required)"
                     className={`w-full px-3 py-2 sm:py-2.5 border rounded-lg focus:outline-none focus:ring-2 text-xs sm:text-sm ${
                       errors.passportNumber
                         ? "border-red-500 focus:ring-red-400"
