@@ -17,6 +17,10 @@ export interface PersonalDetails {
   pincode: string;
   passportNumber: string;
   aboutCareerObjective: string;
+  // Optional verification/declaration to show at the end of templates
+  verificationEnabled?: boolean;
+  verificationText?: string;
+  verificationDate?: string;
 }
 
 export interface SSLCEducation {
@@ -185,6 +189,9 @@ export const initialResumeData: ResumeData = {
     pincode: '',
     passportNumber: '',
     aboutCareerObjective: '',
+    verificationEnabled: false,
+    verificationText: '',
+    verificationDate: '',
   },
 
   education: {

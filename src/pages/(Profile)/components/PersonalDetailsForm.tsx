@@ -202,6 +202,14 @@ export default function PersonalDetailsForm({
         }
         break;
 
+      case "address":
+        if (value && !/(?=.*[A-Za-z])(?=.*\d)/.test(value)) {
+          error = "Address must include both letters and numbers";
+        } else if (value && value.trim().length < 5) {
+          error = "Address is too short";
+        }
+        break;
+
       case "passportNumber":
         // Error check for partial input (user can't type special chars, but must be alphanumeric and length is 8)
         if (value && !/^[A-Z0-9]*$/.test(value)) {
@@ -376,6 +384,7 @@ export default function PersonalDetailsForm({
       const newErrors = { ...prev };
       delete newErrors.pincode;
       delete newErrors.passportNumber;
+      delete newErrors.address;
       return newErrors;
     });
   };
@@ -966,10 +975,17 @@ export default function PersonalDetailsForm({
                     name="address"
                     value={formData.address}
                     onChange={handleInputChange}
-                    placeholder="Enter your address"
+                    placeholder="Enter your address (must include letters & numbers)"
                     rows={3}
-                    className="w-full px-3 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent text-xs sm:text-sm resize-none"
+                    className={`w-full px-3 py-2 sm:py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent text-xs sm:text-sm resize-none ${
+                      errors.address
+                        ? "border-red-500 focus:ring-red-400"
+                        : "border-gray-300 focus:ring-orange-400"
+                    }`}
                   />
+                    {errors.address && (
+                      <p className="mt-1 text-xs text-red-500">{errors.address}</p>
+                    )}
                 </div>
 
                 <div>

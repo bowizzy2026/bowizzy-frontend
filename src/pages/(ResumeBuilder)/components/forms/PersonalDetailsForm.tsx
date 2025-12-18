@@ -309,6 +309,14 @@ export const PersonalDetailsForm: React.FC<PersonalDetailsFormProps> = ({
         }
         break;
 
+      case "address":
+        if (value && !/(?=.*[A-Za-z])(?=.*\d)/.test(value)) {
+          error = "Address must include both letters and numbers";
+        } else if (value && value.trim().length < 5) {
+          error = "Address is too short";
+        }
+        break;
+
       case "passportNumber":
         if (value && !/^[A-Z0-9]*$/.test(value)) {
           error = "Only uppercase letters and numbers allowed";
@@ -443,11 +451,19 @@ export const PersonalDetailsForm: React.FC<PersonalDetailsFormProps> = ({
   };
 
   const handleUpdateLocation = async () => {
+    // Prevent saving when there are no changes or when validation errors exist
     if (!personalDetailsId || changedLocationFields.length === 0) {
       if (!personalDetailsId) {
         setLocationFeedback("Unable to save: Missing personal details ID");
         setTimeout(() => setLocationFeedback(""), 3000);
       }
+      return;
+    }
+
+    // Block save if address validation fails
+    if (errors.address) {
+      setLocationFeedback("Fix Address errors before saving");
+      setTimeout(() => setLocationFeedback(""), 3000);
       return;
     }
 
@@ -966,9 +982,10 @@ export const PersonalDetailsForm: React.FC<PersonalDetailsFormProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
               <FormInput
                 label="Address"
-                placeholder="Enter Address"
+                placeholder="Enter Address (must include letters & numbers)"
                 value={data.address}
                 onChange={(v) => updateField("address", v)}
+                error={errors.address}
               />
               <FormInput
                 label="Nationality"
@@ -981,7 +998,7 @@ export const PersonalDetailsForm: React.FC<PersonalDetailsFormProps> = ({
             <div className="mt-4">
               <FormInput
                 label="Passport Number"
-                placeholder="Enter Passport Number"
+                placeholder="Enter Passport Number (must include letters & numbers)"
                 value={data.passportNumber}
                 onChange={(v) => updateField("passportNumber", v)}
                 error={errors.passportNumber}

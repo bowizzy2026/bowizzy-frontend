@@ -27,6 +27,16 @@ export const Template3Display: React.FC<Template3DisplayProps> = ({
   const padding = '45px 30px';
   const mainContentPadding = '45px 40px 45px 35px';
 
+  // Show education if any of the education subsections have data
+  const hasEducation = (
+    (education.higherEducationEnabled && education.higherEducation.length > 0) ||
+    (education.sslcEnabled && !!education.sslc?.instituteName) ||
+    (education.preUniversityEnabled && !!education.preUniversity?.instituteName)
+  );
+
+  // Pre-University label: always show a consistent heading regardless of subject stream
+  const preUniversityLabel = 'Pre University';
+
   return (
     <div className="w-[210mm] bg-white flex relative" style={{ minHeight: '297mm', fontFamily: 'Arial, sans-serif' }}>
       {/* Sidebar with Diagonal Blue Background */}
@@ -147,7 +157,7 @@ export const Template3Display: React.FC<Template3DisplayProps> = ({
                 <span>{personal.mobileNumber || '+123-456-7890'}</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '10px' }}>
-                <span style={{ fontSize: '11px', minWidth: '16px', color: primaryColor }}>@</span>
+                <span style={{ fontSize: '11px', minWidth: '16px', color: primaryColor }}>✉️</span>
                 <span style={{ wordBreak: 'break-all' }}>{personal.email || 'hello@reallygreatsite.com'}</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '10px' }}>
@@ -249,7 +259,7 @@ export const Template3Display: React.FC<Template3DisplayProps> = ({
         zIndex: 1
       }}>
         {/* Education Section */}
-        {education.higherEducationEnabled && education.higherEducation.length > 0 && (
+        {hasEducation && (
           <div className="resume-section" style={{ marginBottom: '35px' }}>
             <div style={{ 
               display: 'flex', 
@@ -331,6 +341,48 @@ export const Template3Display: React.FC<Template3DisplayProps> = ({
                   </div>
                 </div>
               ))}
+              {/* Pre-University (PUC/Diploma) - placed before SSLC to follow order: Higher Ed → PUC/Diploma → SSLC */}
+              {education.preUniversityEnabled && education.preUniversity.instituteName && (
+                <div className="education-item" style={{ marginBottom: '20px', position: 'relative' }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                    <div style={{
+                      width: '8px',
+                      height: '8px',
+                      borderRadius: '50%',
+                      backgroundColor: accentColor,
+                      marginTop: '5px',
+                      flexShrink: 0,
+                      position: 'relative',
+                      zIndex: 1
+                    }}></div>
+                    <div style={{ flex: 1 }}>
+                      <h3 style={{ 
+                        fontSize: '13px', 
+                        fontWeight: 'bold',
+                        color: darkTextColor,
+                        margin: '0 0 4px 0'
+                      }}>
+                        {preUniversityLabel}
+                      </h3>
+                      <p style={{ 
+                        fontSize: '11px',
+                        color: '#777777',
+                        fontStyle: 'italic',
+                        margin: '0 0 4px 0'
+                      }}>
+                        {education.preUniversity.instituteName}
+                      </p>
+                      <p style={{ 
+                        fontSize: '10px',
+                        color: lightTextColor,
+                        margin: '0'
+                      }}>
+                        {education.preUniversity.yearOfPassing}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* SSLC */}
               {education.sslcEnabled && education.sslc.instituteName && (
@@ -374,53 +426,10 @@ export const Template3Display: React.FC<Template3DisplayProps> = ({
                   </div>
                 </div>
               )}
-
-              {/* Pre-University */}
-              {education.preUniversityEnabled && education.preUniversity.instituteName && (
-                <div className="education-item" style={{ marginBottom: '20px', position: 'relative' }}>
-                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-                    <div style={{
-                      width: '8px',
-                      height: '8px',
-                      borderRadius: '50%',
-                      backgroundColor: accentColor,
-                      marginTop: '5px',
-                      flexShrink: 0,
-                      position: 'relative',
-                      zIndex: 1
-                    }}></div>
-                    <div style={{ flex: 1 }}>
-                      <h3 style={{ 
-                        fontSize: '13px', 
-                        fontWeight: 'bold',
-                        color: darkTextColor,
-                        margin: '0 0 4px 0'
-                      }}>
-                        {education.preUniversity.subjectStream}
-                      </h3>
-                      <p style={{ 
-                        fontSize: '11px',
-                        color: '#777777',
-                        fontStyle: 'italic',
-                        margin: '0 0 4px 0'
-                      }}>
-                        {education.preUniversity.instituteName}
-                      </p>
-                      <p style={{ 
-                        fontSize: '10px',
-                        color: lightTextColor,
-                        margin: '0'
-                      }}>
-                        {education.preUniversity.yearOfPassing}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         )}
-
+        
         {/* Experience Section */}
         {experience.workExperiences.length > 0 && experience.workExperiences.some(exp => exp.enabled) && (
           <div className="resume-section" style={{ marginBottom: '35px' }}>
@@ -510,6 +519,8 @@ export const Template3Display: React.FC<Template3DisplayProps> = ({
           </div>
         )}
 
+        {/* Certifications block moved below Projects to match desired order: Education → Experience → Projects → Certifications */}
+
         {/* Projects Section */}
         {projects.length > 0 && projects.some(p => p.enabled && p.projectTitle) && (
           <div className="resume-section" style={{ marginBottom: '35px' }}>
@@ -591,6 +602,40 @@ export const Template3Display: React.FC<Template3DisplayProps> = ({
           </div>
         )}
 
+        {/* Certifications (formatted like design: header + two-column list with muted dates) */}
+        {certifications && certifications.length > 0 && certifications.some(c => c.enabled && c.certificateTitle) && (
+          <div className="resume-section" style={{ marginBottom: '35px' }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              marginBottom: '12px',
+              paddingBottom: '6px',
+              borderBottom: `1px solid ${dividerColor}`
+            }}>
+              <span style={{ fontSize: '20px' }}>🏅</span>
+              <h2 style={{ 
+                fontSize: '16px', 
+                fontWeight: 'bold',
+                color: mainHeaderColor,
+                letterSpacing: '0.5px',
+                margin: '0'
+              }}>
+                Certifications
+              </h2>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px', paddingTop: '8px' }}>
+              {certifications.filter(c => c.enabled && c.certificateTitle).map((c, idx) => (
+                <div key={idx} style={{ fontSize: '12px', color: darkTextColor }}>
+                  <div style={{ fontSize: '11px', color: darkTextColor, marginBottom: '6px' }}>{c.certificateTitle}</div>
+                  <div style={{ fontSize: '10px', color: lightTextColor }}>{c.date ? c.date : ''}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Technical Summary */}
         {skillsLinks.technicalSummaryEnabled && skillsLinks.technicalSummary && (
           <div className="resume-section" style={{ marginBottom: '35px' }}>
@@ -622,6 +667,28 @@ export const Template3Display: React.FC<Template3DisplayProps> = ({
             }}>
               {skillsLinks.technicalSummary}
             </p>
+          </div>
+        )}
+
+        {/* Certifications (replaces References) */}
+        {/* Removed duplicate Certifications block to avoid showing the section twice. The two-column grid version above is kept. */}
+
+        {/* Verification / Declaration */}
+        {(personal.verificationEnabled || personal.verificationText) && (
+          <div className="resume-section" style={{ marginTop: '20px', paddingTop: '10px', borderTop: `1px solid ${dividerColor}` }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+              <span style={{ fontSize: '18px' }}>✔️</span>
+              <h2 style={{ fontSize: '14px', fontWeight: 'bold', color: mainHeaderColor, margin: 0 }}>
+                Verification
+              </h2>
+            </div>
+            <p style={{ fontSize: '10px', color: mediumTextColor, lineHeight: '1.6', margin: 0 }}>
+              {personal.verificationText || 'I hereby declare that the information provided above is true to the best of my knowledge.'}
+            </p>
+            <div style={{ marginTop: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ fontSize: '11px', color: darkTextColor }}>{personal.firstName} {personal.lastName}</div>
+              <div style={{ fontSize: '11px', color: lightTextColor }}>{personal.verificationDate ? personal.verificationDate : new Date().toLocaleDateString()}</div>
+            </div>
           </div>
         )}
 
