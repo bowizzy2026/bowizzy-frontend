@@ -455,8 +455,10 @@ const ResumePreviewModal: React.FC<ResumePreviewModalProps> = ({
                           try {
                             // Wait briefly for paginated pages to be rendered and counted (if any)
                             const waitForPages = async () => {
+                              // Prefer pages rendered inside our off-screen container to avoid picking up pages from other components
                               for (let i = 0; i < 20; i++) {
-                                const printableNow = document.querySelectorAll('.pdf-print-page');
+                                const container = pdfPagesRef.current;
+                                const printableNow = container ? container.querySelectorAll('.pdf-print-page') : document.querySelectorAll('.pdf-print-page');
                                 if (printableNow && printableNow.length > 0 && (modalPaginatePageCount === null || printableNow.length === modalPaginatePageCount)) {
                                   return printableNow;
                                 }
@@ -464,7 +466,8 @@ const ResumePreviewModal: React.FC<ResumePreviewModalProps> = ({
                                 // eslint-disable-next-line no-await-in-loop
                                 await new Promise((r) => setTimeout(r, 100));
                               }
-                              return document.querySelectorAll('.pdf-print-page');
+                              const container = pdfPagesRef.current;
+                              return container ? container.querySelectorAll('.pdf-print-page') : document.querySelectorAll('.pdf-print-page');
                             };
 
                             const printable = await waitForPages();

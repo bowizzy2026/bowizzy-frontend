@@ -4,10 +4,10 @@ import type { ResumeData } from "@/types/resume";
 
 const styles = StyleSheet.create({
   page: {
-    paddingTop: 32,
-    paddingBottom: 32,
-    paddingLeft: 42,
-    paddingRight: 42,
+    paddingTop: 24,
+    paddingBottom: 24,
+    paddingLeft: 24,
+    paddingRight: 24,
     fontSize: 10,
     fontFamily: "Times-Roman",
     backgroundColor: "#ffffff",
@@ -27,7 +27,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   name: {
-    fontSize: 28,
+    fontSize: 32,
     fontFamily: "Times-Bold",
     color: "#1f2937",
     letterSpacing: 1,
@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
     width: 0,
   },
   jobTitle: {
-    fontSize: 11,
+    fontSize: 13,
     color: "#4b5563",
     marginTop: 4,
     letterSpacing: 0.5,
@@ -65,16 +65,16 @@ const styles = StyleSheet.create({
     break: true,
   },
   summaryTitle: {
-    fontSize: 12,
+    fontSize: 14,
     fontFamily: "Times-Bold",
     color: "#2d3748",
     textAlign: "center",
-    letterSpacing: 2,
+    letterSpacing: 3,
     marginBottom: 10,
     break: true,
   },
   summaryText: {
-    fontSize: 9,
+    fontSize: 10,
     color: "#4a5568",
     lineHeight: 1.6,
     textAlign: "justify",
@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
   // Two Column Layout
   twoColumn: {
     flexDirection: "row",
-    gap: 35,
+    gap: 40,
   },
   leftColumn: {
     width: "48%",
@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
     wrap: false,
   },
   sectionTitle: {
-    fontSize: 11,
+    fontSize: 13,
     fontFamily: "Times-Bold",
     color: "#2d3748",
     letterSpacing: 1.5,
@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
     wrap: false,
   },
   skillItem: {
-    fontSize: 9,
+    fontSize: 10,
     color: "#4a5568",
     marginBottom: 5,
     paddingLeft: 10,

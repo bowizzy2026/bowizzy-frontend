@@ -365,7 +365,9 @@ const pageStyle: React.CSSProperties = {
   position: 'relative',
   background: 'white',
   margin: '16px auto',
-  padding: '24px'
+  padding: '24px',
+  fontFamily: 'Times New Roman, serif',
+  color: '#111827'
 };
 
 const measureStyle: React.CSSProperties = {
@@ -373,7 +375,9 @@ const measureStyle: React.CSSProperties = {
   left: '-9999px',
   top: '0',
   width: '794px',
-  visibility: 'hidden'
+  visibility: 'hidden',
+  fontFamily: 'Times New Roman, serif',
+  color: '#111827'
 };
 
 function escapeHtml(input = '') {
@@ -881,9 +885,30 @@ const PaginatedResume: React.FC<{ data: ResumeData; supportsPhoto?: boolean; onP
     }
 
     // Convert blocks back to html strings for rendering
-    const outPages = outPagesBlocks.map(p => ({ headerHtml: p.headerHtml, leftHtml: p.leftBlocks.map(b => b.html).join(''), rightHtml: p.rightBlocks.map(b => b.html).join('') }));
+    let outPages = outPagesBlocks.map(p => ({ headerHtml: p.headerHtml, leftHtml: p.leftBlocks.map(b => b.html).join(''), rightHtml: p.rightBlocks.map(b => b.html).join('') }));
 
-    const finalPages = outPages.length ? outPages : [{ headerHtml: header.outerHTML + (summary.innerHTML ? summary.outerHTML : ''), leftHtml: '', rightHtml: '' }];
+    // Remove consecutive duplicate pages (can happen from aggressive rebalance/splits)
+    const deduped: Array<{ headerHtml?: string; leftHtml: string; rightHtml: string }> = [];
+    for (const p of outPages) {
+      const key = `${p.headerHtml || ''}||${p.leftHtml}||${p.rightHtml}`;
+      if (deduped.length === 0) {
+        deduped.push(p);
+        continue;
+      }
+      const last = deduped[deduped.length - 1];
+      const lastKey = `${last.headerHtml || ''}||${last.leftHtml}||${last.rightHtml}`;
+      if (key !== lastKey) deduped.push(p);
+    }
+
+    // Trim trailing fully-empty pages (no left/right content and no header)
+    while (deduped.length > 1) {
+      const last = deduped[deduped.length - 1];
+      if ((last.leftHtml || '').trim() === '' && (last.rightHtml || '').trim() === '' && !(last.headerHtml || '').trim()) {
+        deduped.pop();
+      } else break;
+    }
+
+    const finalPages = deduped.length ? deduped : [{ headerHtml: header.outerHTML + (summary.innerHTML ? summary.outerHTML : ''), leftHtml: '', rightHtml: '' }];
     setPages(finalPages);
     onPageCountChange?.(finalPages.length);
   }, [data]);
