@@ -2,6 +2,10 @@ import DashNav from "@/components/dashnav/dashnav";
 import { useEffect, useState } from "react";
 import { getProfileProgress } from "@/services/dashboardServices";
 import {
+  getInterviewSlotsByUserId,
+  getNextInterviewsByUserId,
+} from "@/services/interviewPrepService";
+import {
   Users,
   Video,
   FileText,
@@ -18,7 +22,7 @@ export default function Dashboard() {
   });
   const gradientColor = "linear-gradient(180deg, #FF9D48 0%, #FF8251 100%)";
   const navigate = useNavigate();
-
+  const [upcomingInterview, setUpcomingInterview] = useState(null);
   useEffect(() => {
     const userData = JSON.parse(localStorage.getItem("user"));
 
@@ -33,6 +37,87 @@ export default function Dashboard() {
         message: res.pendingSectionsList.join(", "),
       });
     });
+
+    // fetch user's interview slots and pick the nearest upcoming (or most recent)
+    const parseSlotDate = (slot) => {
+      const keys = [
+        "start_time",
+        "start",
+        "scheduled_at",
+        "scheduled_for",
+        "slot_time",
+        "date",
+        "start_datetime",
+        "time",
+      ];
+      for (const k of keys) {
+        if (!slot) continue;
+        const v = slot[k] ?? slot["slot_date"] ?? slot["slotDate"];
+        if (!v) continue;
+        const d = new Date(v);
+        if (!isNaN(d)) return d;
+      }
+      return null;
+    };
+
+    if (userId && token) {
+      const processResponse = (res) => {
+        const slots = Array.isArray(res) ? res : res?.data || [];
+        const withDates = (slots || [])
+          .map((s) => ({ ...s, __date: parseSlotDate(s) }))
+          .filter((s) => s.__date);
+
+        const now = new Date();
+        const future = withDates.filter((s) => s.__date > now);
+
+        let chosen = null;
+        if (future.length) {
+          future.sort((a, b) => a.__date - b.__date);
+          chosen = future[0];
+        } else if (withDates.length) {
+          withDates.sort((a, b) => b.__date - a.__date);
+          chosen = withDates[0];
+        }
+
+        if (chosen) {
+          const normalized = {
+            ...chosen,
+            title:
+              chosen.title ??
+              chosen.slot_title ??
+              chosen.interview_title ??
+              chosen.subject ??
+              chosen.name ??
+              "Mock Interview",
+            image:
+              chosen.image ??
+              chosen.slot_image ??
+              chosen.interviewer?.avatar ??
+              chosen.interviewer?.image ??
+              null,
+            date:
+              chosen.date ??
+              chosen.scheduled_at ??
+              chosen.scheduled_for ??
+              chosen.slot_time ??
+              (chosen.__date ? chosen.__date.toLocaleString() : null),
+          };
+
+          setUpcomingInterview(normalized);
+        }
+      };
+
+      // prefer the newer, richer endpoint; fallback to older if it fails
+      getNextInterviewsByUserId(userId, token)
+        .then(processResponse)
+        .catch(() => {
+          getInterviewSlotsByUserId(userId, token)
+            .then(processResponse)
+            .catch(() => {
+              /* ignore failures silently for dashboard */
+            });
+        });
+    }
   }, []);
 
   const dashboardData = {
@@ -161,25 +246,35 @@ export default function Dashboard() {
                   <h2 className="text-xs font-semibold uppercase tracking-wide">
                     Upcoming Interview
                   </h2>
-                  <button className="text-xs" style={{ color: "#FF8251" }}>
+                  <button
+                    onClick={() => navigate("/interview-prep")}
+                    className="text-xs"
+                    style={{ color: "#FF8251" }}
+                  >
                     View All
                   </button>
                 </div>
                 <div className="flex gap-3">
                   <img
-                    src={dashboardData.upcomingInterview.image}
+                    src={
+                      upcomingInterview?.image ||
+                      dashboardData.upcomingInterview.image
+                    }
                     alt="Interview"
                     className="w-16 h-16 rounded-lg object-cover"
                   />
                   <div className="flex-1">
                     <h3 className="font-semibold text-sm mb-1">
-                      {dashboardData.upcomingInterview.title}
+                      {upcomingInterview?.title || dashboardData.upcomingInterview.title}
                     </h3>
                     <p className="text-xs text-gray-500 mb-2">
-                      {dashboardData.upcomingInterview.date}
+                      {upcomingInterview?.__date
+                        ? upcomingInterview.__date.toLocaleString()
+                        : upcomingInterview?.date || dashboardData.upcomingInterview.date}
                     </p>
                     <div className="flex gap-2">
                       <button
+                        onClick={() => navigate("/interview-prep")}
                         className="px-3 py-1 rounded text-xs text-white font-medium"
                         style={{ background: gradientColor }}
                       >

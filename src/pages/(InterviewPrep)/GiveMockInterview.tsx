@@ -8,6 +8,7 @@ import {
     createInterviewSlot,
     confirmInterviewSlotPayment
 } from "@/services/interviewPrepService";
+import { getResumeTemplates, getResumeTemplateById } from '@/services/resumeServices';
 import { getSkillsByUserId } from "@/services/skillsLinksService";
 import { getExperienceByUserId } from "@/services/experienceService";
 import { uploadToCloudinary } from "@/utils/uploadToCloudinary";
@@ -35,6 +36,83 @@ const GiveMockInterview = () => {
         url: '',
         deleteToken: null,
     });
+    const [resumeTemplates, setResumeTemplates] = useState([]);
+    const [loadingResumes, setLoadingResumes] = useState(false);
+    const [selectedTemplateDetail, setSelectedTemplateDetail] = useState(null);
+
+    const resolveTemplateId = (t) => {
+        if (!t) return null;
+        // look for numeric id in several possible fields, including nested objects
+        const candidates = [
+            t.resume_template_id,
+            t.template_id,
+            t.id,
+            t.templateId,
+            t.resumeTemplateId,
+            t.template?.id,
+            t.template?.resume_template_id,
+            t.template?.template_id,
+            t.template?.templateId,
+        ];
+
+        for (const c of candidates) {
+            if (c === undefined || c === null) continue;
+            if (typeof c === 'number' && Number.isFinite(c)) return c;
+            if (typeof c === 'string') {
+                // if string only digits
+                if (/^\d+$/.test(c)) return Number(c);
+                // try to extract first number occurrence (fallback)
+                const m = c.match(/(\d+)/);
+                if (m) return Number(m[1]);
+            }
+        }
+
+        return null;
+    };
+
+    const resolveTemplateUrl = (t) => {
+        if (!t) return '';
+        return t.template_file_url ?? t.template_file ?? t.url ?? t.file_url ?? t.download_url ?? t.template_url ?? t.template?.template_file_url ?? t.template?.url ?? '';
+    };
+
+    const getSelectedTemplate = () => {
+        if (!resumeTemplates || resumeTemplates.length === 0) return null;
+        return resumeTemplates.find(t => (resolveTemplateId(t) ?? null) === bookingData.selectedResume) ?? null;
+    };
+
+    const handleSelectTemplate = async (template) => {
+        if (bookingData.uploadedResumeFile) {
+            await handleRemoveUploadedResume();
+        }
+
+        const tid = resolveTemplateId(template);
+        const url = template?.template_file_url ?? template?.template_file ?? resolveTemplateUrl(template);
+
+        setBookingData(prev => ({
+            ...prev,
+            selectedResume: tid,
+            uploadedResumeFile: null,
+            resumeUrl: url || `TEMPLATE_${tid}`
+        }));
+
+        setCloudinaryData({ url: '', deleteToken: null });
+
+        // fetch details for selected template
+        if (tid && userId && token) {
+            try {
+                const resp = await getResumeTemplateById(userId, token, tid);
+                const d = resp?.data ?? resp;
+                setSelectedTemplateDetail(d || null);
+                // fallback: if response contains url, ensure bookingData updated
+                const respUrl = d?.template_file_url ?? d?.template_file ?? d?.url ?? d?.file_url ?? d?.download_url ?? null;
+                if (respUrl) {
+                    setBookingData(prev => ({ ...prev, resumeUrl: respUrl }));
+                }
+            } catch (err) {
+                console.error('Failed to fetch template detail', err);
+            }
+        }
+    };
 
     const getNextSevenDays = () => {
         const result = [];
@@ -215,9 +293,60 @@ const GiveMockInterview = () => {
         }
     }, [userId, token, sessionMode]);
 
+    const fetchResumeTemplates = useCallback(async () => {
+        if (!userId || !token) return;
+        try {
+            setLoadingResumes(true);
+            const templates = await getResumeTemplates(userId, token);
+            setResumeTemplates(Array.isArray(templates) ? templates : []);
+        } catch (err) {
+            console.error('Failed to fetch resume templates', err);
+        } finally {
+            setLoadingResumes(false);
+        }
+    }, [userId, token]);
+
     useEffect(() => {
         fetchUserData();
     }, [fetchUserData]);
+
+    useEffect(() => {
+        fetchResumeTemplates();
+    }, [fetchResumeTemplates]);
+
+    const selectTemplateById = useCallback(async (templateId) => {
+        if (!userId || !token || !templateId) return;
+        try {
+            setLoadingResumes(true);
+            const resp = await getResumeTemplateById(userId, token, templateId);
+            const data = resp?.data ?? resp;
+            setSelectedTemplateDetail(data || null);
+
+            const url = data?.url ?? data?.file_url ?? data?.download_url ?? resolveTemplateUrl(data) ?? null;
+
+            setBookingData(prev => ({
+                ...prev,
+                selectedResume: Number(templateId),
+                uploadedResumeFile: null,
+                resumeUrl: url || `TEMPLATE_${templateId}`
+            }));
+            setCloudinaryData({ url: '', deleteToken: null });
+        } catch (err) {
+            console.error('Failed to select template by id', err);
+        } finally {
+            setLoadingResumes(false);
+        }
+    }, [userId, token]);
+
+    useEffect(() => {
+        const raw = searchParams.get('resume_template_id') || searchParams.get('resume_template') || searchParams.get('template_id');
+        if (raw) {
+            const id = Number(raw);
+            if (!Number.isNaN(id)) {
+                selectTemplateById(id);
+            }
+        }
+    }, [searchParams, selectTemplateById]);
 
 
     useEffect(() => {
@@ -776,53 +905,86 @@ const GiveMockInterview = () => {
                             {/* LEFT SIDE – Resume Cards */}
                             <div className="flex-1 mb-0">
                                 <div className="flex items-center gap-4">
+                                    {loadingResumes ? (
+                                        <div className="text-sm text-gray-500">Loading resumes...</div>
+                                    ) : resumeTemplates.length > 0 ? (
+                                        resumeTemplates.map((t, idx) => {
+                                            const tid = resolveTemplateId(t) ?? idx;
+                                            const title = t?.template_name ?? t?.title ?? t?.name ?? `Resume ${idx + 1}`;
+                                            return (
+                                                <div
+                                                    key={tid}
+                                                    onClick={() => handleSelectTemplate(t)}
+                                                    className={`w-40 h-56 rounded-xl bg-white shadow-sm border cursor-pointer relative overflow-hidden transition flex-shrink-0 ${
+                                                        bookingData.selectedResume === tid && !bookingData.uploadedResumeFile
+                                                            ? 'border-[#F26D3A]'
+                                                            : 'border-gray-200'
+                                                    }`}
+                                                >
+                                                    <img src="/resume-placeholder.png" className="w-full h-full object-cover opacity-90" />
 
-                                    {[0, 1].map((idx) => (
-                                        <div
-                                            key={idx}
-                                            onClick={() => handleSelectDefaultResume(idx)}
-                                            className={`w-40 h-56 rounded-xl bg-white shadow-sm border cursor-pointer relative overflow-hidden transition flex-shrink-0 ${
-                                                bookingData.selectedResume === idx &&
-                                                !bookingData.uploadedResumeFile
-                                                    ? "border-[#F26D3A]"
-                                                    : "border-gray-200"
-                                            }`}
-                                        >
-                                            {/* IMAGE / PREVIEW */}
-                                            <img
-                                                src="/resume-placeholder.png"
-                                                className="w-full h-full object-cover opacity-90"
-                                            />
+                                                    <div className="absolute top-2 right-2 w-5 h-5 rounded-full border border-gray-400 bg-white flex items-center justify-center">
+                                                        {bookingData.selectedResume === tid && !bookingData.uploadedResumeFile ? (
+                                                            <div className="w-3 h-3 rounded-full bg-[#F26D3A]" />
+                                                        ) : null}
+                                                    </div>
 
-                                            {/* RADIO */}
-                                            <div className="absolute top-2 right-2 w-5 h-5 rounded-full border border-gray-400 bg-white flex items-center justify-center">
-                                                {bookingData.selectedResume === idx &&
-                                                !bookingData.uploadedResumeFile ? (
-                                                    <div className="w-3 h-3 rounded-full bg-[#F26D3A]" />
-                                                ) : null}
+                                                    <div className="absolute bottom-2 left-2 right-2 text-[11px] leading-tight text-[#3A3A3A] font-medium">
+                                                        {title}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })
+                                    ) : (
+                                        [0, 1].map((idx) => (
+                                            <div
+                                                key={idx}
+                                                onClick={() => handleSelectDefaultResume(idx)}
+                                                className={`w-40 h-56 rounded-xl bg-white shadow-sm border cursor-pointer relative overflow-hidden transition flex-shrink-0 ${
+                                                    bookingData.selectedResume === idx && !bookingData.uploadedResumeFile
+                                                        ? 'border-[#F26D3A]'
+                                                        : 'border-gray-200'
+                                                }`}
+                                            >
+                                                <img src="/resume-placeholder.png" className="w-full h-full object-cover opacity-90" />
+                                                <div className="absolute top-2 right-2 w-5 h-5 rounded-full border border-gray-400 bg-white flex items-center justify-center">
+                                                    {bookingData.selectedResume === idx && !bookingData.uploadedResumeFile ? (
+                                                        <div className="w-3 h-3 rounded-full bg-[#F26D3A]" />
+                                                    ) : null}
+                                                </div>
+                                                <div className="absolute bottom-2 left-2 right-2 text-[11px] leading-tight text-[#3A3A3A] font-medium">
+                                                    Aarav-Mehta-Python-Developer-{idx + 1}
+                                                </div>
                                             </div>
-
-                                            {/* NAME */}
-                                            <div className="absolute bottom-2 left-2 right-2 text-[11px] leading-tight text-[#3A3A3A] font-medium">
-                                                Aarav-Mehta-Python-Developer-{idx + 1}
-                                            </div>
-                                        </div>
-                                    ))}
+                                        ))
+                                    )}
                                 </div>
 
                                 {/* DOTS */}
                                 <div className="flex justify-center gap-2 mt-2">
-                                    {[0, 1].map((i) => (
-                                        <div
-                                            key={i}
-                                            className={`w-2 h-2 rounded-full ${
-                                                bookingData.selectedResume === i &&
-                                                !bookingData.uploadedResumeFile
-                                                    ? "bg-[#F26D3A]"
-                                                    : "bg-gray-300"
-                                            }`}
-                                        />
-                                    ))}
+                                    {resumeTemplates.length > 0 ? (
+                                        resumeTemplates.map((t, i) => (
+                                            <div
+                                                key={i}
+                                                className={`w-2 h-2 rounded-full ${
+                                                    bookingData.selectedResume === (resolveTemplateId(t) ?? i) && !bookingData.uploadedResumeFile
+                                                        ? 'bg-[#F26D3A]'
+                                                        : 'bg-gray-300'
+                                                }`}
+                                            />
+                                        ))
+                                    ) : (
+                                        [0, 1].map((i) => (
+                                            <div
+                                                key={i}
+                                                className={`w-2 h-2 rounded-full ${
+                                                    bookingData.selectedResume === i && !bookingData.uploadedResumeFile
+                                                        ? 'bg-[#F26D3A]'
+                                                        : 'bg-gray-300'
+                                                }`}
+                                            />
+                                        ))
+                                    )}
                                 </div>
                             </div>
 
@@ -871,32 +1033,49 @@ const GiveMockInterview = () => {
                                         </>
                                     )}
 
-                                    {(bookingData.uploadedResumeFile || cloudinaryData.url) ? (
-                                        <div className="mt-3 flex items-center justify-between bg-white rounded-lg p-3 border border-gray-200">
-                                            <div className="flex items-center gap-3">
-                                                <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 7h10M7 11h6m-3 8h.01M3 7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v7a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"></path></svg>
-                                                <div className="text-sm text-[#3A3A3A] max-w-[12rem] truncate" title={getUploadedFileName()}>
-                                                    {getUploadedFileName()}
+                                    {(() => {
+                                        const selTemplate = getSelectedTemplate();
+                                        const isUploaded = !!bookingData.uploadedResumeFile || !!cloudinaryData.url;
+                                        const hasSelectedTemplate = !!selectedTemplateDetail || !!selTemplate || (bookingData.selectedResume !== null && bookingData.selectedResume !== 0);
+                                        const shouldShow = isUploaded || hasSelectedTemplate;
+
+                                        if (!shouldShow) return null;
+
+                                        const displayName = isUploaded
+                                            ? getUploadedFileName()
+                                            : (selectedTemplateDetail?.template_name ?? selectedTemplateDetail?.title ?? selTemplate?.template_name ?? selTemplate?.title ?? selTemplate?.name ?? 'Selected Resume');
+
+                                        const viewUrl = cloudinaryData.url || selectedTemplateDetail?.template_file_url || selectedTemplateDetail?.template_file || selectedTemplateDetail?.url || resolveTemplateUrl(selTemplate) || bookingData.resumeUrl;
+
+                                        return (
+                                            <div className="mt-3 flex items-center justify-between bg-white rounded-lg p-3 border border-gray-200">
+                                                <div className="flex items-center gap-3">
+                                                    <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 7h10M7 11h6m-3 8h.01M3 7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v7a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"></path></svg>
+                                                    <div className="text-sm text-[#3A3A3A] max-w-[12rem] truncate" title={displayName}>
+                                                        {displayName}
+                                                    </div>
+                                                </div>
+
+                                                <div className="flex items-center gap-3">
+                                                    {viewUrl && (
+                                                        <a href={viewUrl} target="_blank" rel="noreferrer" className="text-xs text-[#3B82F6] underline">View</a>
+                                                    )}
+
+                                                    {isUploaded ? (
+                                                        <button
+                                                            type="button"
+                                                            onClick={handleRemoveUploadedResume}
+                                                            disabled={loading}
+                                                            className="p-1 rounded hover:bg-gray-100 disabled:opacity-50"
+                                                            title="Delete uploaded resume"
+                                                        >
+                                                            <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3"></path></svg>
+                                                        </button>
+                                                    ) : null}
                                                 </div>
                                             </div>
-
-                                            <div className="flex items-center gap-3">
-                                                {cloudinaryData.url && (
-                                                    <a href={cloudinaryData.url} target="_blank" rel="noreferrer" className="text-xs text-[#3B82F6] underline">View</a>
-                                                )}
-
-                                                <button
-                                                    type="button"
-                                                    onClick={handleRemoveUploadedResume}
-                                                    disabled={loading}
-                                                    className="p-1 rounded hover:bg-gray-100 disabled:opacity-50"
-                                                    title="Delete uploaded resume"
-                                                >
-                                                    <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3"></path></svg>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ) : null}
+                                        );
+                                    })()}
                                     <div className="w-full h-px bg-gray-200 my-2 rounded-full" />
                                     {/* CREATE RESUME BUTTON */}
                                     <button
@@ -931,13 +1110,13 @@ const GiveMockInterview = () => {
                         <button
                             onClick={handleBookInterview}
                             className={`flex-1 py-3 rounded-lg text-sm font-semibold text-white ${
-                                (loading || !(bookingData.uploadedResumeFile || cloudinaryData.url)) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+                                (loading || !(bookingData.uploadedResumeFile || cloudinaryData.url || selectedTemplateDetail || getSelectedTemplate())) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
                             }`}
                             style={{
                                 background: "linear-gradient(180deg, #FF9D48 0%, #FF8251 100%)",
                             }}
-                            disabled={loading || !(bookingData.uploadedResumeFile || cloudinaryData.url)}
-                            title={!bookingData.uploadedResumeFile && !cloudinaryData.url ? 'Please upload a resume to enable booking' : ''}
+                            disabled={loading || !(bookingData.uploadedResumeFile || cloudinaryData.url || selectedTemplateDetail || getSelectedTemplate())}
+                            title={!(bookingData.uploadedResumeFile || cloudinaryData.url || selectedTemplateDetail || getSelectedTemplate()) ? 'Please upload or select a resume to enable booking' : ''}
                         >
                             {loading ? 'Booking...' : 'Book Mock Interview'}
                         </button>

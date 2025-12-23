@@ -4,7 +4,8 @@ import {
   updateExperienceDetails,
   saveExperienceDetails,
   deleteExperience,
-  updateJobRole, // NEW IMPORT
+  updateJobRole,
+  getExperienceByUserId,
 } from "@/services/experienceService";
 import RichTextEditor from "@/pages/(ResumeBuilder)/components/ui/RichTextEditor";
 
@@ -14,6 +15,8 @@ interface ExperienceDetailsFormProps {
   initialData?: any;
   userId: string;
   token: string;
+  hideHeader?: boolean;
+  hideJobRole?: boolean;
 }
 
 interface WorkExperience {
@@ -37,6 +40,8 @@ export default function ExperienceDetailsForm({
   initialData = {},
   userId,
   token,
+  hideHeader = false,
+  hideJobRole = false,
 }: ExperienceDetailsFormProps) {
   // State for Job Role (single value)
   const [jobRole, setJobRole] = useState(initialData.jobRole || "");
@@ -90,6 +95,52 @@ export default function ExperienceDetailsForm({
     workExperiences.forEach((exp) => {
       initialExperiencesRef.current[exp.id] = { ...exp };
     });
+  }, []);
+
+  // If no initial data provided, fetch experience data from API directly
+  useEffect(() => {
+    const fetchExperiences = async () => {
+      try {
+        if (!userId || !token) return;
+
+        // Only fetch when initialData didn't provide workExperiences
+        if (!initialData || !initialData.workExperiences || initialData.workExperiences.length === 0) {
+          const resp = await getExperienceByUserId(userId, token);
+          if (resp) {
+            const fetchedJobRole = resp.job_role || "";
+            const fetched = (resp.experiences || []).map((e: any) => ({
+              id: e.id?.toString() || e.experience_id?.toString() || Date.now().toString(),
+              companyName: e.company_name || "",
+              jobTitle: e.job_title || "",
+              employmentType: e.employment_type || "",
+              location: e.location || "",
+              workMode: e.work_mode || "",
+              startDate: e.start_date ? (e.start_date.substring(0, 7)) : "",
+              endDate: e.end_date ? (e.end_date.substring(0, 7)) : "",
+              description: e.description || "",
+              currentlyWorking: !!e.currently_working_here,
+              isExpanded: false,
+              experience_id: e.experience_id,
+            }));
+
+            if (fetched.length > 0) {
+              setJobRole(fetchedJobRole);
+              setWorkExperiences(fetched);
+              // initialize refs
+              fetched.forEach((exp) => {
+                initialExperiencesRef.current[exp.id] = { ...exp };
+              });
+              initialJobRole.current = fetchedJobRole;
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching experiences in form:", error);
+      }
+    };
+
+    fetchExperiences();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Check Job Role change
@@ -946,19 +997,22 @@ export default function ExperienceDetailsForm({
     >
       <div className="max-w-6xl mx-auto">
         {/* Step Header */}
-        <div className="mb-4 md:mb-6">
-          <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-gray-900 mb-1">
-            Step 3: Work Details
-          </h2>
-          <p className="text-xs sm:text-sm text-gray-600">
-            Add your professional experience. Include company, role, and
-            responsibilities to highlight your career journey. It's recommended
-            to add work details that align with a single career path.
-          </p>
-        </div>
+        {!hideHeader && (
+          <div className="mb-4 md:mb-6">
+            <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-gray-900 mb-1">
+              Step 3: Work Details
+            </h2>
+            <p className="text-xs sm:text-sm text-gray-600">
+              Add your professional experience. Include company, role, and
+              responsibilities to highlight your career journey. It's recommended
+              to add work details that align with a single career path.
+            </p>
+          </div>
+        )}
 
         {/* Job Role Section */}
-        <div className="bg-white border border-gray-200 rounded-xl mb-4 md:mb-5 overflow-hidden">
+        {!hideJobRole && (
+          <div className="bg-white border border-gray-200 rounded-xl mb-4 md:mb-5 overflow-hidden">
           {/* Header */}
           <div className="flex items-center justify-between px-4 sm:px-5 md:px-6 py-3 md:py-4 border-b border-gray-200">
             <h3 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900">
@@ -1057,7 +1111,8 @@ export default function ExperienceDetailsForm({
               </div>
             </div>
           )}
-        </div>
+          </div>
+        )}
 
         {/* Work Experience Cards */}
         {workExperiences.map((exp, index) =>

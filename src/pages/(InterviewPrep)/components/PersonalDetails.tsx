@@ -1,8 +1,8 @@
 
 
-import { useState } from "react";
-import { Upload, X } from "lucide-react";
-import { useRef } from "react";
+import { useState, useEffect } from "react";
+import { X } from "lucide-react";
+import { getPersonalDetailsByUserId } from "@/services/personalService";
 
 interface PersonalDetailsProps {
   formData: any;
@@ -11,155 +11,109 @@ interface PersonalDetailsProps {
 }
 
 const PersonalDetails = ({ formData, setFormData, onNext }: PersonalDetailsProps) => {
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [profile, setProfile] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPhotoPreview(reader.result as string);
-        setFormData({ ...formData, photo: file });
-      };
-      reader.readAsDataURL(file);
-    }
-  };
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const parsed = JSON.parse(localStorage.getItem("user") || "{}");
+        const userId = parsed?.user_id;
+        const token = parsed?.token;
+        if (!userId || !token) return setLoading(false);
 
-  const removePhoto = () => {
-    setPhotoPreview(null);
-    setFormData({ ...formData, photo: null });
-    // clear file input value so selecting same file works again
-    if (fileInputRef.current) fileInputRef.current.value = "";
-  };
+        const personal = await getPersonalDetailsByUserId(userId, token);
+        // Map API response similar to ProfileForms
+        const calculateAge = (dob: string | undefined | null) => {
+          if (!dob) return null;
+          const d = new Date(dob);
+          if (isNaN(d.getTime())) return null;
+          const diff = Date.now() - d.getTime();
+          const ageDt = new Date(diff);
+          return Math.abs(ageDt.getUTCFullYear() - 1970);
+        };
 
+        const mapped = {
+          firstName: personal?.first_name || "",
+          lastName: personal?.last_name || "",
+          email: personal?.email || "",
+          mobileNumber: personal?.mobile_number || "",
+          linkedin_url: personal?.linkedin_url || personal?.linkedin_url || "",
+          profilePhotoUrl: personal?.profile_photo_url || "",
+          dateOfBirth: personal?.date_of_birth || "",
+          age: calculateAge(personal?.date_of_birth),
+        };
+        setProfile(mapped);
+      } catch (err) {
+        console.error("Error loading personal details:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, []);
+
+  // Render a readonly form-like view using divs and disabled inputs styling
   return (
     <div className="bg-white rounded-md p-6">
       <div className="grid grid-cols-1 gap-6">
-        {/* Photo Upload */}
+        {/* Photo Display */}
         <div className="flex items-start gap-4">
-          <div className="relative w-32 h-32 bg-gray-100 rounded-md border-2 border-dashed border-gray-300 flex items-center justify-center">
-            {photoPreview ? (
-              <>
-                <img
-                  src={photoPreview}
-                  alt="Preview"
-                  className="w-full h-full object-cover rounded-md"
-                />
-                <button
-                  onClick={removePhoto}
-                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-                >
-                  <X size={16} />
-                </button>
-              </>
+          <div className="relative w-32 h-32 bg-gray-100 rounded-md border border-gray-200 flex items-center justify-center overflow-hidden">
+            {profile?.profilePhotoUrl ? (
+              <img
+                src={profile.profilePhotoUrl}
+                alt="Profile"
+                className="w-full h-full object-cover"
+              />
             ) : (
-              <label className="cursor-pointer flex flex-col items-center">
-                <Upload size={32} className="text-gray-400 mb-2" />
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handlePhotoUpload}
-                  className="hidden"
-                />
-              </label>
+              <div className="text-gray-400">No Photo</div>
             )}
           </div>
           <div className="flex-1">
-            <p className="text-sm font-medium text-[#3A3A3A] mb-1">
-              Upload Photo
-            </p>
-            <p className="text-xs text-gray-500">Upload a professional photo</p>
+            <p className="text-sm font-medium text-[#3A3A3A] mb-1">Upload Photo</p>
+            <p className="text-xs text-gray-500">Photo is pulled from your profile and not editable here</p>
           </div>
         </div>
 
-        {/* Name Fields */}
+        {/* Name Fields (readonly) */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-[#3A3A3A] mb-2">
-              First Name
-            </label>
-            <input
-              type="text"
-              value={formData.firstName || ""}
-              onChange={(e) =>
-                setFormData({ ...formData, firstName: e.target.value })
-              }
-              placeholder="Aarav"
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#FF8351] focus:border-transparent"
-            />
+            <label className="block text-sm font-medium text-[#3A3A3A] mb-2">First Name</label>
+            <div className="w-full px-4 py-2.5 border border-gray-300 rounded-md bg-gray-50 text-[#3A3A3A]">{loading ? "Loading..." : profile?.firstName || "-"}</div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-[#3A3A3A] mb-2">
-              Last Name
-            </label>
-            <input
-              type="text"
-              value={formData.lastName || ""}
-              onChange={(e) =>
-                setFormData({ ...formData, lastName: e.target.value })
-              }
-              placeholder="Mehta"
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#FF8351] focus:border-transparent"
-            />
+            <label className="block text-sm font-medium text-[#3A3A3A] mb-2">Last Name</label>
+            <div className="w-full px-4 py-2.5 border border-gray-300 rounded-md bg-gray-50 text-[#3A3A3A]">{loading ? "Loading..." : profile?.lastName || "-"}</div>
           </div>
         </div>
 
-        {/* Email and Mobile */}
+        {/* Email and Mobile (readonly) */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-[#3A3A3A] mb-2">
-              Email
-            </label>
-            <input
-              type="email"
-              value={formData.email || ""}
-              onChange={(e) =>
-                setFormData({ ...formData, email: e.target.value })
-              }
-              placeholder="aarav.m@gmail.com"
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#FF8351] focus:border-transparent"
-            />
+            <label className="block text-sm font-medium text-[#3A3A3A] mb-2">Email</label>
+            <div className="w-full px-4 py-2.5 border border-gray-300 rounded-md bg-gray-50 text-[#3A3A3A]">{loading ? "Loading..." : profile?.email || "-"}</div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-[#3A3A3A] mb-2">
-              Mobile Number
-            </label>
+            <label className="block text-sm font-medium text-[#3A3A3A] mb-2">Mobile Number</label>
             <div className="flex gap-2">
-              <input
-                type="text"
-                value="+91"
-                disabled
-                className="w-16 px-3 py-2.5 border border-gray-300 rounded-md bg-gray-50 text-center"
-              />
-              <input
-                type="tel"
-                value={formData.mobile || ""}
-                onChange={(e) =>
-                  setFormData({ ...formData, mobile: e.target.value })
-                }
-                placeholder="8 8 8 8 8   8 8 8 8 8"
-                className="flex-1 px-4 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#FF8351] focus:border-transparent"
-              />
+              <div className="w-16 px-3 py-2.5 border border-gray-300 rounded-md bg-gray-50 text-center">+91</div>
+              <div className="flex-1 px-4 py-2.5 border border-gray-300 rounded-md bg-gray-50 text-[#3A3A3A]">{loading ? "Loading..." : profile?.mobileNumber || "-"}</div>
             </div>
           </div>
         </div>
 
-        {/* LinkedIn Profile */}
+        {/* LinkedIn Profile (readonly) */}
         <div>
-          <label className="block text-sm font-medium text-[#3A3A3A] mb-2">
-            LinkedIn Profile URL
-          </label>
-          <input
-            type="url"
-            value={formData.linkedin || ""}
-            onChange={(e) =>
-              setFormData({ ...formData, linkedin: e.target.value })
-            }
-            placeholder="https://www.linkedin.com/in/aarav-mehta/"
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#FF8351] focus:border-transparent"
-          />
+          <label className="block text-sm font-medium text-[#3A3A3A] mb-2">LinkedIn Profile URL</label>
+          <div className="w-full px-4 py-2.5 border border-gray-300 rounded-md bg-gray-50 text-[#3A3A3A]">{loading ? "Loading..." : profile?.linkedin_url || "-"}</div>
+        </div>
+
+        {/* Age (readonly) */}
+        <div>
+          <label className="block text-sm font-medium text-[#3A3A3A] mb-2">Age</label>
+          <div className="w-full px-4 py-2.5 border border-gray-300 rounded-md bg-gray-50 text-[#3A3A3A]">{loading ? "Loading..." : (profile?.age ?? "-")}</div>
         </div>
 
         {/* Next Button */}
