@@ -12,6 +12,8 @@ interface EducationDetailsFormProps {
   initialData?: any;
   userId: string;
   token: string;
+  hideIntro?: boolean;
+  hideHeader?: boolean;
 }
 
 interface HigherEducation {
@@ -34,6 +36,8 @@ export default function EducationDetailsForm({
   initialData = {},
   userId,
   token,
+  hideIntro = false,
+  hideHeader = false,
 }: EducationDetailsFormProps) {
   const [sslcExpanded, setSslcExpanded] = useState(true);
   const [puExpanded, setPuExpanded] = useState(true);
@@ -1383,15 +1387,19 @@ export default function EducationDetailsForm({
     >
       <div className="max-w-6xl mx-auto">
         {/* Step Header */}
-        <div className="mb-4 md:mb-6">
-          <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-gray-900 mb-1">
-            Step 2: Education Details
-          </h2>
-          <p className="text-xs sm:text-sm text-gray-600">
-            Add your educational background (SSLC and PUC details are not
-            mandatory but included)
-          </p>
-        </div>
+        {!hideHeader && (
+          <div className="mb-4 md:mb-6">
+            <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-gray-900 mb-1">
+              Step 2: Education Details
+            </h2>
+            {!hideIntro && (
+              <p className="text-xs sm:text-sm text-gray-600">
+                Add your educational background (SSLC and PUC details are not
+                mandatory but included)
+              </p>
+            )}
+          </div>
+        )}
 
         {/* SSLC (10th Standard) */}
         <div className="bg-white border border-gray-200 rounded-xl mb-4 md:mb-5 overflow-hidden">

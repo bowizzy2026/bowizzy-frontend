@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import DashNav from "@/components/dashnav/dashnav";
 import PersonalDetails from "./components/PersonalDetails";
 import EducationDetails from "./components/EducationDetails";
-import WorkExperience from "./components/WorkExperience";
+import EducationDetailsForm from "@/pages/(Profile)/components/EducationDetailsForm";
+import ExperienceDetailsForm from "@/pages/(Profile)/components/ExperienceDetailsForm";
 import BankDetails from "./components/BankDetails";
 import VerificationSubmitted from "./components/VerificationSubmitted";
 import VerifiedDashboard from "./components/VerifiedDashboard";
@@ -29,7 +30,7 @@ const TakeMockInterview = () => {
     lastName: "",
     email: "",
     mobile: "",
-    linkedin: "",
+    linkedin_url: "",
     photo: null,
     educations: [],
     experiences: [],
@@ -41,6 +42,134 @@ const TakeMockInterview = () => {
     ifscCode: "",
     accountType: "",
   });
+
+  useEffect(() => {
+    const fetchEducation = async () => {
+      try {
+        const parsed = JSON.parse(localStorage.getItem("user") || "{}");
+        const userId = parsed?.user_id;
+        const token = parsed?.token;
+        if (!userId || !token) return;
+
+        const { getEducationByUserId } = await import("@/services/educationService");
+        const apiData = await getEducationByUserId(userId, token);
+        if (!apiData || !Array.isArray(apiData)) return;
+
+        // Map API education array into the UI-friendly educations array
+        const formatYearForInput = (yearValue: any) => {
+          if (!yearValue) return "";
+          if (typeof yearValue === "string" && yearValue.includes("-")) {
+            const parts = yearValue.split("-");
+            if (parts.length >= 2) return `${parts[0]}-${parts[1]}`;
+          }
+          const year = typeof yearValue === "number" ? yearValue : parseInt(yearValue, 10);
+          return isNaN(year) ? "" : `${year}-01`;
+        };
+
+        const educationForm: any = {
+          sslc: {},
+          pu: {},
+          higherEducations: [],
+          extraEducations: [],
+        };
+
+        apiData.forEach((edu: any) => {
+          if (edu.education_type === "sslc") {
+            educationForm.sslc = {
+              institutionName: edu.institution_name || "",
+              boardType: edu.board_type || "",
+              yearOfPassing: formatYearForInput(edu.end_year),
+              resultFormat: edu.result_format
+                ? edu.result_format.charAt(0).toUpperCase() + edu.result_format.slice(1)
+                : "Percentage",
+              result: edu.result || "",
+              education_id: edu.education_id,
+            };
+          } else if (edu.education_type === "puc") {
+            educationForm.pu = {
+              institutionName: edu.institution_name || "",
+              boardType: edu.board_type || "",
+              subjectStream: edu.subject_stream || "",
+              yearOfPassing: formatYearForInput(edu.end_year),
+              resultFormat: edu.result_format
+                ? edu.result_format.charAt(0).toUpperCase() + edu.result_format.slice(1)
+                : "Percentage",
+              result: edu.result || "",
+              education_id: edu.education_id,
+            };
+          } else if (edu.education_type === "higher") {
+            const higherEdu = {
+              id: edu.education_id?.toString() || Date.now().toString(),
+              degree: edu.degree || "",
+              fieldOfStudy: edu.field_of_study || "",
+              institutionName: edu.institution_name || "",
+              universityName: edu.university_name || "",
+              universityBoard: edu.university_name || "",
+              startYear: formatYearForInput(edu.start_year),
+              endYear: formatYearForInput(edu.end_year),
+              currentlyPursuing: edu.currently_pursuing || false,
+              resultFormat: edu.result_format
+                ? edu.result_format.charAt(0).toUpperCase() + edu.result_format.slice(1)
+                : "CGPA",
+              result: edu.result || "",
+              education_id: edu.education_id,
+            };
+            educationForm.higherEducations.push(higherEdu);
+          }
+        });
+
+        if (educationForm.higherEducations.length > 1) {
+          educationForm.extraEducations = educationForm.higherEducations.splice(1);
+        }
+
+        // Convert to the local EducationDetails expected array shape
+        const mapped: any[] = [];
+        if (educationForm.sslc && Object.keys(educationForm.sslc).length > 0) {
+          mapped.push({
+            standard: "SSC/10th Standard*",
+            instituteName: educationForm.sslc.institutionName || "",
+            markType: educationForm.sslc.resultFormat || "",
+            yearOfPassing: educationForm.sslc.yearOfPassing || "",
+            grade: educationForm.sslc.result || "",
+            board: educationForm.sslc.boardType || "",
+            isExpanded: mapped.length === 0,
+          });
+        }
+
+        if (educationForm.pu && Object.keys(educationForm.pu).length > 0) {
+          mapped.push({
+            standard: "PUC/Diploma / (10th+2)*",
+            instituteName: educationForm.pu.institutionName || "",
+            markType: educationForm.pu.resultFormat || "",
+            yearOfPassing: educationForm.pu.yearOfPassing || "",
+            grade: educationForm.pu.result || "",
+            board: educationForm.pu.boardType || "",
+            isExpanded: mapped.length === 0,
+          });
+        }
+
+        const higherList = [...(educationForm.higherEducations || []), ...(educationForm.extraEducations || [])];
+        higherList.forEach((he: any, idx: number) => {
+          mapped.push({
+            standard: he.degree || "Higher Education*",
+            instituteName: he.institutionName || "",
+            markType: he.resultFormat || "",
+            yearOfPassing: he.endYear || he.startYear || "",
+            grade: he.result || "",
+            board: he.universityName || he.universityBoard || "",
+            isExpanded: mapped.length === 0,
+          });
+        });
+
+        setFormData((prev) => ({ ...prev, educations: mapped, education: educationForm }));
+      } catch (err) {
+        console.error("Error fetching educations:", err);
+      }
+    };
+
+    if (currentStep === 2) fetchEducation();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentStep]);
 
   const handleNext = () => {
     if (currentStep < 5) {
@@ -121,45 +250,7 @@ const TakeMockInterview = () => {
             )
           ) : (
             <>
-              {/* Header Section */}
-              <div className="flex items-start gap-3 mb-6">
-                <button
-                  onClick={() => {
-                    if (currentStep === 1) {
-                      window.history.back();
-                    } else {
-                      handlePrevious();
-                    }
-                  }}
-                  className="flex items-center justify-center w-10 h-10 rounded-full bg-[#FFF5F0] text-[#FF8351] hover:bg-[#FF8351] hover:text-white transition-colors"
-                >
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M15 19l-7-7 7-7"
-                    />
-                  </svg>
-                </button>
-
-                <div>
-                  <h2 className="text-xl font-semibold text-[#3A3A3A] mb-1">
-                    Take Mock Interview
-                  </h2>
-                  <p className="text-[#3A3A3A] text-sm leading-relaxed">
-                    Conduct interviews to guide aspiring professionals. Share
-                    your expertise, support their growth, and earn rewards in
-                    return. At the same time, you'll strengthen your credibility
-                    and expand your professional network.
-                  </p>
-                </div>
-              </div>
+              {/* Header Section removed: back-arrow button hidden */}
 
               {currentStep < 5 ? (
                 <div className="bg-white rounded-md p-6">
@@ -195,21 +286,39 @@ const TakeMockInterview = () => {
                     )}
 
                     {currentStep === 2 && (
-                      <EducationDetails
-                        formData={formData}
-                        setFormData={setFormData}
-                        onNext={handleNext}
-                        onPrevious={handlePrevious}
-                      />
+                      (formData.education && Object.keys(formData.education).length > 0) ? (
+                        <EducationDetailsForm
+                          key={JSON.stringify(formData.education)}
+                          initialData={formData.education}
+                          hideIntro={true}
+                          hideHeader={true}
+                          userId={JSON.parse(localStorage.getItem("user") || "{}")?.user_id}
+                          token={JSON.parse(localStorage.getItem("user") || "{}")?.token}
+                          onNext={(data: any) => {
+                            setFormData((prev) => ({ ...prev, education: data }));
+                            handleNext();
+                          }}
+                          onBack={handlePrevious}
+                        />
+                      ) : (
+                        <div className="p-4 text-center text-gray-500">Loading education...</div>
+                      )
                     )}
 
                     {currentStep === 3 && (
-                      <WorkExperience
-                        formData={formData}
-                        setFormData={setFormData}
-                        onNext={handleNext}
-                        onPrevious={handlePrevious}
-                      />
+                      <>
+                        <ExperienceDetailsForm
+                          userId={JSON.parse(localStorage.getItem("user") || "{}")?.user_id}
+                          token={JSON.parse(localStorage.getItem("user") || "{}")?.token}
+                          hideHeader={true}
+                          hideJobRole={true}
+                          onNext={(data: any) => {
+                            setFormData((prev) => ({ ...prev, experiences: data.workExperiences || [], jobRole: data.jobRole || "" }));
+                            handleNext();
+                          }}
+                          onBack={handlePrevious}
+                        />
+                      </>
                     )}
 
                     {currentStep === 4 && (

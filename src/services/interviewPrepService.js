@@ -1,6 +1,5 @@
 import api from "@/api";
 
-
 export const createInterviewSlot = async (userId, token, slotPayload) => {
     const response = await api.post(`/users/${userId}/mock-interview/interview-slot?mode=online`, slotPayload, {
         headers: {
@@ -56,6 +55,16 @@ export const getInterviewSlotById = async (userId, token, slotId) => {
 
 export const getInterviewSlotsByUserId = async (userId, token) => {
     const response = await api.get(`/users/${userId}/mock-interview/interview-slot`, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    });
+    return response.data;
+};
+
+// fetch next upcoming interviews (more detailed endpoint)
+export const getNextInterviewsByUserId = async (userId, token) => {
+    const response = await api.get(`/users/${userId}/mock-interview/interview-schedule/next-interviews`, {
         headers: {
             Authorization: `Bearer ${token}`,
         },
