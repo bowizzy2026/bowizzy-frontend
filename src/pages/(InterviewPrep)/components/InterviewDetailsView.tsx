@@ -1,16 +1,33 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { updateInterviewSlot, createInterviewSchedule, saveInterviewSlot, getSavedInterviewSlots, removeSavedInterviewSlot } from "@/services/interviewPrepService";
 import { X } from "lucide-react";
 import SavedInterviewCard from "./SavedInterviewCard";
 import VerifiedDashboardHeader from "./VerifiedDashboardHeader";
 
 interface Interview {
-  id: string;
+  id: string | number;
   title: string;
   experience: string;
   date: string;
   time: string;
   credits?: number;
   priority?: string;
+  start_time_utc?: string;
+  end_time_utc?: string;
+  status?: string;
+  is_payment_done?: boolean;
+  candidateDetails?: {
+    name?: string;
+    email?: string;
+    phone?: string;
+    resumeUrl?: string;
+  };
+  job_role?: string;
+  skills?: string[];
+  resume_url?: string;
+  interview_code?: string;
+  candidate_id?: string | number;
+  interview_slot_id?: string | number;
 }
 
 interface InterviewDetailsViewProps {
@@ -42,61 +59,268 @@ const InterviewDetailsView: React.FC<InterviewDetailsViewProps> = ({
   isInterviewSaved = false,
 }) => {
   const [showBookingModal, setShowBookingModal] = useState(false);
-  const [timeRemaining] = useState("23:15:20");
+  const [timeRemaining, setTimeRemaining] = useState<string>("");
+  const [started, setStarted] = useState<boolean>(false);
+  const timerRef = useRef<number | null>(null);
+  const [bookingLoading, setBookingLoading] = useState(false);
+  const [bookingError, setBookingError] = useState<string | null>(null);
+  const [saved, setSaved] = useState<boolean>(isInterviewSaved);
 
-  const displayedSaved = showAllSaved
-    ? savedInterviews
-    : savedInterviews.slice(0, 2);
+  const [savedList, setSavedList] = useState<Interview[]>(savedInterviews || []);
+  const [savedLoading, setSavedLoading] = useState<boolean>(false);
+  const [savedError, setSavedError] = useState<string | null>(null);
+  const [currentSavedSlotId, setCurrentSavedSlotId] = useState<number | string | null>(null);
 
-  const handleBookInterview = () => {
-    setShowBookingModal(true);
-    
-  };
+  const displayedSaved = showAllSaved ? savedList : savedList.slice(0, 2);
 
-  const handleSaveToggle = () => {
-    if (onToggleSaveInterview) {
-      onToggleSaveInterview(interview);
+  const handleBookInterview = async () => {
+    setBookingError(null);
+    setBookingLoading(true);
+    try {
+      const userData = JSON.parse(localStorage.getItem("user") || "null");
+      const userId = userData?.user_id;
+      const token = userData?.token;
+      if (!userId || !token) {
+        setBookingError("User not authenticated");
+        setBookingLoading(false);
+        return;
+      }
+
+      const slotId = interview.interview_slot_id || interview.id;
+      if (!slotId) {
+        setBookingError("Invalid slot id");
+        setBookingLoading(false);
+        return;
+      }
+
+      // Use schedule creation API: POST /users/:user_id/mock-interview/interview-schedule
+      const payload = { interview_slot_id: Number(slotId) };
+      await createInterviewSchedule(userId, token, payload);
+
+      setShowBookingModal(true);
+    } catch (err) {
+      console.error("Booking failed:", err);
+      setBookingError("Failed to book interview.");
+    } finally {
+      setBookingLoading(false);
     }
   };
 
+  const getStartTime = () => {
+    if (interview.start_time_utc) return new Date(interview.start_time_utc);
+    try {
+      const parsed = new Date(`${interview.date} ${interview.time}`);
+      if (!isNaN(parsed.getTime())) return parsed;
+    } catch (e) {}
+    return null;
+  };
+
+  const getEndTime = () => {
+    if (interview.end_time_utc) return new Date(interview.end_time_utc);
+    return null;
+  };
+
+  useEffect(() => {
+    const startTime = getStartTime();
+    if (!startTime) {
+      setTimeRemaining("N/A");
+      return;
+    }
+
+    const update = () => {
+      const now = new Date();
+      const diff = startTime.getTime() - now.getTime();
+      if (diff <= 0) {
+        setStarted(true);
+        setTimeRemaining("00:00:00");
+        if (timerRef.current) {
+          window.clearInterval(timerRef.current);
+          timerRef.current = null;
+        }
+        return;
+      }
+      const hrs = Math.floor(diff / 3600000);
+      const mins = Math.floor((diff % 3600000) / 60000);
+      const secs = Math.floor((diff % 60000) / 1000);
+      setTimeRemaining(`${String(hrs).padStart(2, "0")}:${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`);
+    };
+
+    update();
+    timerRef.current = window.setInterval(update, 1000);
+    return () => {
+      if (timerRef.current) {
+        window.clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+    };
+  }, [interview.start_time_utc, interview.date, interview.time]);
+
+  const handleSaveToggle = async () => {
+    const slotId = interview.interview_slot_id ?? interview.id;
+    const next = !saved;
+    setSaved(next); // optimistic
+    console.log('Save toggle clicked for', slotId, '->', next);
+    if (onToggleSaveInterview) {
+      try {
+        // call parent handler (may be async)
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        onToggleSaveInterview(interview);
+        // refresh saved list to reflect backend/parent changes
+        try { await fetchSavedSlots(); } catch (e) { /* ignore */ }
+        return;
+      } catch (e) {
+        console.error('Parent save handler failed:', e);
+      }
+    }
+
+    // Fallback: call save or remove API directly if parent handler not provided
+    (async () => {
+      try {
+        const parsed = JSON.parse(localStorage.getItem("user") || "{}");
+        const token = parsed?.token || localStorage.getItem("token");
+        const userId = parsed?.user_id || parsed?.userId || parsed?.id || localStorage.getItem("user_id");
+        if (!userId || !token) {
+          console.warn('No user/token available to call save/remove API');
+          return;
+        }
+        if (next) {
+          // save
+          await saveInterviewSlot(userId, token, { interview_slot_id: Number(slotId), interview_priority: interview.priority ?? 'normal' });
+          console.log('Saved interview slot via fallback API');
+        } else {
+          // remove: need saved_slot_id
+          let savedSlotId = currentSavedSlotId;
+          if (!savedSlotId) {
+            const found = savedList.find(s => Number(s.interview_slot_id ?? s.id) === Number(slotId));
+            savedSlotId = found ? (found.saved_slot_id ?? found.id) : null;
+          }
+          if (savedSlotId) {
+            await removeSavedInterviewSlot(userId, token, savedSlotId);
+            console.log('Removed saved interview slot via fallback API');
+          } else {
+            console.warn('No saved_slot_id found for removal');
+          }
+        }
+
+        // refresh saved list so UI reflects the new saved state
+        try { await fetchSavedSlots(); } catch (e) { console.warn('Refresh after save/remove failed', e); }
+      } catch (err) {
+        console.error('Fallback save/remove failed:', err);
+      }
+    })();
+  };
+
+  useEffect(() => {
+    setSaved(isInterviewSaved);
+  }, [isInterviewSaved]);
+
+  // Fetch saved slots helper so we can call it after save/un-save actions
+  const fetchSavedSlots = async () => {
+    setSavedLoading(true);
+    try {
+      const parsed = JSON.parse(localStorage.getItem("user") || "{}");
+      const token = parsed?.token || localStorage.getItem("token");
+      const userId = parsed?.user_id || parsed?.userId || parsed?.id || localStorage.getItem("user_id");
+      if (!userId || !token) {
+        setSavedList(savedInterviews || []);
+        return;
+      }
+      const data = await getSavedInterviewSlots(userId, token);
+      const items: any[] = Array.isArray(data) ? data : (data?.saved_interview_slots ? data.saved_interview_slots : (data || []));
+      // filter out expired interview slots (if start time exists and is in the past)
+      const now = Date.now();
+      const filtered = items.filter((s) => {
+        const startVal = s.start_time_utc || s.start_time || (s.date && s.time ? `${s.date} ${s.time}` : null) || s.startDate || s.start;
+        if (!startVal) return true; // keep if no start info
+        const parsed = new Date(startVal);
+        if (isNaN(parsed.getTime())) return true; // keep if unparseable
+        return parsed.getTime() > now; // keep only future starts
+      });
+      setSavedList(filtered as Interview[]);
+    } catch (err) {
+      console.error("Fetching saved interviews failed:", err);
+      setSavedError("Failed to load saved interviews");
+      setSavedList(savedInterviews || []);
+    } finally {
+      setSavedLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    let mounted = true;
+    // call fetchSavedSlots; keep mounted flag for safety if you later add cancellation
+    fetchSavedSlots();
+    return () => { mounted = false; };
+  }, [showAllSaved]);
+
+  // keep `saved` boolean in sync with fetched saved list
+  useEffect(() => {
+    const slotId = interview.interview_slot_id ?? interview.id;
+    const exists = savedList.some(s => Number(s.interview_slot_id ?? s.id) === Number(slotId));
+    setSaved(Boolean(exists));
+  }, [savedList, interview.interview_slot_id, interview.id]);
+
+  // keep currentSavedSlotId in sync so we can call delete
+  useEffect(() => {
+    const slotId = interview.interview_slot_id ?? interview.id;
+    const match = savedList.find(s => Number(s.interview_slot_id ?? s.id) === Number(slotId));
+    setCurrentSavedSlotId(match ? (match.saved_slot_id ?? match.id ?? null) : null);
+  }, [savedList, interview.interview_slot_id, interview.id]);
+
   const renderMainContent = () => {
     if (viewType === "scheduled") {
+      const startTime = getStartTime();
+      const endTime = getEndTime();
+      const formatDate = (d: Date | null) => d ? d.toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' }) : '';
+      const formatTime = (d: Date | null) => d ? d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: true }) : '';
+      const dateStr = formatDate(startTime) || interview.date || '';
+      const timeStr = startTime ? `${formatTime(startTime)}${endTime ? ' - ' + formatTime(endTime) : ''}` : (interview.time || '');
+      const diffMs = startTime ? startTime.getTime() - Date.now() : Infinity;
+      const displayPriority = (diffMs > 0 && diffMs <= 3 * 3600 * 1000) ? 'HIGH' : (interview.priority || 'normal');
       return (
         <div className="bg-white rounded-lg shadow-sm p-6">
           <div className="flex items-center justify-between mb-6">        
               <div>
                 <span className="text-lg text-[#FF8351] font-bold">
-                  INTERVIEW ID: #{interview.id}
+                  INTERVIEW ID: #{interview.interview_slot_id ?? interview.id}
                 </span>
+              </div>
+              <div className="text-sm text-gray-600">
+                {interview.interview_code && (
+                  <div>Code: <span className="font-medium text-gray-800">{interview.interview_code}</span></div>
+                )}
+                {interview.job_role && (
+                  <div>Role: <span className="font-medium text-gray-800">{interview.job_role}</span></div>
+                )}
+                {interview.interview_mode && (
+                  <div>Mode: <span className="font-medium text-gray-800">{interview.interview_mode}</span></div>
+                )}
               </div>
                 <button
                   onClick={handleSaveToggle}
-                  className="p-1.5 hover:bg-gray-100 rounded cursor-pointer"
+                  aria-pressed={saved}
+                  className={`w-10 h-10 flex items-center justify-center rounded-full transition-shadow focus:outline-none bg-white border border-gray-200 ${saved ? 'shadow-sm' : 'hover:bg-gray-50'}`}
+                  title={saved ? 'Saved' : 'Save'}
                 >
-                  <svg
-                    className="w-5 h-5"
-                    fill={isInterviewSaved ? "currentColor" : "none"}
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
-                    />
-                  </svg>
+                  {saved ? (
+                    <svg className="w-5 h-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                      <path fill="#FF8351" d="M6 2a2 2 0 00-2 2v18l8-4 8 4V4a2 2 0 00-2-2H6z" />
+                    </svg>
+                  ) : (
+                    <svg className="w-5 h-5 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                      <path d="M6 2h12a2 2 0 012 2v18l-8-4-8 4V4a2 2 0 012-2z" />
+                    </svg>
+                  )}
                 </button>
           </div>
           <div className="bg-[#E8E8E8] h-[1px] mb-5"></div>
 
           <h2 className="text-2xl font-bold text-gray-800 mb-2">
-            {interview.title}
+            {interview.job_role || interview.title}
           </h2>
-          
-          <p className="text-gray-600 mb-6">
-            Experience: {interview.experience}
-          </p>
+
+          <p className="text-gray-600 mb-2">Experience: {interview.experience}</p>
+
 
 
           <div className="grid grid-cols-3 gap-4 mb-6">
@@ -116,7 +340,7 @@ const InterviewDetailsView: React.FC<InterviewDetailsViewProps> = ({
               </svg>
               <div>
                 <p className="text-xs text-gray-500">Date</p>
-                <p className="text-sm font-medium">{interview.date}</p>
+                <p className="text-sm font-medium">{dateStr}</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -135,75 +359,22 @@ const InterviewDetailsView: React.FC<InterviewDetailsViewProps> = ({
               </svg>
               <div>
                 <p className="text-xs text-gray-500">Time</p>
-                <p className="text-sm font-medium">
-                  {interview.time} - 04:00 PM
-                </p>
+                <p className="text-sm font-medium">{timeStr}</p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              {interview.priority && (
-                <span
-                  className={`px-3 py-1 text-sm font-medium rounded ${
-                    interview.priority === "HIGH"
-                      ? "bg-red-100 text-red-600"
-                      : "bg-green-100 text-green-600"
-                  }`}
-                >
-                  Priority: {interview.priority}
-                </span>
-              )}
-            </div>
+            <div />
           </div>
 
           <div className="bg-[#E8E8E8] h-[1px] mb-5"></div>
 
           <div className="mb-6">
             <h3 className="text-sm font-semibold text-gray-800 mb-3">
-              PRIMARY SKILLS TO EVALUATE
+              SKILLS TO EVALUATE
             </h3>
-            <div className="grid grid-cols-5 gap-3 mb-4">
-              {[1, 2, 3, 4, 5].map((skill) => (
-                <div
-                  key={skill}
-                  className="bg-gray-50 rounded px-3 py-2 text-sm text-gray-700"
-                >
-                  Skill {skill}
-                </div>
-              ))}
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              {[6, 7].map((skill) => (
-                <div
-                  key={skill}
-                  className="bg-gray-50 rounded px-3 py-2 text-sm text-gray-700"
-                >
-                  Skill {skill}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="mb-6">
-            <h3 className="text-sm font-semibold text-gray-800 mb-3">
-              SECONDARY SKILLS TO EVALUATE
-            </h3>
-            <div className="grid grid-cols-5 gap-3 mb-4">
-              {[1, 2, 3, 4, 5].map((skill) => (
-                <div
-                  key={skill}
-                  className="bg-gray-50 rounded px-3 py-2 text-sm text-gray-700"
-                >
-                  Skill {skill}
-                </div>
-              ))}
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              {[6, 7].map((skill) => (
-                <div
-                  key={skill}
-                  className="bg-gray-50 rounded px-3 py-2 text-sm text-gray-700"
-                >
-                  Skill {skill}
+            <div className="flex flex-wrap gap-3">
+              {(interview.skills && interview.skills.length > 0 ? interview.skills : []).map((skill, idx) => (
+                <div key={idx} className="bg-gray-50 rounded px-3 py-2 text-sm text-gray-700">
+                  {skill}
                 </div>
               ))}
             </div>
@@ -217,23 +388,54 @@ const InterviewDetailsView: React.FC<InterviewDetailsViewProps> = ({
             </div>
           </div>
 
-          <p className="text-xs text-gray-500 mb-6">
-            Note: Candidate details will unlock once the interview begins to
-            ensure an unbiased evaluation.
-          </p>
+          {started ? (
+            <div className="mb-6 bg-gray-50 rounded-lg p-4">
+              <h3 className="text-sm font-semibold text-gray-800 mb-2">Candidate Details</h3>
+              <div className="text-sm text-gray-700 space-y-1">
+                {interview.candidateDetails?.name && <p>Name: {interview.candidateDetails.name}</p>}
+                {interview.candidateDetails?.email && <p>Email: {interview.candidateDetails.email}</p>}
+                {interview.candidateDetails?.phone && <p>Phone: {interview.candidateDetails.phone}</p>}
+                {interview.resume_url && (
+                  <p>
+                    Resume: <a href={interview.resume_url} className="text-[#FF8351]" target="_blank" rel="noreferrer">View resume</a>
+                  </p>
+                )}
+                {interview.skills && (
+                  <p>Skills: {interview.skills.join(', ')}</p>
+                )}
+              </div>
+            </div>
+          ) : (
+            <p className="text-xs text-gray-500 mb-6">
+              Note: Candidate details will unlock once the interview begins to
+              ensure an unbiased evaluation.
+            </p>
+          )}
 
           <div className="flex gap-4">
             <button className="flex-1 px-6 py-3 rounded-md border-2 border-[#FF8351] text-[#FF8351] font-semibold transition-all hover:bg-[#FFF5F0] cursor-pointer">
               Cancel Interview
             </button>
-            <button
-              className="flex-1 px-6 py-3 rounded-md text-white font-semibold transition-transform hover:scale-102 cursor-pointer"
-              style={{
-                background: "linear-gradient(180deg, #FF9D48 0%, #FF8251 100%)",
-              }}
-            >
-              Starts in {timeRemaining}
-            </button>
+            {started ? (
+              <button
+                onClick={() => {
+                  if (onViewDetails) onViewDetails(interview, 'scheduled');
+                }}
+                className="flex-1 px-6 py-3 rounded-md bg-[#4ADE80] text-white font-semibold transition-transform hover:bg-green-500 cursor-pointer"
+              >
+                Join Now
+              </button>
+            ) : (
+              <button
+                className="flex-1 px-6 py-3 rounded-md text-white font-semibold transition-transform cursor-default opacity-95"
+                style={{
+                  background: "linear-gradient(180deg, #FF9D48 0%, #FF8251 100%)",
+                }}
+                disabled
+              >
+                Starts in {timeRemaining || 'N/A'}
+              </button>
+            )}
           </div>
         </div>
       );
@@ -245,33 +447,31 @@ const InterviewDetailsView: React.FC<InterviewDetailsViewProps> = ({
             
             <div>
               <span className="text-lg text-[#FF8351] font-bold">
-                INTERVIEW ID: #{interview.id}
+                INTERVIEW ID: #{interview.interview_slot_id ?? interview.id}
               </span>
             </div>
               <button
                 onClick={handleSaveToggle}
-                className="p-1.5 hover:bg-gray-100 rounded cursor-pointer"
+                aria-pressed={saved}
+                className={`w-10 h-10 flex items-center justify-center rounded-full transition-shadow focus:outline-none bg-white border border-gray-200 ${saved ? 'shadow-sm' : 'hover:bg-gray-50'}`}
+                title={saved ? 'Saved' : 'Save'}
               >
-                <svg
-                  className="w-5 h-5"
-                  fill={isInterviewSaved ? "currentColor" : "none"}
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
-                  />
-                </svg>
+                {saved ? (
+                  <svg className="w-5 h-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path fill="#FF8351" d="M6 2a2 2 0 00-2 2v18l8-4 8 4V4a2 2 0 00-2-2H6z" />
+                  </svg>
+                ) : (
+                  <svg className="w-5 h-5 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M6 2h12a2 2 0 012 2v18l-8-4-8 4V4a2 2 0 012-2z" />
+                  </svg>
+                )}
               </button>
         </div>
 
         <div className="bg-[#E8E8E8] h-[1px] mb-5"></div>
 
         <h2 className="text-2xl font-bold text-gray-800 mb-2">
-          {interview.title}
+          {interview.job_role || interview.title}
         </h2>
         <p className="text-gray-600 mb-6">Experience: {interview.experience}</p>
 
@@ -292,7 +492,7 @@ const InterviewDetailsView: React.FC<InterviewDetailsViewProps> = ({
             </svg>
             <div>
               <p className="text-xs text-gray-500">Date</p>
-              <p className="text-sm font-medium">{interview.date}</p>
+              <p className="text-sm font-medium">{getStartTime() ? getStartTime()!.toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' }) : interview.date}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -310,77 +510,33 @@ const InterviewDetailsView: React.FC<InterviewDetailsViewProps> = ({
               />
             </svg>
             <div>
-              <p className="text-xs text-gray-500">Time</p>
-              <p className="text-sm font-medium">{interview.time} - 04:00 PM</p>
+                <p className="text-xs text-gray-500">Time</p>
+                <p className="text-sm font-medium">{getStartTime() ? `${getStartTime()!.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: true })}${getEndTime() ? ' - ' + getEndTime()!.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: true }) : ''}` : interview.time}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {interview.priority && (
-              <span
-                className={`px-3 py-1 text-sm font-medium rounded ${
-                  interview.priority === "HIGH"
-                    ? "bg-red-100 text-red-600"
-                    : "bg-green-100 text-green-600"
-                }`}
-              >
-                Priority: {interview.priority}
-              </span>
-            )}
+            {(() => {
+              const st = getStartTime();
+              const diff = st ? st.getTime() - Date.now() : Infinity;
+              const dp = (diff > 0 && diff <= 3 * 3600 * 1000) ? 'HIGH' : (interview.priority || 'normal');
+              return (
+                <span className={`px-3 py-1 text-sm font-medium rounded ${dp === 'HIGH' ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
+                  Priority: {dp}
+                </span>
+              );
+            })()}
           </div>
         </div>
 
         <div className="bg-[#E8E8E8] h-[1px] mb-5"></div>
 
         <div className="mb-6">
-          <h3 className="text-sm font-semibold text-gray-800 mb-3">
-            PRIMARY SKILLS TO EVALUATE
-          </h3>
-          <div className="grid grid-cols-5 gap-3 mb-4">
-            {[1, 2, 3, 4, 5].map((skill) => (
-              <div
-                key={skill}
-                className="bg-gray-50 rounded px-3 py-2 text-sm text-gray-700"
-              >
-                Skill {skill}
-              </div>
-            ))}
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            {[6, 7].map((skill) => (
-              <div
-                key={skill}
-                className="bg-gray-50 rounded px-3 py-2 text-sm text-gray-700"
-              >
-                Skill {skill}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="mb-6">
-          <h3 className="text-sm font-semibold text-gray-800 mb-3">
-            SECONDARY SKILLS TO EVALUATE
-          </h3>
-          <div className="grid grid-cols-5 gap-3 mb-4">
-            {[1, 2, 3, 4, 5].map((skill) => (
-              <div
-                key={skill}
-                className="bg-gray-50 rounded px-3 py-2 text-sm text-gray-700"
-              >
-                Skill {skill}
-              </div>
-            ))}
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            {[6, 7].map((skill) => (
-              <div
-                key={skill}
-                className="bg-gray-50 rounded px-3 py-2 text-sm text-gray-700"
-              >
-                Skill {skill}
-              </div>
-            ))}
-          </div>
+          <h3 className="text-sm font-semibold text-gray-800 mb-3">SKILLS TO EVALUATE</h3>
+            <div className="flex flex-wrap gap-3 mb-4">
+              {(interview.skills && interview.skills.length > 0 ? interview.skills : []).map((s, i) => (
+                <div key={i} className="bg-gray-50 rounded px-3 py-2 text-sm text-gray-700">{s}</div>
+              ))}
+            </div>
         </div>
 
         <div className="flex items-center justify-between pt-4 border-t border-gray-200">
@@ -396,15 +552,21 @@ const InterviewDetailsView: React.FC<InterviewDetailsViewProps> = ({
           ensure an unbiased evaluation.
         </p>
 
-        <button
-          onClick={handleBookInterview}
-          className="w-full mt-6 px-6 py-3 rounded-md text-white font-semibold transition-transform hover:scale-102 cursor-pointer"
-          style={{
-            background: "linear-gradient(180deg, #FF9D48 0%, #FF8251 100%)",
-          }}
-        >
-          Book Mock Interview
-        </button>
+        <div className="mt-6">
+          {bookingError && (
+            <p className="text-red-500 text-sm mb-2">{bookingError}</p>
+          )}
+          <button
+            onClick={handleBookInterview}
+            className={`w-full px-6 py-3 rounded-md text-white font-semibold transition-transform ${bookingLoading ? 'opacity-80 cursor-wait' : 'hover:scale-102 cursor-pointer'}`}
+            style={{
+              background: "linear-gradient(180deg, #FF9D48 0%, #FF8251 100%)",
+            }}
+            disabled={bookingLoading}
+          >
+            {bookingLoading ? 'Booking...' : 'Book Mock Interview'}
+          </button>
+        </div>
       </div>
     );
   };
@@ -465,7 +627,9 @@ const InterviewDetailsView: React.FC<InterviewDetailsViewProps> = ({
               </button>
             </div>
             <div className="p-4 space-y-3">
-              {displayedSaved.length > 0 ? (
+              {savedLoading ? (
+                <p className="text-sm text-gray-500 text-center py-4">Loading saved interviews...</p>
+              ) : displayedSaved.length > 0 ? (
                 displayedSaved.map((savedInterview, index) => (
                   <SavedInterviewCard
                     key={index}
@@ -483,10 +647,9 @@ const InterviewDetailsView: React.FC<InterviewDetailsViewProps> = ({
                   />
                 ))
               ) : (
-                <p className="text-sm text-gray-500 text-center py-4">
-                  No saved interviews
-                </p>
+                <p className="text-sm text-gray-500 text-center py-4">No saved interviews</p>
               )}
+              {savedError && <p className="text-xs text-red-500">{savedError}</p>}
             </div>
           </div>
         </div>

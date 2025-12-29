@@ -90,6 +90,16 @@ export const getInterviewScheduleById = async (userId, token, scheduleId) => {
     return response.data;
 };
 
+export const createInterviewSchedule = async (userId, token, payload) => {
+    const response = await api.post(`/users/${userId}/mock-interview/interview-schedule`, payload, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+        },
+    });
+    return response.data;
+};
+
 export const cancelInterviewSlot = async (userId, token, slotId) => {
     const payload = { interview_status: 'cancelled' };
     const response = await api.put(
@@ -117,6 +127,34 @@ export const confirmInterviewSlotPayment = async (userId, token, slotId) => {
         }
     );
 
+    return response.data;
+};
+
+export const saveInterviewSlot = async (userId, token, payload) => {
+    const response = await api.post(`/users/${userId}/mock-interview/interview-schedule/save-interview-slot`, payload, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+        },
+    });
+    return response.data;
+};
+
+export const getSavedInterviewSlots = async (userId, token) => {
+    const response = await api.get(`/users/${userId}/mock-interview/interview-schedule/saved-interview-slots`, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    });
+    return response.data;
+};
+
+export const removeSavedInterviewSlot = async (userId, token, savedSlotId) => {
+    const response = await api.delete(`/users/${userId}/mock-interview/interview-schedule/remove-interview-slot/${savedSlotId}`, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    });
     return response.data;
 };
 

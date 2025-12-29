@@ -1,11 +1,15 @@
 
 interface InterviewCardProps {
   interview: {
-    id: string;
+    id: string | number;
+      job_role: string;
+    interview_slot_id?: string | number;
     title: string;
     experience: string;
-    date: string;
-    time: string;
+    date?: string;
+    time?: string;
+    start_time_utc?: string;
+    end_time_utc?: string;
     credits?: number;
     priority?: string;
   };
@@ -13,7 +17,39 @@ interface InterviewCardProps {
   onViewDetails: () => void;
 }
 
+const formatDate = (iso?: string) => {
+  if (!iso) return "";
+  try {
+    const d = new Date(iso);
+    return d.toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' });
+  } catch { return ""; }
+};
+
+const formatTime = (iso?: string) => {
+  if (!iso) return "";
+  try {
+    const d = new Date(iso);
+    return d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: true });
+  } catch { return ""; }
+};
+
+// status computation removed — priority badge (HIGH/normal) shown on top-right instead
+
 const InterviewCard = ({ interview, isScheduled, onViewDetails }: InterviewCardProps) => {
+  const start = interview.start_time_utc || interview.date;
+  const end = interview.end_time_utc;
+  const dateStr = formatDate(start) || interview.date || '';
+  const timeStr = `${formatTime(start)}${end ? ' - ' + formatTime(end) : ''}`;
+  const isStartingSoon = (() => {
+    if (!start) return false;
+    const s = new Date(start).getTime();
+    const now = Date.now();
+    const diffMs = s - now;
+    return diffMs > 0 && diffMs <= 3 * 3600 * 1000; // within next 3 hours
+  })();
+
+  const isHigh = ((interview.priority || '').toLowerCase() === 'high') || isStartingSoon;
+
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-4">
       <div className="flex items-start gap-4">
@@ -34,26 +70,23 @@ const InterviewCard = ({ interview, isScheduled, onViewDetails }: InterviewCardP
           <div className="flex items-start justify-between mb-2">
             <div className="flex items-center gap-2">
               <span className="text-xs text-gray-500 font-medium">
-                INTERVIEW ID: {interview.id}
+                INTERVIEW ID: {interview.interview_slot_id ?? interview.id}
               </span>
-              <span
-                className={`px-2 py-0.5 text-xs font-medium rounded ${
-                  interview.priority === "HIGH"
-                    ? "bg-red-100 text-red-600"
-                    : "bg-green-100 text-green-600"
-                }`}
-              >
-                {interview.priority}
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className={`px-2 py-0.5 text-xs font-medium rounded ${isHigh ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
+                {isHigh ? 'HIGH' : (interview.priority || 'normal')}
               </span>
             </div>
           </div>
 
           <h3 className="font-semibold text-gray-800 mb-2">
-            {interview.title} - {interview.experience}
+            {interview.job_role || interview.job_role} - {interview.experience}
           </h3>
 
           <p className="text-sm text-gray-600 mb-3">
-            {interview.date} - {interview.time}
+            {dateStr} • {timeStr}
           </p>
 
           <div className="flex items-center justify-between">
@@ -62,9 +95,10 @@ const InterviewCard = ({ interview, isScheduled, onViewDetails }: InterviewCardP
                 <button className="px-4 py-1.5 text-sm font-medium text-white bg-green-500 rounded hover:bg-green-600 transition-colors">
                   Join Now
                 </button>
-                <button 
+                <button
                   onClick={onViewDetails}
-                  className="px-4 py-1.5 text-sm font-medium text-gray-700 bg-gray-100 rounded hover:bg-gray-200 transition-colors">
+                  className="px-4 py-1.5 text-sm font-medium text-gray-700 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
+                >
                   View Details
                 </button>
                 <button className="px-4 py-1.5 text-sm font-medium text-red-500 bg-white border border-gray-200 rounded hover:bg-red-50 transition-colors">
@@ -72,9 +106,10 @@ const InterviewCard = ({ interview, isScheduled, onViewDetails }: InterviewCardP
                 </button>
               </div>
             ) : (
-              <button 
+              <button
                 onClick={onViewDetails}
-                className="px-4 py-1.5 text-sm font-medium text-gray-700 bg-gray-100 rounded hover:bg-gray-200 transition-colors">
+                className="px-4 py-1.5 text-sm font-medium text-gray-700 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
+              >
                 View Details
               </button>
             )}
