@@ -4,7 +4,7 @@ import InterviewCard from "./InterviewCard";
 import SavedInterviewCard from "./SavedInterviewCard";
 import InterviewDetailsView from "./InterviewDetailsView";
 import VerifiedDashboardHeader from "./VerifiedDashboardHeader";
-import { saveInterviewSlot } from '@/services/interviewPrepService';
+import { saveInterviewSlot, getSavedInterviewSlots } from '@/services/interviewPrepService';
 
 interface Interview {
   id: string;
@@ -38,23 +38,10 @@ const VerifiedDashboard = ({ onViewDetails: externalOnViewDetails }: VerifiedDas
   const [selectedInterview, setSelectedInterview] = useState<Interview | null>(null);
   const [viewType, setViewType] = useState<'scheduled' | 'available' | 'saved' | null>(null);
   
-  // Saved interviews state - initially empty or can have some default data
-  const [savedInterviews, setSavedInterviews] = useState<Interview[]>([
-    {
-      id: "832349",
-      title: "Python Developer",
-      experience: "1-2 Years Experience",
-      date: "31 AUG 2025",
-      time: "03:00 PM",
-    },
-    {
-      id: "832350",
-      title: "Python Developer",
-      experience: "1-2 Years Experience",
-      date: "31 AUG 2025",
-      time: "03:00 PM",
-    },
-  ]);
+  // Saved interviews state (loaded from API)
+  const [savedInterviews, setSavedInterviews] = useState<Interview[]>([]);
+  const [isSavedLoading, setIsSavedLoading] = useState<boolean>(false);
+  const [savedError, setSavedError] = useState<string | null>(null);
 
   // Scheduled interviews - fetched from API
   const [scheduledInterviews, setScheduledInterviews] = useState<Interview[]>([]);
@@ -63,6 +50,62 @@ const VerifiedDashboard = ({ onViewDetails: externalOnViewDetails }: VerifiedDas
 
   useEffect(() => {
     let mounted = true;
+    const fetchSaved = async () => {
+      setIsSavedLoading(true);
+      setSavedError(null);
+      try {
+        const parsed = JSON.parse(localStorage.getItem("user") || "{}");
+        const token = parsed?.token || localStorage.getItem("token");
+        const userId = parsed?.user_id || parsed?.userId || parsed?.id || localStorage.getItem("user_id");
+        if (!userId || !token) {
+          setSavedInterviews([]);
+        } else {
+          const data = await getSavedInterviewSlots(userId, token);
+          const items: any[] = Array.isArray(data) ? data : (data?.saved_interview_slots ? data.saved_interview_slots : (data || []));
+          const now = Date.now();
+          const normalize = (item: any): Interview => {
+            const slot = item.interview_slot || item;
+            const get = (k: string) => slot[k];
+            const start = get('start_time_utc') ?? get('start_time') ?? slot.date ?? null;
+            const end = get('end_time_utc') ?? get('end_time') ?? null;
+            return {
+              id: String(slot.interview_slot_id ?? slot.id ?? item.saved_slot_id ?? Math.random()),
+              interview_slot_id: String(slot.interview_slot_id ?? slot.id ?? ''),
+              interview_code: slot.interview_code ?? slot.code ?? undefined,
+              job_role: slot.job_role ?? slot.title ?? undefined,
+              title: slot.job_role ?? slot.title ?? 'Interview',
+              experience: slot.experience ?? slot.experienceLevel ?? '',
+              date: start ? new Date(start).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' }) : (slot.date ?? ''),
+              time: start ? `${new Date(start).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: true })}${end ? ' - ' + new Date(end).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: true }) : ''}` : (slot.time ?? ''),
+              start_time_utc: start ?? undefined,
+              end_time_utc: end ?? undefined,
+              skills: slot.skills ?? [],
+              resume_url: slot.resume_url ?? slot.resumeUrl ?? undefined,
+              interview_mode: slot.interview_mode ?? slot.mode ?? undefined,
+              candidate_id: slot.candidate_id ?? slot.candidateId ?? undefined,
+              is_payment_done: slot.is_payment_done ?? slot.isPaymentDone ?? undefined,
+              priority: slot.priority ?? undefined,
+            } as Interview;
+          };
+
+          const mapped = items
+            .map(normalize)
+            .filter(i => {
+              const end = i.end_time_utc ? new Date(i.end_time_utc) : (i.start_time_utc ? new Date(i.start_time_utc) : null);
+              return !(end && end.getTime() < now);
+            });
+
+          setSavedInterviews(mapped);
+        }
+      } catch (err: unknown) {
+        setSavedError((err as Error)?.message ?? 'Failed to load saved interviews');
+      } finally {
+        setIsSavedLoading(false);
+      }
+    };
+
+    fetchSaved();
+
     const fetchScheduled = async () => {
       setIsScheduledLoading(true);
       setScheduledError(null);
@@ -313,15 +356,15 @@ const VerifiedDashboard = ({ onViewDetails: externalOnViewDetails }: VerifiedDas
 
   // Handle save/unsave interview
   const handleToggleSaveInterview = async (interview: Interview) => {
-    const isAlreadySaved = savedInterviews.some(saved => saved.id === interview.id);
+    const isAlreadySaved = savedInterviews.some(saved => saved.interview_slot_id === (interview.interview_slot_id ?? interview.id) || saved.id === interview.id);
 
     if (isAlreadySaved) {
-      // Remove from saved locally
-      setSavedInterviews(savedInterviews.filter(saved => saved.id !== interview.id));
+      // Remove locally and (optionally) backend removal is handled elsewhere
+      setSavedInterviews(savedInterviews.filter(saved => !(saved.interview_slot_id === (interview.interview_slot_id ?? interview.id) || saved.id === interview.id)));
       return;
     }
 
-    // Call backend save API
+    // Call backend save API then refresh saved list
     try {
       const parsed = JSON.parse(localStorage.getItem("user") || "{}");
       const token = parsed?.token || localStorage.getItem("token");
@@ -334,15 +377,49 @@ const VerifiedDashboard = ({ onViewDetails: externalOnViewDetails }: VerifiedDas
 
       if (userId && token) {
         await saveInterviewSlot(userId, token, payload);
+        // refresh saved list from API
+        try {
+          const data = await getSavedInterviewSlots(userId, token);
+          const items: any[] = Array.isArray(data) ? data : (data?.saved_interview_slots ? data.saved_interview_slots : (data || []));
+          const normalize = (item: any): Interview => {
+            const slot = item.interview_slot || item;
+            const get = (k: string) => slot[k];
+            const start = get('start_time_utc') ?? get('start_time') ?? slot.date ?? null;
+            const end = get('end_time_utc') ?? get('end_time') ?? null;
+            return {
+              id: String(slot.interview_slot_id ?? slot.id ?? item.saved_slot_id ?? Math.random()),
+              interview_slot_id: String(slot.interview_slot_id ?? slot.id ?? ''),
+              interview_code: slot.interview_code ?? slot.code ?? undefined,
+              job_role: slot.job_role ?? slot.title ?? undefined,
+              title: slot.job_role ?? slot.title ?? 'Interview',
+              experience: slot.experience ?? slot.experienceLevel ?? '',
+              date: start ? new Date(start).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' }) : (slot.date ?? ''),
+              time: start ? `${new Date(start).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: true })}${end ? ' - ' + new Date(end).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: true }) : ''}` : (slot.time ?? ''),
+              start_time_utc: start ?? undefined,
+              end_time_utc: end ?? undefined,
+              skills: slot.skills ?? [],
+              resume_url: slot.resume_url ?? slot.resumeUrl ?? undefined,
+              interview_mode: slot.interview_mode ?? slot.mode ?? undefined,
+              candidate_id: slot.candidate_id ?? slot.candidateId ?? undefined,
+              is_payment_done: slot.is_payment_done ?? slot.isPaymentDone ?? undefined,
+              priority: slot.priority ?? undefined,
+            } as Interview;
+          };
+          const mapped = items.map(normalize).filter(i => {
+            const now = Date.now();
+            const end = i.end_time_utc ? new Date(i.end_time_utc) : (i.start_time_utc ? new Date(i.start_time_utc) : null);
+            return !(end && end.getTime() < now);
+          });
+          setSavedInterviews(mapped);
+        } catch (e) {
+          console.warn('Failed to refresh saved interviews after save', e);
+        }
       } else {
-        // if no user context, still allow local save
         console.warn('No user token available for saveInterviewSlot; saving locally');
+        setSavedInterviews(prev => [...prev, interview]);
       }
-
-      setSavedInterviews(prev => [...prev, interview]);
     } catch (err) {
       console.error('Failed to save interview slot:', err);
-      // still update locally to reflect user's action
       setSavedInterviews(prev => [...prev, interview]);
     }
   };
