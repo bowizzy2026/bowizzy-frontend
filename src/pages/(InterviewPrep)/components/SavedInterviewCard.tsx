@@ -21,7 +21,7 @@ const SavedInterviewCard: React.FC<SavedInterviewCardProps> = ({
     <div className="bg-gray-50 rounded-lg p-3">
       <div className="flex items-center gap-2 mb-2">
         <span className="text-xs text-gray-500 font-medium">
-          INTERVIEW ID: {interview.id}
+          INTERVIEW ID: {interview.interview_code ?? interview.interview_slot_id ?? interview.id}
         </span>
         <div className="w-2 h-2 bg-red-400 rounded-full"></div>
       </div>

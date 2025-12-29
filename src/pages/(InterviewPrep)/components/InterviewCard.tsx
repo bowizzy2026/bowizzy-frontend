@@ -70,7 +70,7 @@ const InterviewCard = ({ interview, isScheduled, onViewDetails }: InterviewCardP
           <div className="flex items-start justify-between mb-2">
             <div className="flex items-center gap-2">
               <span className="text-xs text-gray-500 font-medium">
-                INTERVIEW ID: {interview.interview_slot_id ?? interview.id}
+                INTERVIEW ID: {interview.interview_code ?? interview.interview_slot_id ?? interview.id}
               </span>
             </div>
 
@@ -82,7 +82,11 @@ const InterviewCard = ({ interview, isScheduled, onViewDetails }: InterviewCardP
           </div>
 
           <h3 className="font-semibold text-gray-800 mb-2">
-            {interview.job_role || interview.job_role} - {interview.experience}
+            {(() => {
+              const role = interview.job_role || interview.title || '';
+              const exp = interview.experience ? ` - ${interview.experience}` : '';
+              return `${role}${exp}`.trim();
+            })()}
           </h3>
 
           <p className="text-sm text-gray-600 mb-3">

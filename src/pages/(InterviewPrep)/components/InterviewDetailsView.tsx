@@ -230,7 +230,9 @@ const InterviewDetailsView: React.FC<InterviewDetailsViewProps> = ({
       // filter out expired interview slots (if start time exists and is in the past)
       const now = Date.now();
       const filtered = items.filter((s) => {
-        const startVal = s.start_time_utc || s.start_time || (s.date && s.time ? `${s.date} ${s.time}` : null) || s.startDate || s.start;
+        // prefer nested interview_slot start fields when present
+        const slot = s.interview_slot || s;
+        const startVal = slot.start_time_utc || slot.start_time || (slot.date && slot.time ? `${slot.date} ${slot.time}` : null) || slot.startDate || slot.start || s.start_time_utc || s.start_time;
         if (!startVal) return true; // keep if no start info
         const parsed = new Date(startVal);
         if (isNaN(parsed.getTime())) return true; // keep if unparseable
@@ -279,39 +281,12 @@ const InterviewDetailsView: React.FC<InterviewDetailsViewProps> = ({
       const displayPriority = (diffMs > 0 && diffMs <= 3 * 3600 * 1000) ? 'HIGH' : (interview.priority || 'normal');
       return (
         <div className="bg-white rounded-lg shadow-sm p-6">
-          <div className="flex items-center justify-between mb-6">        
+          <div className="flex items-center justify-between mb-6">
               <div>
                 <span className="text-lg text-[#FF8351] font-bold">
-                  INTERVIEW ID: #{interview.interview_slot_id ?? interview.id}
+                  INTERVIEW ID: #{interview.interview_code ?? interview.interview_slot_id ?? interview.id}
                 </span>
               </div>
-              <div className="text-sm text-gray-600">
-                {interview.interview_code && (
-                  <div>Code: <span className="font-medium text-gray-800">{interview.interview_code}</span></div>
-                )}
-                {interview.job_role && (
-                  <div>Role: <span className="font-medium text-gray-800">{interview.job_role}</span></div>
-                )}
-                {interview.interview_mode && (
-                  <div>Mode: <span className="font-medium text-gray-800">{interview.interview_mode}</span></div>
-                )}
-              </div>
-                <button
-                  onClick={handleSaveToggle}
-                  aria-pressed={saved}
-                  className={`w-10 h-10 flex items-center justify-center rounded-full transition-shadow focus:outline-none bg-white border border-gray-200 ${saved ? 'shadow-sm' : 'hover:bg-gray-50'}`}
-                  title={saved ? 'Saved' : 'Save'}
-                >
-                  {saved ? (
-                    <svg className="w-5 h-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                      <path fill="#FF8351" d="M6 2a2 2 0 00-2 2v18l8-4 8 4V4a2 2 0 00-2-2H6z" />
-                    </svg>
-                  ) : (
-                    <svg className="w-5 h-5 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                      <path d="M6 2h12a2 2 0 012 2v18l-8-4-8 4V4a2 2 0 012-2z" />
-                    </svg>
-                  )}
-                </button>
           </div>
           <div className="bg-[#E8E8E8] h-[1px] mb-5"></div>
 
@@ -447,7 +422,7 @@ const InterviewDetailsView: React.FC<InterviewDetailsViewProps> = ({
             
             <div>
               <span className="text-lg text-[#FF8351] font-bold">
-                INTERVIEW ID: #{interview.interview_slot_id ?? interview.id}
+                INTERVIEW ID: #{interview.interview_code ?? interview.interview_slot_id ?? interview.id}
               </span>
             </div>
               <button
@@ -630,22 +605,63 @@ const InterviewDetailsView: React.FC<InterviewDetailsViewProps> = ({
               {savedLoading ? (
                 <p className="text-sm text-gray-500 text-center py-4">Loading saved interviews...</p>
               ) : displayedSaved.length > 0 ? (
-                displayedSaved.map((savedInterview, index) => (
-                  <SavedInterviewCard
-                    key={index}
-                    interview={savedInterview}
-                    onViewDetails={() =>
-                      onViewDetails && onViewDetails(
-                        {
-                          ...savedInterview,
-                          credits: 15,
-                          priority: "HIGH",
-                        },
-                        'saved'
-                      )
-                    }
-                  />
-                ))
+                displayedSaved.map((savedInterview, index) => {
+                  const slot = savedInterview.interview_slot || savedInterview;
+                  const start = slot.start_time_utc || slot.start_time || slot.date;
+                  const end = slot.end_time_utc || slot.end_time || null;
+                  const formatDate = (iso?: string) => {
+                    if (!iso) return '';
+                    try { return new Date(iso).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' }); } catch { return iso; }
+                  };
+                  const formatTime = (iso?: string) => {
+                    if (!iso) return '';
+                    try { return new Date(iso).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: true }); } catch { return iso; }
+                  };
+                  const cardInterview = {
+                    id: slot.interview_slot_id ?? slot.id ?? savedInterview.saved_slot_id,
+                    interview_slot_id: slot.interview_slot_id ?? slot.id,
+                    interview_code: slot.interview_code,
+                    title: slot.job_role || slot.title || '',
+                    experience: slot.experience || '',
+                    date: start ? formatDate(start) : (slot.date || ''),
+                    time: start ? `${formatTime(start)}${end ? ' - ' + formatTime(end) : ''}` : (slot.time || ''),
+                    raw: slot,
+                  };
+
+                  return (
+                    <SavedInterviewCard
+                      key={index}
+                      interview={cardInterview}
+                      onViewDetails={() =>
+                        onViewDetails && onViewDetails(
+                          {
+                            ...slot,
+                            credits: 15,
+                            priority: slot.priority || 'normal',
+                          },
+                          'saved'
+                        )
+                      }
+                      onRemove={() => {
+                        // call remove via currentSavedSlotId or savedInterview.saved_slot_id
+                        const parsed = JSON.parse(localStorage.getItem("user") || "{}");
+                        const token = parsed?.token || localStorage.getItem("token");
+                        const userId = parsed?.user_id || parsed?.userId || parsed?.id || localStorage.getItem("user_id");
+                        const savedSlotId = savedInterview.saved_slot_id ?? currentSavedSlotId;
+                        if (userId && token && savedSlotId) {
+                          (async () => {
+                            try {
+                              await removeSavedInterviewSlot(userId, token, savedSlotId);
+                              await fetchSavedSlots();
+                            } catch (e) {
+                              console.warn('Failed to remove saved slot', e);
+                            }
+                          })();
+                        }
+                      }}
+                    />
+                  );
+                })
               ) : (
                 <p className="text-sm text-gray-500 text-center py-4">No saved interviews</p>
               )}
