@@ -124,7 +124,7 @@ const InterviewPrep = () => {
     const displayedPast = pastInterviews.slice().sort((a, b) => {
         const aDate = new Date(a.end_time_utc ?? a.start_time_utc ?? a.completedDate);
         const bDate = new Date(b.end_time_utc ?? b.start_time_utc ?? b.completedDate);
-        return bDate - aDate; // most recent first
+        return bDate.getTime() - aDate.getTime(); // most recent first
     });
         
     const openCancelModal = (slot) => {

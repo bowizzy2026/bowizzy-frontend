@@ -7,6 +7,8 @@ interface SavedInterviewCardProps {
     experience: string;
     date: string;
     time: string;
+    interview_code?: string;
+    interview_slot_id?: string | number;
   };
   onViewDetails?: (interview: any) => void;
   onRemove?: (payload: { saved_slot_id?: string | number; interview_slot_id?: string | number; id?: string | number }) => void;

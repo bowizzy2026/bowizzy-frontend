@@ -2,8 +2,9 @@
 interface InterviewCardProps {
   interview: {
     id: string | number;
-      job_role: string;
+      job_role?: string;
     interview_slot_id?: string | number;
+    interview_code?: string;
     title: string;
     experience: string;
     date?: string;

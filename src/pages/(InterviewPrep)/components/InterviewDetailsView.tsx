@@ -26,6 +26,8 @@ interface Interview {
   skills?: string[];
   resume_url?: string;
   interview_code?: string;
+  saved_slot_id?: string | number;
+  interview_slot?: any;
   candidate_id?: string | number;
   interview_slot_id?: string | number;
 }
