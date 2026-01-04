@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { getAllTemplates } from "@/templates/templateRegistry";
 import { useEffect, useState } from "react";
 import { Lock, Crown } from "lucide-react";
+import Premium from "@/pages/Premium";
 import { getSubscriptionByUserId } from "@/services/subscriptionService";
 
 export default function TemplateSelection() {
@@ -10,6 +11,7 @@ export default function TemplateSelection() {
   const templates = getAllTemplates();
   const [loadingSub, setLoadingSub] = useState(true);
   const [planType, setPlanType] = useState<string>("");
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
 
   const handleTemplateSelect = (templateId: string, locked: boolean) => {
     if (locked) return;
@@ -94,7 +96,7 @@ export default function TemplateSelection() {
 
               {templates.map((template) => {
                 // Determine allowed templates based on planType
-                const freeList = ["template1", "template2", "template3", "template4", "template5", "template6", "template7", "template8", "template9", "template10"];
+                const freeList = ["template1", "template2", "template3"];
                 const plusList = ["template1", "template2", "template3", "template4", "template5", "template6"];
                 let allowedTemplates: string[] = freeList;
                 const plan = (planType || "").toLowerCase();
@@ -111,13 +113,65 @@ export default function TemplateSelection() {
 
                 const locked = !allowedTemplates.includes(template.id);
 
+                // Render a non-disabled wrapper for locked templates so
+                // the inner "Upgrade to use" button remains clickable.
+                if (locked) {
+                  return (
+                    <div
+                      key={template.id}
+                      className={`relative w-full rounded-lg border-0 transition-all overflow-hidden group opacity-70`}
+                      style={{ boxShadow: "0px 0px 1px #00000040" }}
+                    >
+                      <img
+                        src={template.thumbnail}
+                        alt={template.name}
+                        className="w-full h-[260px] md:h-[320px] lg:h-[439px] object-cover"
+                      />
+
+                      {/* Template Name at Bottom */}
+                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4 transition-opacity cursor-pointer">
+                        <span className="text-white text-sm font-medium">{template.name}</span>
+                      </div>
+
+                      {/* Locked overlay */}
+                      <div className="absolute inset-0 bg-black/50 flex items-center justify-center p-4">
+                        <div className="flex flex-col items-center text-white gap-4">
+                          <Lock size={36} />
+                          <div className="text-center">
+                            <span className="block text-sm font-semibold">Premium Template</span>
+                            <span className="block text-xs text-gray-200 mt-1">Unlock with Premium plan</span>
+                          </div>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              e.preventDefault();
+                              console.log("Opening premium modal...");
+                              setShowPremiumModal(true);
+                            }}
+                            className="px-5 py-2 bg-white text-[#1A1A43] rounded-lg font-semibold text-sm hover:bg-gray-100 transition-colors cursor-pointer"
+                          >
+                            Upgrade to use
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Premium crown badge in top-right */}
+                      <div className="absolute top-3 right-3 z-10">
+                        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-yellow-500 text-white shadow-md">
+                          <Crown size={16} />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }
+
+                // Unlocked template: clickable button to open editor
                 return (
                   <button
                     key={template.id}
-                    className={`relative w-full rounded-lg border-0 transition-all overflow-hidden group ${locked ? "opacity-70" : "hover:shadow-xl hover:scale-[1.02]"}`}
+                    className={`relative w-full rounded-lg border-0 transition-all overflow-hidden group hover:shadow-xl hover:scale-[1.02]`}
                     style={{ boxShadow: "0px 0px 1px #00000040" }}
-                    onClick={() => handleTemplateSelect(template.id, locked)}
-                    disabled={locked}
+                    onClick={() => handleTemplateSelect(template.id, false)}
                   >
                     <img
                       src={template.thumbnail}
@@ -125,45 +179,36 @@ export default function TemplateSelection() {
                       className="w-full h-[260px] md:h-[320px] lg:h-[439px] object-cover"
                     />
 
-                    {/* Hover Overlay (only when not locked) */}
-                    {!locked && (
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-end p-6 cursor-pointer">
-                        <span className="text-white text-lg font-semibold mb-3">{template.name}</span>
-                        <div className="px-6 py-2 bg-white text-[#1A1A43] rounded-lg font-medium text-sm cursor-pointer">
-                          Use This Template
-                        </div>
+                    {/* Hover Overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-end p-6 cursor-pointer">
+                      <span className="text-white text-lg font-semibold mb-3">{template.name}</span>
+                      <div className="px-6 py-2 bg-white text-[#1A1A43] rounded-lg font-medium text-sm cursor-pointer">
+                        Use This Template
                       </div>
-                    )}
+                    </div>
 
                     {/* Template Name at Bottom */}
                     <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4 group-hover:opacity-0 transition-opacity cursor-pointer">
                       <span className="text-white text-sm font-medium">{template.name}</span>
                     </div>
-
-                    {/* Locked overlay */}
-                    {locked && (
-                      <>
-                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center p-4">
-                          <div className="flex flex-col items-center text-white">
-                            <Lock size={36} />
-                            <span className="mt-2 text-sm font-semibold">Premium</span>
-                            <span className="text-xs text-gray-200 mt-1">Upgrade to use</span>
-                          </div>
-                        </div>
-
-                        {/* Premium crown badge in top-right */}
-                        <div className="absolute top-3 right-3">
-                          <div className="flex items-center justify-center w-10 h-10 rounded-full bg-yellow-500 text-white shadow-md">
-                            <Crown size={16} />
-                          </div>
-                        </div>
-                      </>
-                    )}
                   </button>
                 );
               })}
             </div>
           </div>
+
+            {/* Premium Modal (backdrop + panel) */}
+            {showPremiumModal && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center">
+                <div
+                  className="absolute inset-0 bg-black/60"
+                  onClick={() => setShowPremiumModal(false)}
+                />
+                <div className="relative z-10 p-4 w-full max-w-4xl">
+                  <Premium modal onClose={() => setShowPremiumModal(false)} />
+                </div>
+              </div>
+            )}
 
         </div>
       </div>
