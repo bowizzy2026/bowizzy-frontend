@@ -59,6 +59,18 @@ const styles = StyleSheet.create({
   contactItem: {
     marginBottom: 3,
   },
+  // Thin and thick header bars used under the header section
+  headerThin: {
+    height: 1,
+    backgroundColor: "#e5e7eb",
+    width: "100%",
+    marginBottom: 4,
+  },
+  headerThick: {
+    height: 3,
+    backgroundColor: "#6b7280",
+    width: "100%",
+  },
   // Summary Section
   summary: {
     marginBottom: 18,
