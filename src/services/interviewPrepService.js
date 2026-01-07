@@ -1,7 +1,7 @@
 import api from "@/api";
 
-export const createInterviewSlot = async (userId, token, slotPayload) => {
-    const response = await api.post(`/users/${userId}/mock-interview/interview-slot?mode=online`, slotPayload, {
+export const createInterviewSlot = async (userId, token, slotPayload, mode = 'online') => {
+    const response = await api.post(`/users/${userId}/mock-interview/interview-slot?mode=${mode}`, slotPayload, {
         headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",

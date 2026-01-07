@@ -487,9 +487,7 @@ const GiveMockInterview = () => {
             setLoading(true);
             const payload = prepareAPIPayload();
 
-            const response = await createInterviewSlot(userId, token, payload, {
-                mode: sessionMode
-            });
+            const response = await createInterviewSlot(userId, token, payload, sessionMode);
 
             const interviewId = response?.interview_slot_id || 'N/A';
 

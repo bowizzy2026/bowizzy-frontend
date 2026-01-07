@@ -95,7 +95,7 @@ export default function Premium({ modal = false, onClose }: PremiumProps) {
 
   useEffect(() => {
     const userStr = localStorage.getItem("user");
-    if (userStr) {
+    if (userStr) {  
       try {
         const parsed = JSON.parse(userStr);
         setUserInfo(parsed);
@@ -106,6 +106,8 @@ export default function Premium({ modal = false, onClose }: PremiumProps) {
   }, []);
 
   const handleSelectPlan = async (planId: string) => {
+    setCurrentPlan(planId);
+    
     if (planId === "free") {
       // Free plan doesn't require payment, just navigate back
       navigate("/dashboard");
@@ -210,7 +212,7 @@ export default function Premium({ modal = false, onClose }: PremiumProps) {
               plan.buttonStyle === "highlight"
                 ? "md:scale-105 ring-2 ring-orange-400 shadow-2xl"
                 : "shadow-lg hover:shadow-xl"
-            } bg-white`}
+            } ${currentPlan === plan.id ? "ring-2 ring-orange-500" : ""} bg-white`}
           >
             {plan.buttonStyle === "highlight" && (
               <div className="absolute top-0 right-0 bg-orange-500 text-white px-4 py-1 text-xs font-bold rounded-bl-lg">MOST POPULAR</div>
