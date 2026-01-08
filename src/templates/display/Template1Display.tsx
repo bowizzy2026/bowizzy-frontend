@@ -41,6 +41,8 @@ export const Template1Display: React.FC<Template1DisplayProps> = ({
     });
   }, [education.higherEducation]);
 
+  const getYear = (s?: string) => (s ? s.split('-')[0] : '');
+
   // Pagination disabled: commenting out the paginated renderer to avoid
   // heavy synchronous measurement and potential browser crashes while
   // debugging. To re-enable pagination, restore the PaginatedResume return.
@@ -147,7 +149,7 @@ export const Template1Display: React.FC<Template1DisplayProps> = ({
                     {edu.degree || 'Bachelor Degree in Business Administration'}
                   </p>
                   <p style={{ fontSize: '9px', color: '#718096' }}>
-                    {edu.startYear} - {edu.currentlyPursuing ? 'Present' : (edu.endYear || '2020')}
+                    {getYear(edu.startYear)} - {edu.currentlyPursuing ? 'Present' : (getYear(edu.endYear) || '2020')}
                   </p>
                 </div>
               ))}
@@ -163,7 +165,7 @@ export const Template1Display: React.FC<Template1DisplayProps> = ({
                     Pre University  - {education.preUniversity.boardType}
                   </p>
                   <p style={{ fontSize: '9px', color: '#718096' }}>
-                    {education.preUniversity.yearOfPassing}
+                    {getYear(education.preUniversity.yearOfPassing)}
                   </p>
                 </div>
               )}
@@ -178,7 +180,7 @@ export const Template1Display: React.FC<Template1DisplayProps> = ({
                     SSLC - {education.sslc.boardType}
                   </p>
                   <p style={{ fontSize: '9px', color: '#718096' }}>
-                    {education.sslc.yearOfPassing}
+                    {getYear(education.sslc.yearOfPassing)}
                   </p>
                 </div>
               )}
@@ -319,18 +321,18 @@ export const Template1Display: React.FC<Template1DisplayProps> = ({
                   </p>
                   {project.description && (
                     <div style={{ marginTop: '4px' }}>
-                      <div
-                        style={{ fontSize: '9px', color: '#4a5568', lineHeight: '1.4', textAlign: 'justify' }}
-                        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(project.description || '') }}
-                      />
+                      <div style={{ fontSize: '9px', color: '#4a5568', lineHeight: '1.4', textAlign: 'justify' }}>
+                        <strong style={{ fontWeight: 700, display: 'block', marginBottom: '4px' }}>Description:</strong>
+                        <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(project.description || '') }} />
+                      </div>
                     </div>
                   )}
                   {project.rolesResponsibilities && (
                     <div style={{ marginTop: '4px' }}>
-                      <div
-                        style={{ fontSize: '9px', color: '#4a5568', lineHeight: '1.4', textAlign: 'justify' }}
-                        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(`<strong>Roles & Responsibilities:</strong> ${project.rolesResponsibilities || ''}`) }}
-                      />
+                      <div style={{ fontSize: '9px', color: '#4a5568', lineHeight: '1.4', textAlign: 'justify' }}>
+                        <strong>Roles & Responsibilities:</strong>{' '}
+                        <span dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(project.rolesResponsibilities || '') }} />
+                      </div>
                     </div>
                   )}
                 </div>
@@ -570,8 +572,8 @@ const PaginatedResume: React.FC<{ data: ResumeData; supportsPhoto?: boolean; onP
         item.setAttribute('data-column', 'right');
         item.innerHTML = `<h3 style="font-size:11px;font-weight:bold;color:#2d3748;margin-bottom:2px">${escapeHtml(project.projectTitle || '')}</h3>
           <p style="font-size:9px;color:#718096;margin-bottom:4px">${escapeHtml(project.startDate || '')} - ${escapeHtml(project.currentlyWorking ? 'Present' : project.endDate || '')}</p>
-          ${project.description ? `<div style="margin-top:4px"><div style="font-size:9px;color:#4a5568;line-height:1.4;text-align:justify">${DOMPurify.sanitize(project.description || '')}</div></div>` : ''}
-          ${project.rolesResponsibilities ? `<div style="margin-top:4px"><div style="font-size:9px;color:#4a5568;line-height:1.4;text-align:justify">${DOMPurify.sanitize(`<strong>Roles & Responsibilities:</strong> ${project.rolesResponsibilities || ''}`)}</div></div>` : ''}`;
+          ${project.description ? `<div style="margin-top:4px"><div style="font-size:9px;color:#4a5568;line-height:1.4;text-align:justify"><strong>Description:</strong>${DOMPurify.sanitize(project.description || '')}</div></div>` : ''}
+          ${project.rolesResponsibilities ? `<div style="margin-top:4px"><div style="font-size:9px;color:#4a5568;line-height:1.4;text-align:justify"><strong>Roles & Responsibilities:</strong> ${DOMPurify.sanitize(project.rolesResponsibilities || '')}</div></div>` : ''}`;
         rightBlocks.push(item);
       });
     }

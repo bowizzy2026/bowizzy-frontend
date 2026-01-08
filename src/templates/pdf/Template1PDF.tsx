@@ -1,6 +1,6 @@
 import React from "react";
 import DOMPurify from 'dompurify';
-import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
+import { Document, Page, Text, View, StyleSheet, Svg, Path } from "@react-pdf/renderer";
 import type { ResumeData } from "@/types/resume";
 
 const styles = StyleSheet.create({
@@ -167,8 +167,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
   },
   bullet: {
-    marginRight: 5,
-    marginLeft: -10,
+    width: 8,
+    textAlign: 'right',
+    marginRight: 6,
+    marginTop: 2,
+    fontSize: 8,
+    color: '#4a5568',
   },
   // Certifications
   certificationItem: {
@@ -247,10 +251,11 @@ const styles = StyleSheet.create({
     textAlign: "justify",
   },
   projectRolesResponsibilities: {
+    flex: 1,
     fontSize: 8,
     color: "#4a5568",
     lineHeight: 1.4,
-    marginTop: 3,
+    marginTop: 0,
     textAlign: "justify",
   },
   // Technical Summary
@@ -293,7 +298,22 @@ export const Template1PDF: React.FC<Template1PDFProps> = ({ data }) => {
     }
     return withBreaks.replace(/<[^>]+>/g, '').trim();
   };
+  const ICON_PATHS: Record<string, string> = {
+    phone: 'M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24c1.12.37 2.33.57 3.57.57a1 1 0 011 1v3.5a1 1 0 01-1 1C10.07 22 2 13.93 2 3.5A1 1 0 013 2.5H6.5a1 1 0 011 1c0 1.24.2 2.45.57 3.57a1 1 0 01-.24 1.01l-2.2 2.2z',
+    mail: 'M20 4H4a2 2 0 00-2 2v12a2 2 0 002 2h16a2 2 0 002-2V6a2 2 0 00-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z',
+    location: 'M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5A2.5 2.5 0 1112 6.5a2.5 2.5 0 010 5z',
+  };
 
+  const renderBulletedParagraph = (html?: string, textStyle?: any) => {
+    if (!html) return null;
+    const text = htmlToPlainText(html);
+    const lines = text.split('\n').map((l) => l.trim()).filter(Boolean);
+    return lines.map((line, i) => (
+      <Text key={i} style={textStyle}>
+        {'\u2022 '}{line}
+      </Text>
+    ));
+  };  const getYear = (s?: string) => (s ? s.split('-')[0] : '');
   return (
     <Document>
       <Page size="A4" style={styles.page}>
@@ -309,9 +329,24 @@ export const Template1PDF: React.FC<Template1PDFProps> = ({ data }) => {
             </View>
 
             <View style={styles.contactSection}>
-              <Text style={styles.contactItem}>{personal.mobileNumber || "+123-456-7890"}</Text>
-              <Text style={styles.contactItem}>{personal.email || "hello@reallygreatsite.com"}</Text>
-              <Text style={styles.contactItem}>{personal.address || "123 Anywhere St., Any City"}</Text>
+              {personal.mobileNumber && (
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
+                  <Svg width={10} height={10} viewBox="0 0 24 24"><Path d={ICON_PATHS.phone} fill="#4b5563" /></Svg>
+                  <Text style={[styles.contactItem, { marginLeft: 6 }]}>{personal.mobileNumber}</Text>
+                </View>
+              )}
+              {personal.email && (
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
+                  <Svg width={10} height={10} viewBox="0 0 24 24"><Path d={ICON_PATHS.mail} fill="#4b5563" /></Svg>
+                  <Text style={[styles.contactItem, { marginLeft: 6 }]}>{personal.email}</Text>
+                </View>
+              )}
+              {personal.address && (
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <Svg width={10} height={10} viewBox="0 0 24 24"><Path d={ICON_PATHS.location} fill="#4b5563" /></Svg>
+                  <Text style={[styles.contactItem, { marginLeft: 6 }]}>{personal.address}</Text>
+                </View>
+              )}
             </View>
           </View>
 
@@ -327,7 +362,7 @@ export const Template1PDF: React.FC<Template1PDFProps> = ({ data }) => {
           <View style={styles.summary}>
             <Text style={styles.summaryTitle}>SUMMARY</Text>
             <View style={{ width: 260, height: 2, backgroundColor: '#cbd5e0', marginTop: 6, marginBottom: 10, alignSelf: 'center' }} />
-            <Text style={styles.summaryText}>{htmlToPlainText(personal.aboutCareerObjective)}</Text>
+            {renderBulletedParagraph(personal.aboutCareerObjective, styles.summaryText)}
           </View>
         )}
 
@@ -347,8 +382,8 @@ export const Template1PDF: React.FC<Template1PDFProps> = ({ data }) => {
                       <Text style={styles.itemTitle}>{edu.instituteName}</Text>
                       <Text style={styles.itemSubtitle}>{edu.degree}</Text>
                       <Text style={styles.itemDate}>
-                        {edu.startYear} -{" "}
-                        {edu.currentlyPursuing ? "Present" : edu.endYear}
+                        {getYear(edu.startYear)} -{" "}
+                        {edu.currentlyPursuing ? "Present" : getYear(edu.endYear)}
                       </Text>
                     </View>
                   ))}
@@ -357,7 +392,7 @@ export const Template1PDF: React.FC<Template1PDFProps> = ({ data }) => {
                             <View style={styles.educationItem}>
                               <Text style={styles.itemTitle}>Pre University</Text>
                               <Text style={styles.itemSubtitle}>{education.preUniversity.instituteName}</Text>
-                              <Text style={styles.itemDate}>{education.preUniversity.yearOfPassing}</Text>
+                              <Text style={styles.itemDate}>{getYear(education.preUniversity.yearOfPassing)}</Text>
                             </View>
                           )}
 
@@ -366,7 +401,7 @@ export const Template1PDF: React.FC<Template1PDFProps> = ({ data }) => {
                             <View style={styles.educationItem}>
                               <Text style={styles.itemTitle}>SSLC</Text>
                               <Text style={styles.itemSubtitle}>{education.sslc.instituteName}</Text>
-                              <Text style={styles.itemDate}>{education.sslc.yearOfPassing}</Text>
+                              <Text style={styles.itemDate}>{getYear(education.sslc.yearOfPassing)}</Text>
                             </View>
                           )}
                 </View>
@@ -409,7 +444,7 @@ export const Template1PDF: React.FC<Template1PDFProps> = ({ data }) => {
                         )}
                         {cert.description && cert.description.trim() !== "" && (
                           <Text style={styles.certDescription}>
-                            {cert.description}
+                            {htmlToPlainText(cert.description)}
                           </Text>
                         )}
                       </View>
@@ -473,13 +508,28 @@ export const Template1PDF: React.FC<Template1PDFProps> = ({ data }) => {
                             : project.endDate}
                         </Text>
                         {project.description && (
-                          <Text style={styles.projectDescription}>{htmlToPlainText(project.description)}</Text>
+                          <View style={{ marginTop: 3 }}>
+                            <Text style={{ fontFamily: "Times-Bold", fontSize: 8 }}>Description:</Text>
+                            {htmlToPlainText(project.description).split("\n").filter(Boolean).map((line, i) => (
+                              <Text key={i} style={styles.projectDescription}>{line}</Text>
+                            ))}
+                          </View>
                         )}
                         {project.rolesResponsibilities && project.rolesResponsibilities.trim() !== "" && (
-                          <Text style={styles.projectRolesResponsibilities}>
-                            <Text style={{ fontFamily: "Times-Bold" }}>Roles & Responsibilities:</Text>{" "}
-                            {htmlToPlainText(project.rolesResponsibilities)}
-                          </Text>
+                          <View style={{ marginTop: 3 }}>
+                            <Text style={{ fontFamily: "Times-Bold", fontSize: 8 }}>Roles & Responsibilities:</Text>
+                            {htmlToPlainText(project.rolesResponsibilities)
+                              .split("\n")
+                              .filter(Boolean)
+                              .map((line, i) => (
+                                <View key={i} style={{ flexDirection: 'row', marginBottom: 2, alignItems: 'flex-start' }}>
+                                  <Text style={styles.bullet}>{'\u2022'}</Text>
+                                  <View style={{ flex: 1 }}>
+                                    <Text style={styles.projectRolesResponsibilities}>{line}</Text>
+                                  </View>
+                                </View>
+                              ))}
+                          </View>
                         )}
                       </View>
                     ))}
@@ -491,7 +541,7 @@ export const Template1PDF: React.FC<Template1PDFProps> = ({ data }) => {
               skillsLinks.technicalSummary && (
                 <View style={styles.section}>
                   <Text style={styles.sectionTitle}>TECHNICAL SUMMARY</Text>
-                  <Text style={styles.technicalText}>{htmlToPlainText(skillsLinks.technicalSummary)}</Text>
+                  {renderBulletedParagraph(skillsLinks.technicalSummary, styles.technicalText)}
                 </View>
               )}
           </View>

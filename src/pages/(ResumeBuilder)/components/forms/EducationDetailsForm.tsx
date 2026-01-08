@@ -214,8 +214,8 @@ export const EducationDetailsForm: React.FC<EducationDetailsFormProps> = ({
       }
 
       if (format === "Grade") {
-        // Allow letter grades optionally with + but disallow negative '-' suffixes
-        if (!/^[A-F]\+?$|^Pass$|^Fail$/i.test(val)) return "Enter valid grade (A, B+, Pass, Fail)";
+        // Allow only uppercase letter grades optionally with +; allow 'Pass' or 'Fail' (uppercase only)
+        if (!/^(?:[A-F]\+?|Pass|Fail)$/.test(val)) return "Enter valid grade (A, B+, Pass, Fail). Use uppercase letters.";
       }
 
       return "";
