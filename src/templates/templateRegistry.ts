@@ -8,6 +8,7 @@ import Template7Display from './display/Template7Display';
 import Template8Display from './display/Template8Display';
 import Template9Display from './display/Template9Display';
 import Template10Display from './display/Template10Display';
+import Template11Display from './display/Template11Display';
 import Template1PDF from './pdf/Template1PDF';
 import Template2PDF from './pdf/Template2PDF';
 import Template3PDF from './pdf/Template3PDF';
@@ -18,6 +19,7 @@ import Template7PDF from './pdf/Template7PDF';
 import Template8PDF from './pdf/Template8PDF';
 import Template9PDF from './pdf/Template9PDF';
 import Template10PDF from './pdf/Template10PDF';
+import Template11PDF from './pdf/Template11PDF';
 
 export interface TemplateInfo {
   id: string;
@@ -133,6 +135,16 @@ const TEMPLATE_REGISTRY: TemplateInfo[] = [
     pdfComponent: Template10PDF,
     pageCount: 1,
     supportsPhoto: true,
+  },  
+  {
+    id: 'template11',
+    name: 'Classic Serif Resume',
+    category: 'Professional',
+    thumbnail: '/resume-templates/thumbnails/template11.jpg',
+    displayComponent: Template11Display,
+    pdfComponent: Template11PDF,
+    pageCount: 1,
+    supportsPhoto: false,
   },
   // Add more templates here...
 ];
