@@ -14,6 +14,8 @@ import Template1PDF from './pdf/Template1PDF';
 import Template12PDF from './pdf/Template12PDF';
 import Template13Display from './display/Template13Display';
 import Template13PDF from './pdf/Template13PDF';
+import Template14Display from './display/Template14Display';
+import Template14PDF from './pdf/Template14PDF';
 import Template2PDF from './pdf/Template2PDF';
 import Template3PDF from './pdf/Template3PDF';
 import Template4PDF from './pdf/Template4PDF';
@@ -167,6 +169,16 @@ const TEMPLATE_REGISTRY: TemplateInfo[] = [
     thumbnail: '/resume-templates/thumbnails/template13.jpg',
     displayComponent: Template13Display,
     pdfComponent: Template13PDF,
+    pageCount: 1,
+    supportsPhoto: false,
+  },
+  {
+    id: 'template14',
+    name: 'Left Header Classic (Red Accent)',
+    category: 'Professional',
+    thumbnail: '/resume-templates/thumbnails/template14.jpg',
+    displayComponent: Template14Display,
+    pdfComponent: Template14PDF,
     pageCount: 1,
     supportsPhoto: false,
   },
