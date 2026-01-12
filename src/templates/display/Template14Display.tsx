@@ -63,9 +63,9 @@ const Template14Display: React.FC<Template14DisplayProps> = ({ data }) => {
                 <>
                   <span>{contactParts.join(' | ')}</span>
                   {(linkedin || github) && <span> | </span>}
-                  {linkedin && <a href={(skillsLinks as any).links?.linkedinProfile || (personal as any).linkedinProfile} target="_blank" rel="noreferrer" style={{ color: '#0a66c2', textDecoration: 'none' }}>LinkedIn</a>}
+                  {linkedin && <a href={(skillsLinks as any).links?.linkedinProfile || (personal as any).linkedinProfile} target="_blank" rel="noreferrer" style={{ color: '#0a66c2', textDecoration: 'none' }}>{linkedin}</a>}
                   {linkedin && github && <span> | </span>}
-                  {github && <a href={(skillsLinks as any).links?.githubProfile || (personal as any).githubProfile} target="_blank" rel="noreferrer" style={{ color: '#111', textDecoration: 'none' }}>GitHub</a>}
+                  {github && <a href={(skillsLinks as any).links?.githubProfile || (personal as any).githubProfile} target="_blank" rel="noreferrer" style={{ color: '#111', textDecoration: 'none' }}>{github}</a>}
                 </>
               );
             })()}
@@ -87,7 +87,7 @@ const Template14Display: React.FC<Template14DisplayProps> = ({ data }) => {
               <div key={i} style={{ marginBottom: 10 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                   <div style={{ fontSize: 13, fontWeight: 700 }}>{w.jobTitle} <span style={{ fontWeight: 600, color: '#111' }}>— {w.companyName}, {w.location || ''}</span></div>
-                  <div style={{ fontSize: 11, color: '#6b7280' }}>{formatMonthYearNumeric(w.startDate)} — {w.currentlyWorking ? 'Present' : formatMonthYearNumeric(w.endDate)}</div>
+                  <div style={{ fontSize: 11, color: '#111827', fontWeight: 700 }}>{formatMonthYearNumeric(w.startDate)} — {w.currentlyWorking ? 'Present' : formatMonthYearNumeric(w.endDate)}</div>
                 </div>
                 {w.description && (
                   <div style={{ marginTop: 6, color: '#444', paddingLeft: 10 }}>
@@ -110,24 +110,33 @@ const Template14Display: React.FC<Template14DisplayProps> = ({ data }) => {
               return pa.localeCompare(pb);
             }).map((edu, i) => (
               <div key={`he-${i}`} style={{ marginBottom: 10 }}>
-                <div style={{ fontWeight: 700 }}>{edu.instituteName}</div>
-                <div style={{ fontSize: 11, color: '#6b7280' }}>{edu.degree} — {edu.currentlyPursuing ? 'Present' : formatYear(edu.endYear)}</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ fontWeight: 700 }}>{edu.instituteName}</div>
+                  <div style={{ fontSize: 11, color: '#111827', fontWeight: 700 }}>{edu.currentlyPursuing ? 'Present' : formatYear(edu.endYear)}</div>
+                </div>
+                <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>{edu.degree}</div>
                 {edu.resultFormat && edu.result && (<div style={{ marginTop: 4, color: '#444' }}>{edu.resultFormat}: {edu.result}</div>)}
               </div>
             ))}
 
             {education.preUniversityEnabled && education.preUniversity && (education.preUniversity.instituteName || education.preUniversity.yearOfPassing) && (
               <div style={{ marginBottom: 10 }}>
-                <div style={{ fontWeight: 700 }}>{education.preUniversity.instituteName || 'Pre University'}</div>
-                <div style={{ fontSize: 11, color: '#6b7280' }}>Pre University (12th Standard) — {formatYear(education.preUniversity.yearOfPassing)}</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ fontWeight: 700 }}>{education.preUniversity.instituteName || 'Pre University'}</div>
+                  <div style={{ fontSize: 11, color: '#111827', fontWeight: 700 }}>{education.preUniversity.yearOfPassing ? formatYear(education.preUniversity.yearOfPassing) : ''}</div>
+                </div>
+                <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>Pre University (12th Standard)</div>
                 {education.preUniversity.resultFormat && education.preUniversity.result && (<div style={{ marginTop: 4, color: '#444' }}>{education.preUniversity.resultFormat}: {education.preUniversity.result}</div>)}
               </div>
             )}
 
             {education.sslcEnabled && education.sslc && (education.sslc.instituteName || education.sslc.yearOfPassing) && (
               <div style={{ marginBottom: 10 }}>
-                <div style={{ fontWeight: 700 }}>{education.sslc.instituteName || 'SSLC'}</div>
-                <div style={{ fontSize: 11, color: '#6b7280' }}>SSLC (10th Standard) — {formatYear(education.sslc.yearOfPassing)}</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ fontWeight: 700 }}>{education.sslc.instituteName || 'SSLC'}</div>
+                  <div style={{ fontSize: 11, color: '#111827', fontWeight: 700 }}>{education.sslc.yearOfPassing ? formatYear(education.sslc.yearOfPassing) : ''}</div>
+                </div>
+                <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>SSLC (10th Standard)</div>
                 {education.sslc.resultFormat && education.sslc.result && (<div style={{ marginTop: 4, color: '#444' }}>{education.sslc.resultFormat}: {education.sslc.result}</div>)}
               </div>
             )}

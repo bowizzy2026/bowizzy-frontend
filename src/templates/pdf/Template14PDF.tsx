@@ -12,7 +12,7 @@ const styles = StyleSheet.create({
   divider: { height: 1, backgroundColor: '#eee', marginTop: 12, marginBottom: 0, width: '100%' },
   sectionHeading: { fontSize: 11, fontFamily: 'Times-Bold', letterSpacing: 1.5, textTransform: 'uppercase', color: '#b91c1c' },
   itemTitle: { fontSize: 13, fontFamily: 'Times-Bold' },
-  itemSub: { fontSize: 11, color: '#6b7280' },
+  itemSub: { fontSize: 11, color: '#111827', fontFamily: 'Times-Bold' },
   bullet: { fontSize: 10, color: '#444', marginTop: 4 },
 });
 
@@ -77,7 +77,7 @@ const Template14PDF: React.FC<Template14PDFProps> = ({ data }) => {
   const contactParts = [personal.address && String(personal.address).split(',')[0], personal.email, personal.mobileNumber].filter(Boolean);
   const linkedinPresent = (skillsLinks && (skillsLinks as any).links && (skillsLinks as any).links.linkedinProfile) || (personal as any).linkedinProfile;
   const githubPresent = (skillsLinks && (skillsLinks as any).links && (skillsLinks as any).links.githubProfile) || (personal as any).githubProfile;
-  const pdfContactLine = [...contactParts, ...(linkedinPresent ? ['LinkedIn'] : []), ...(githubPresent ? ['GitHub'] : [])].join(' | ');
+  const pdfContactLine = [...contactParts, ...(linkedinPresent ? [linkedinPresent] : []), ...(githubPresent ? [githubPresent] : [])].join(' | ');
 
   return (
     <Document>
@@ -114,24 +114,33 @@ const Template14PDF: React.FC<Template14PDFProps> = ({ data }) => {
         <View style={{ marginTop: 8 }}>
           {education.higherEducationEnabled && education.higherEducation.slice().sort((a: any,b: any) => 0).map((edu: any, i: number) => (
             <View key={`he-${i}`} style={{ marginBottom: 10 }}>
-              <Text style={styles.itemTitle}>{edu.instituteName}</Text>
-              <Text style={styles.itemSub}>{edu.degree} — {edu.currentlyPursuing ? 'Present' : formatYear(edu.endYear)}</Text>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Text style={styles.itemTitle}>{edu.instituteName}</Text>
+                <Text style={styles.itemSub}>{edu.currentlyPursuing ? 'Present' : formatYear(edu.endYear)}</Text>
+              </View>
+              <Text style={{ fontSize: 10, color: '#444', marginTop: 4 }}>{edu.degree}</Text>
               {edu.resultFormat && edu.result && (<Text style={{ fontSize: 10, color: '#444', marginTop: 4 }}>{edu.resultFormat}: {edu.result}</Text>)}
             </View>
           ))}
 
           {education.preUniversityEnabled && education.preUniversity && (education.preUniversity.instituteName || education.preUniversity.yearOfPassing) && (
             <View style={{ marginBottom: 10 }}>
-              <Text style={styles.itemTitle}>{education.preUniversity.instituteName || 'Pre University'}</Text>
-              <Text style={styles.itemSub}>Pre University (12th Standard) — {formatYear(education.preUniversity.yearOfPassing)}</Text>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Text style={styles.itemTitle}>{education.preUniversity.instituteName || 'Pre University'}</Text>
+                <Text style={styles.itemSub}>{formatYear(education.preUniversity.yearOfPassing)}</Text>
+              </View>
+              <Text style={{ fontSize: 10, color: '#444', marginTop: 4 }}>Pre University (12th Standard)</Text>
               {education.preUniversity.resultFormat && education.preUniversity.result && (<Text style={{ fontSize: 10, color: '#444', marginTop: 4 }}>{education.preUniversity.resultFormat}: {education.preUniversity.result}</Text>)}
             </View>
           )}
 
           {education.sslcEnabled && education.sslc && (education.sslc.instituteName || education.sslc.yearOfPassing) && (
             <View style={{ marginBottom: 10 }}>
-              <Text style={styles.itemTitle}>{education.sslc.instituteName || 'SSLC'}</Text>
-              <Text style={styles.itemSub}>SSLC (10th Standard) — {formatYear(education.sslc.yearOfPassing)}</Text>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Text style={styles.itemTitle}>{education.sslc.instituteName || 'SSLC'}</Text>
+                <Text style={styles.itemSub}>{formatYear(education.sslc.yearOfPassing)}</Text>
+              </View>
+              <Text style={{ fontSize: 10, color: '#444', marginTop: 4 }}>SSLC (10th Standard)</Text>
               {education.sslc.resultFormat && education.sslc.result && (<Text style={{ fontSize: 10, color: '#444', marginTop: 4 }}>{education.sslc.resultFormat}: {education.sslc.result}</Text>)}
             </View>
           )}
