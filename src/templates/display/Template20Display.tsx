@@ -1,0 +1,125 @@
+import React from 'react';
+import DOMPurify from 'dompurify';
+import type { ResumeData } from '@/types/resume';
+
+interface Template20DisplayProps { data: ResumeData }
+
+const htmlToLines = (s?: string) => {
+  if (!s) return [] as string[];
+  try {
+    const text = String(s)
+      .replace(/<br\s*\/?/gi, '\n')
+      .replace(/<\/p>|<\/li>/gi, '\n')
+      .replace(/<[^>]+>/g, '')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&amp;/g, '&');
+    return text.split(/\n|\r\n/).map(l => l.trim()).filter(Boolean);
+  } catch (e) { return [String(s)]; }
+};
+
+const formatMonthYear = (s?: string) => {
+  if (!s) return '';
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  try {
+    const str = String(s).trim();
+    const ymd = str.match(/^(\d{4})-(\d{2})(?:-\d{2})?$/);
+    if (ymd) return `${months[parseInt(ymd[2],10)-1]} ${ymd[1]}`;
+    const mY = str.match(/^(\d{2})\/(\d{4})$/);
+    if (mY) return `${months[parseInt(mY[1],10)-1]} ${mY[2]}`;
+  } catch (e) {}
+  const yr = String(s).match(/(\d{4})/)?.[1];
+  return yr || String(s);
+};
+
+const Template20Display: React.FC<Template20DisplayProps> = ({ data }) => {
+  const { personal, experience, education, certifications, skillsLinks } = data;
+  const contactItems = [personal.mobileNumber && `Phone: ${personal.mobileNumber}`, personal.email && `Email: ${personal.email}`, personal.address && `Address: ${personal.address}`, skillsLinks && skillsLinks.links && skillsLinks.links.portfolioUrl && `Portfolio: ${skillsLinks.links.portfolioUrl}`].filter(Boolean);
+
+  return (
+    <div style={{ width: '210mm', minHeight: '297mm', fontFamily: 'Helvetica, Arial, sans-serif', background: '#fff', padding: 24, boxSizing: 'border-box' }}>
+      <div style={{ paddingBottom: 12 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h1 style={{ margin: 0, fontFamily: 'Georgia, serif', fontSize: 28 }}>{personal.firstName} {personal.middleName || ''} {personal.lastName}</h1>
+          { (experience && (experience as any).jobRole) && <div style={{ fontSize: 14, color: '#111827', fontFamily: 'monospace' }}>{(experience as any).jobRole}</div> }
+        </div>
+      </div>
+
+      <div style={{ height: 1, background: '#000', marginBottom: 16 }} />
+
+      <div>
+        {/* CONTACT row */}
+        <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+          <div style={{ width: 140, paddingRight: 12, fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1.2 }}>Contact</div>
+          <div style={{ flex: 1 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, fontSize: 12, color: '#111827', lineHeight: 1.6 }}>
+              {contactItems.map((c, i) => (<div key={i} style={{ marginBottom: 6 }}>{c}</div>))}
+            </div>
+          </div>
+        </div>
+
+        <div style={{ height: 1, background: '#ddd', margin: '12px 0' }} />
+
+        {/* PROFESSIONAL EXPERIENCE row */}
+        <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+          <div style={{ width: 140, paddingRight: 12, fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1.2 }}>Professional Experience</div>
+          <div style={{ flex: 1 }}>
+            {experience.workExperiences.filter((w:any)=>w.enabled).map((w:any, idx:number)=> (
+              <div key={idx} style={{ marginBottom: 14 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div style={{ fontWeight: 700 }}>{w.jobTitle}</div>
+                  <div style={{ color: '#6b7280', fontWeight: 700 }}>{w.startDate ? formatMonthYear(w.startDate) : ''} {w.currentlyWorking ? '— Present' : (w.endDate ? `— ${formatMonthYear(w.endDate)}` : '')}</div>
+                </div>
+                <div style={{ color: '#374151', marginTop: 4 }}>{w.companyName}</div>
+                {w.description && (
+                  <ul style={{ marginTop: 8, paddingLeft: 18, color: '#333' }}>
+                    {htmlToLines(w.description).map((ln, i2) => <li key={i2} style={{ marginBottom: 6 }}>{ln}</li>)}
+                  </ul>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div style={{ height: 1, background: '#ddd', margin: '12px 0' }} />
+
+        {/* EDUCATION row */}
+        <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+          <div style={{ width: 140, paddingRight: 12, fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1.2 }}>Education</div>
+          <div style={{ flex: 1 }}>
+            {education.higherEducationEnabled && education.higherEducation.slice().map((edu:any,i:number)=> (
+              <div key={i} style={{ marginBottom: 12 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 700 }}>{edu.instituteName} <span style={{ fontWeight: 700, color: '#6b7280' }}>{edu.endYear ? `| ${String(edu.endYear).match(/(\d{4})/)?.[1]}` : ''}</span></div>
+                <div style={{ marginTop: 4 }}>{edu.degree}</div>
+                {edu.description && (
+                  <ul style={{ marginTop: 8, paddingLeft: 18 }}>
+                    {htmlToLines(edu.description).map((ln, j)=> <li key={j} style={{ marginBottom: 6 }}>{ln}</li>)}
+                  </ul>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div style={{ height: 1, background: '#ddd', margin: '12px 0' }} />
+
+        {/* CERTIFICATES row */}
+        <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+          <div style={{ width: 140, paddingRight: 12, fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1.2 }}>Certificates</div>
+          <div style={{ flex: 1 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              {(certifications || []).filter((c:any)=>c.enabled && c.certificateTitle).map((c:any,i:number)=> (
+                <div key={i} style={{ fontSize: 12 }}>
+                  <div style={{ fontWeight: 700 }}>{c.certificateTitle} {c.year ? `| ${c.year}` : ''}</div>
+                  {c.providedBy && <div style={{ color: '#6b7280', marginTop: 4 }}>{c.providedBy}</div>}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
+};
+
+export default Template20Display;

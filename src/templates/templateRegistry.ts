@@ -30,6 +30,8 @@ import Template18Display from './display/Template18Display';
 import Template18PDF from './pdf/Template18PDF';
 import Template19Display from './display/Template19Display';
 import Template19PDF from './pdf/Template19PDF';
+import Template20Display from './display/Template20Display';
+import Template20PDF from './pdf/Template20PDF';
 import Template2PDF from './pdf/Template2PDF';
 import Template3PDF from './pdf/Template3PDF';
 import Template4PDF from './pdf/Template4PDF';
@@ -244,6 +246,16 @@ const TEMPLATE_REGISTRY: TemplateInfo[] = [
     thumbnail: '/resume-templates/thumbnails/template19.jpg',
     displayComponent: Template19Display,
     pdfComponent: Template19PDF,
+    pageCount: 1,
+    supportsPhoto: false,
+  },
+  {
+    id: 'template20',
+    name: 'Minimal Two-Column (Classic)',
+    category: 'Professional',
+    thumbnail: '/resume-templates/thumbnails/template20.jpg',
+    displayComponent: Template20Display,
+    pdfComponent: Template20PDF,
     pageCount: 1,
     supportsPhoto: false,
   },
