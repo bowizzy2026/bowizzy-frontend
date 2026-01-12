@@ -61,7 +61,7 @@ const Template15Display: React.FC<Template15DisplayProps> = ({ data }) => {
       <div style={{ padding: '28px 36px 8px 36px', textAlign: 'center' }}>
         <h1 style={{ margin: 0, fontSize: 28, color: '#0b60d6', fontFamily: 'Georgia, serif', fontWeight: 800 }}>{personal.firstName} {(personal.middleName || '')} {personal.lastName}</h1>
         {role && <div style={{ fontSize: 12, color: '#08306b', marginTop: 6, fontWeight: 600 }}>{role}</div>}
-        <div style={{ marginTop: 6, fontSize: 11, color: '#6b7280' }}>{contactParts.join(' | ')}{(linkedin || github) && ' | '}{linkedin && <a href={(skillsLinks as any).links?.linkedinProfile || (personal as any).linkedinProfile} target="_blank" rel="noreferrer" style={{ color: '#0a66c2', textDecoration: 'none' }}>LinkedIn</a>}{linkedin && github && ' | '}{github && <a href={(skillsLinks as any).links?.githubProfile || (personal as any).githubProfile} target="_blank" rel="noreferrer" style={{ color: '#111', textDecoration: 'none' }}>GitHub</a>}</div>
+        <div style={{ marginTop: 6, fontSize: 11, color: '#6b7280' }}>{contactParts.join(' | ')}{(linkedin || github) && ' | '}{linkedin && <a href={(skillsLinks as any).links?.linkedinProfile || (personal as any).linkedinProfile} target="_blank" rel="noreferrer" style={{ color: '#0a66c2', textDecoration: 'none' }}>{linkedin}</a>}{linkedin && github && ' | '}{github && <a href={(skillsLinks as any).links?.githubProfile || (personal as any).githubProfile} target="_blank" rel="noreferrer" style={{ color: '#111', textDecoration: 'none' }}>{github}</a>}</div>
         <div style={{ height: 1, background: '#ddd', marginTop: 12, width: '100%' }} />
       </div>
 
@@ -87,9 +87,9 @@ const Template15Display: React.FC<Template15DisplayProps> = ({ data }) => {
               <div key={`he-${i}`} style={{ marginBottom: 8 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <div style={{ fontWeight: 700 }}>{edu.instituteName}</div>
-                  <div style={{ color: '#6b7280' }}>{formatMonthYear(edu.startYear)} — {edu.currentlyPursuing ? 'Present' : formatMonthYear(edu.endYear)}</div>
+                  <div style={{ color: '#111827', fontWeight: 700 }}>{formatMonthYear(edu.startYear)} — {edu.currentlyPursuing ? 'Present' : formatMonthYear(edu.endYear)}</div>
                 </div>
-                <div style={{ fontSize: 11, color: '#6b7280' }}>{edu.degree}</div>
+                <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>{edu.degree}</div>
               </div>
             ))}
           </div>
@@ -146,7 +146,7 @@ const Template15Display: React.FC<Template15DisplayProps> = ({ data }) => {
               <div key={i} style={{ marginBottom: 8 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <div style={{ fontWeight: 700 }}>{w.companyName}{w.location ? `, ${w.location}` : ''}</div>
-                  <div style={{ color: '#6b7280' }}>{formatMonthYear(w.startDate)} — {w.currentlyWorking ? 'Present' : formatMonthYear(w.endDate)}</div>
+                  <div style={{ color: '#111827', fontWeight: 700 }}>{formatMonthYear(w.startDate)} — {w.currentlyWorking ? 'Present' : formatMonthYear(w.endDate)}</div>
                 </div>
                 {w.description && (
                   <div style={{ marginTop: 4, color: '#444', paddingLeft: 10 }}>
@@ -166,7 +166,7 @@ const Template15Display: React.FC<Template15DisplayProps> = ({ data }) => {
               <div key={i} style={{ marginBottom: 8 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <div style={{ fontWeight: 700 }}>{p.projectTitle}</div>
-                  <div style={{ color: '#6b7280' }}>{formatMonthYear(p.startDate)} — {p.currentlyWorking ? 'Present' : formatMonthYear(p.endDate)}</div>
+                  <div style={{ color: '#111827', fontWeight: 700 }}>{formatMonthYear(p.startDate)} — {p.currentlyWorking ? 'Present' : formatMonthYear(p.endDate)}</div>
                 </div>
                 {p.description && (
                   <div style={{ marginTop: 4, color: '#444', paddingLeft: 10 }}>

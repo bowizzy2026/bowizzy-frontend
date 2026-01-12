@@ -12,7 +12,7 @@ const styles = StyleSheet.create({
   divider: { height: 1, backgroundColor: '#ddd', marginTop: 12, marginBottom: 0, width: '100%' },
   sectionHeading: { fontSize: 11, fontFamily: 'Times-Bold', letterSpacing: 1.2, textTransform: 'uppercase', color: '#0b60d6' },
   itemTitle: { fontSize: 12, fontFamily: 'Times-Bold' },
-  itemSub: { fontSize: 11, color: '#6b7280' },
+  itemSub: { fontSize: 11, color: '#111827', fontFamily: 'Times-Bold' },
   bullet: { fontSize: 10, color: '#444', marginTop: 4 },
 });
 
@@ -81,7 +81,7 @@ const Template15PDF: React.FC<Template15PDFProps> = ({ data }) => {
   const contactParts = [personal.email, personal.mobileNumber, personal.address && String(personal.address).split(',')[0]].filter(Boolean);
   const linkedinPresent = (skillsLinks && (skillsLinks as any).links && (skillsLinks as any).links.linkedinProfile) || (personal as any).linkedinProfile;
   const githubPresent = (skillsLinks && (skillsLinks as any).links && (skillsLinks as any).links.githubProfile) || (personal as any).githubProfile;
-  const pdfContactLine = [...contactParts, ...(linkedinPresent ? ['LinkedIn'] : []), ...(githubPresent ? ['GitHub'] : [])].join(' | ');
+  const pdfContactLine = [...contactParts, ...(linkedinPresent ? [linkedinPresent] : []), ...(githubPresent ? [githubPresent] : [])].join(' | ');
 
   return (
     <Document>
