@@ -59,7 +59,7 @@ const Template16Display: React.FC<Template16DisplayProps> = ({ data }) => {
       <div style={{ padding: '24px 36px 8px 36px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>
           <h1 style={{ margin: 0, fontSize: 22, color: '#111827', fontFamily: 'Georgia, serif', fontWeight: 700 }}>{personal.firstName} {(personal.middleName || '')} {personal.lastName}</h1>
-          {role && <div style={{ fontSize: 11, color: '#6b7280', marginTop: 4 }}>{role}</div>}
+          {role && <div style={{ fontSize: 11, color: '#000', marginTop: 4, fontWeight: 700 }}>{role}</div>}
           <div style={{ marginTop: 6, fontSize: 11, color: '#6b7280' }}>
             {personal.address && <div>{String(personal.address).split(',')[0]}</div>}
             {personal.mobileNumber && <div>{personal.mobileNumber}</div>}
@@ -69,7 +69,7 @@ const Template16Display: React.FC<Template16DisplayProps> = ({ data }) => {
           {personal.email && <div>{personal.email}</div>}
         </div>
       </div>
-      <div style={{ height: 1, background: '#ddd', marginTop: 8, width: '100%' }} />
+
 
       <div style={{ padding: '0 36px 36px 36px' }}>
         <section style={{ display: 'block' }}>
@@ -80,7 +80,11 @@ const Template16Display: React.FC<Template16DisplayProps> = ({ data }) => {
           </div>
 
           <div style={{ marginTop: 6 }}>
-            {personal.aboutCareerObjective && (<div style={{ color: '#444', lineHeight: 1.4 }}>{DOMPurify.sanitize(personal.aboutCareerObjective).replace(/<[^>]+>/g, '')}</div>)}
+            {personal.aboutCareerObjective && (
+              <>
+                {htmlToLines(personal.aboutCareerObjective).map((ln, idx) => <div key={idx} style={{ color: '#444', lineHeight: 1.4, marginTop: idx ? 4 : 0 }}>{ln}</div>)}
+              </>
+            )}
           </div>
 
           <div style={{ marginTop: 12 }}>
@@ -142,6 +146,9 @@ const Template16Display: React.FC<Template16DisplayProps> = ({ data }) => {
                   <div style={{ color: '#6b7280' }}>{formatYear(edu.startYear)} — {edu.currentlyPursuing ? 'Present' : formatYear(edu.endYear)}</div>
                 </div>
                 <div style={{ fontSize: 11, color: '#6b7280' }}>{edu.degree}</div>
+                {edu.resultFormat && edu.result ? (
+                  <div style={{ marginTop: 6, color: '#6b7280' }}>{edu.resultFormat}: {edu.result}</div>
+                ) : null}
               </div>
             ))}
           </div>

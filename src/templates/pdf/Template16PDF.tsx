@@ -7,9 +7,8 @@ const styles = StyleSheet.create({
   page: { paddingTop: 24, paddingBottom: 24, paddingLeft: 36, paddingRight: 36, fontSize: 10, fontFamily: 'Times-Roman' },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 },
   name: { fontSize: 22, fontFamily: 'Times-Bold', color: '#111827' },
-  role: { fontSize: 11, color: '#6b7280', marginTop: 4 },
+  role: { fontSize: 11, color: '#000', marginTop: 4, fontFamily: 'Times-Bold' },
   contact: { fontSize: 10, color: '#6b7280', textAlign: 'right' },
-  divider: { height: 1, backgroundColor: '#ddd', marginTop: 8, width: '100%' },
   sectionHeading: { fontSize: 11, fontFamily: 'Times-Bold', letterSpacing: 1.2, textTransform: 'uppercase', color: '#111827' },
   itemTitle: { fontSize: 11, fontFamily: 'Times-Bold' },
   itemSub: { fontSize: 10, color: '#6b7280' },
@@ -99,13 +98,13 @@ const Template16PDF: React.FC<Template16PDFProps> = ({ data }) => {
           </View>
         </View>
 
-        <View style={styles.divider} />
-
         <View style={{ marginTop: 12 }}>
           <Text style={styles.sectionHeading}>Summary</Text>
           <View style={{ height: 1, backgroundColor: '#ddd', width: '100%', marginTop: 4, marginBottom: 0 }} />
         </View>
-        {personal.aboutCareerObjective ? <Text style={{ fontSize: 10, color: '#444', marginTop: 6 }}>{htmlToPlainText(personal.aboutCareerObjective)}</Text> : null}
+        {personal.aboutCareerObjective ? htmlToPlainText(personal.aboutCareerObjective).split('\n').map((ln, idx) => (
+          <Text key={idx} style={{ fontSize: 10, color: '#444', marginTop: idx === 0 ? 6 : 4 }}>{ln}</Text>
+        )) : null}
 
         <View style={{ marginTop: 12 }}>
           <Text style={styles.sectionHeading}>Experience</Text>
@@ -158,6 +157,9 @@ const Template16PDF: React.FC<Template16PDFProps> = ({ data }) => {
                 <Text style={styles.itemSub}>{formatYear(edu.startYear)} — {edu.currentlyPursuing ? 'Present' : formatYear(edu.endYear)}</Text>
               </View>
               <Text style={{ fontSize: 10, color: '#6b7280' }}>{edu.degree}</Text>
+              {edu.resultFormat && edu.result ? (
+                <Text style={{ fontSize: 10, color: '#6b7280', fontFamily: 'Times-Bold', marginTop: 4 }}>{edu.resultFormat}: {edu.result}</Text>
+              ) : null}
             </View>
           ))}
         </View>
