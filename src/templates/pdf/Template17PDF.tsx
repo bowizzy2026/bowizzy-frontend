@@ -69,6 +69,17 @@ const IconLocation = () => (
   </Svg>
 );
 
+const getSkillStars = (level?: string) => {
+  const normalizedLevel = String(level || '').toLowerCase().trim();
+  switch (normalizedLevel) {
+    case 'beginner': return '★';
+    case 'intermediate': return '★★';
+    case 'advanced': return '★★★★';
+    case 'expert': return '★★★★★';
+    default: return '';
+  }
+};
+
 const Template17PDF: React.FC<Template17PDFProps> = ({ data }) => {
   const { personal, experience, education, projects, skillsLinks, certifications } = data;
   const role = (experience && (experience as any).jobRole) || (experience.workExperiences && experience.workExperiences.find((w: any) => w.enabled && w.jobTitle) && experience.workExperiences.find((w: any) => w.enabled && w.jobTitle).jobTitle) || '';
@@ -91,7 +102,7 @@ const Template17PDF: React.FC<Template17PDFProps> = ({ data }) => {
           <View style={{ marginTop: 18 }}>
             <Text style={styles.sectionHeading}>Skills</Text>
             <View style={styles.divider} />
-            { (skillsLinks.skills || []).filter((s:any)=>s.enabled && s.skillName).slice(0,6).map((s:any,i:number)=>(<Text key={i} style={{ marginTop: 6, fontSize: 10, color: '#374151' }}>• {s.skillName}</Text>)) }
+            { (skillsLinks.skills || []).filter((s:any)=>s.enabled && s.skillName).slice(0,6).map((s:any,i:number)=>(<View key={i} style={{ marginTop: 6, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}><Text style={{ fontSize: 10, color: '#374151', flex: 1 }}>• {s.skillName}</Text><Text style={{ fontSize: 9, color: '#374151', marginLeft: 8 }}>{getSkillStars(s.skillLevel)}</Text></View>)) }
           </View>
 
           <View style={{ marginTop: 18 }}>

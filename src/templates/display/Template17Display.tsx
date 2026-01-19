@@ -31,6 +31,17 @@ const formatMonthYear = (s?: string) => {
   return String(s);
 };
 
+const getSkillStars = (level?: string) => {
+  const normalizedLevel = String(level || '').toLowerCase().trim();
+  switch (normalizedLevel) {
+    case 'beginner': return '★';
+    case 'intermediate': return '★★';
+    case 'advanced': return '★★★★';
+    case 'expert': return '★★★★★';
+    default: return '';
+  }
+};
+
 const Template17Display: React.FC<Template17DisplayProps> = ({ data }) => {
   const { personal, experience, education, projects, skillsLinks, certifications } = data;
   const role = (experience && (experience as any).jobRole) || (experience.workExperiences && experience.workExperiences.find((w: any) => w.enabled && w.jobTitle) && experience.workExperiences.find((w: any) => w.enabled && w.jobTitle).jobTitle) || '';
@@ -56,9 +67,14 @@ const Template17Display: React.FC<Template17DisplayProps> = ({ data }) => {
           <div style={{ marginTop: 20 }}>
             <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1, color: '#374151' }}>SKILLS</div>
             <div style={{ height: 1, background: '#e5e7eb', marginTop: 6, marginBottom: 8 }} />
-            <ul style={{ paddingLeft: 16, color: '#374151' }}>
-              {(skillsLinks.skills || []).filter(s => s.enabled && s.skillName).slice(0,6).map((s, i) => <li key={i} style={{ marginBottom: 6 }}>{s.skillName}</li>)}
-            </ul>
+            <div style={{ color: '#374151' }}>
+              {(skillsLinks.skills || []).filter(s => s.enabled && s.skillName).slice(0,6).map((s, i) => (
+                <div key={i} style={{ marginBottom: 6, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+                  <span>• {s.skillName}</span>
+                  <span style={{ fontSize: 11 }}>{getSkillStars(s.skillLevel)}</span>
+                </div>
+              ))}
+            </div>
           </div>
 
           <div style={{ marginTop: 20 }}>
