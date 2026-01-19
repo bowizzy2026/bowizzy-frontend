@@ -100,9 +100,9 @@ const Template16Display: React.FC<Template16DisplayProps> = ({ data }) => {
                   <div style={{ color: '#6b7280' }}>{formatMonthYear(w.startDate)} — {w.currentlyWorking ? 'Present' : formatMonthYear(w.endDate)}</div>
                 </div>
                 {w.description && (
-                  <div style={{ marginTop: 6, color: '#444', paddingLeft: 10 }}>
-                    {htmlToLines(w.description).map((ln, idx) => <div key={idx} style={{ marginTop: 4 }}>• {ln}</div>)}
-                  </div>
+                  <div style={{ marginTop: 4, color: '#444', paddingLeft: 10 }}
+                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(w.description || '') }}
+                  />
                 )}
               </div>
             ))}
@@ -123,9 +123,9 @@ const Template16Display: React.FC<Template16DisplayProps> = ({ data }) => {
                       <div style={{ color: '#6b7280' }}>{formatMonthYear(p.startDate)} — {p.currentlyWorking ? 'Present' : formatMonthYear(p.endDate)}</div>
                     </div>
                     {p.description && (
-                      <div style={{ marginTop: 4, color: '#444', paddingLeft: 10 }}>
-                        {htmlToLines(p.description).map((ln, idx) => <div key={idx} style={{ marginTop: 4 }}>• {ln}</div>)}
-                      </div>
+                      <div style={{ marginTop: 4, color: '#444', paddingLeft: 10 }}
+                        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(p.description || '') }}
+                      />
                     )}
                   </div>
                 ))}

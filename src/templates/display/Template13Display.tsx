@@ -118,9 +118,9 @@ const Template13Display: React.FC<Template13DisplayProps> = ({ data }) => {
                   <div style={{ fontSize: 11, color: '#111827', fontWeight: 700 }}>{formatMonthYear(w.startDate)} — {w.currentlyWorking ? 'Present' : formatMonthYear(w.endDate)}</div>
                 </div>
                 {w.description && (
-                  <div style={{ marginTop: 2, color: '#444' }}>
-                    {htmlToLines(w.description).map((ln, idx) => <div key={idx} style={{ marginTop: 2 }}>• {ln}</div>)}
-                  </div>
+                  <div style={{ marginTop: 2, color: '#444' }}
+                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(w.description || '') }}
+                  />
                 )}
               </div>
             ))}

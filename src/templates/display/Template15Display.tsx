@@ -190,9 +190,9 @@ const Template15Display: React.FC<Template15DisplayProps> = ({ data }) => {
                 )}
 
                 {w.description && (
-                  <div style={{ marginTop: 4, color: '#444', paddingLeft: 10 }}>
-                    {htmlToLines(w.description).map((ln, idx) => <div key={idx} style={{ marginTop: 4 }}>• {ln}</div>)}
-                  </div>
+                  <div style={{ marginTop: 4, color: '#444', paddingLeft: 10 }}
+                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(w.description || '') }}
+                  />
                 )}
               </div>
             ))}
@@ -210,9 +210,9 @@ const Template15Display: React.FC<Template15DisplayProps> = ({ data }) => {
                   <div style={{ color: '#111827', fontWeight: 700 }}>{formatMonthYear(p.startDate)} — {p.currentlyWorking ? 'Present' : formatMonthYear(p.endDate)}</div>
                 </div>
                 {p.description && (
-                  <div style={{ marginTop: 4, color: '#444', paddingLeft: 10 }}>
-                    {htmlToLines(p.description).map((ln, idx) => <div key={idx} style={{ marginTop: 4 }}>• {ln}</div>)}
-                  </div>
+                  <div style={{ marginTop: 4, color: '#444', paddingLeft: 10 }}
+                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(p.description || '') }}
+                  />
                 )}
               </div>
             ))}

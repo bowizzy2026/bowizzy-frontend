@@ -125,7 +125,7 @@ const Template18Display: React.FC<Template18DisplayProps> = ({ data }) => {
                   <div style={{ color: '#000' }}>{w.companyName}</div>
                   <div style={{ color: '#000', fontWeight: 700 }}>{w.location}</div>
                 </div>
-                {w.description && <div style={{ marginTop: 6, paddingLeft: 10 }}>{htmlToLines(w.description).map((ln, idx) => <div key={idx} style={{ marginTop: 6 }}>• {ln}</div>)}</div>}
+                {w.description && <div style={{ marginTop: 6, paddingLeft: 10 }} dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(w.description || '') }} />}
               </div>
             ))}
           </div>

@@ -70,9 +70,9 @@ const Template12Display: React.FC<Template12DisplayProps> = ({ data }) => {
                   <div style={{ color: '#111827', fontSize: 11, fontWeight: 700 }}>{formatMonthYear(w.startDate)} — {w.currentlyWorking ? 'Present' : formatMonthYear(w.endDate)}</div>
                 </div>
                 {w.description && (
-                  <div style={{ marginTop: 6, color: '#444' }}>
-                    {htmlToLines(w.description).map((ln, idx) => <div key={idx}>• {ln}</div>)}
-                  </div>
+                  <div style={{ marginTop: 6, color: '#444' }}
+                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(w.description || '') }}
+                  />
                 )}
               </div>
             ))}

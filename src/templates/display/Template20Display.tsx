@@ -86,9 +86,9 @@ const Template20Display: React.FC<Template20DisplayProps> = ({ data }) => {
                 </div>
                 <div style={{ color: '#000', marginTop: 4, fontWeight: 700 }}>{w.companyName}</div>
                 {w.description && (
-                  <ul style={{ marginTop: 8, paddingLeft: 18, color: '#333' }}>
-                    {htmlToLines(w.description).map((ln, i2) => <li key={i2} style={{ marginBottom: 6 }}>{ln}</li>)}
-                  </ul>
+                  <div style={{ marginTop: 8, color: '#333' }}
+                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(w.description || '') }}
+                  />
                 )}
               </div>
             ))}

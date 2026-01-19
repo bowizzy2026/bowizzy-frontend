@@ -119,11 +119,9 @@ const Template11Display: React.FC<Template11DisplayProps> = ({
                 </div>
                 <div style={{ fontSize: 11, fontWeight: 700, color: '#222', marginBottom: 6 }}>{exp.jobTitle}</div>
                 {exp.description && (
-                  <div style={{ fontSize: 11, color: '#444', lineHeight: 1.6 }}>
-                    {htmlToLines(exp.description).map((ln, i) => (
-                      <div key={i}>• {ln}</div>
-                    ))}
-                  </div>
+                  <div style={{ fontSize: 11, color: '#444', lineHeight: 1.6 }}
+                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(exp.description || '') }}
+                  />
                 )}
               </div>
             ))}

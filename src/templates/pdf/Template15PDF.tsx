@@ -33,11 +33,33 @@ const htmlToPlainText = (html?: string) => {
 
 const renderBulletedParagraph = (html?: string) => {
   if (!html) return null;
-  const text = htmlToPlainText(html);
-  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+  const sanitized = DOMPurify.sanitize(html || '');
+  let text = sanitized
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/p>/gi, '\n')
+    .replace(/<\/li>/gi, '\n')
+    .replace(/<li>/gi, '• ')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&')
+    .trim();
+  
+  const lines = text.split('\n').filter((l) => l.trim());
+  
   return (
     <View style={{ marginTop: 4 }}>
-      {lines.map((ln, idx) => <Text key={idx} style={styles.bullet}>• {ln}</Text>)}
+      {lines.map((line, idx) => (
+        <View key={idx} style={{ flexDirection: 'row', marginTop: idx > 0 ? 2 : 0 }}>
+          <Text style={{ width: 12, flexShrink: 0, color: '#444', fontSize: 10 }}>
+            {line.startsWith('•') ? '•' : ''}
+          </Text>
+          <Text style={{ flex: 1, color: '#444', fontSize: 10 }}>
+            {line.startsWith('•') ? line.substring(1).trim() : line}
+          </Text>
+        </View>
+      ))}
     </View>
   );
 };
