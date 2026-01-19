@@ -117,7 +117,10 @@ const Template11Display: React.FC<Template11DisplayProps> = ({
                   <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>{exp.companyName}</div>
                   <div style={{ fontSize: 11, color: '#111827', fontWeight: 700 }}>{formatMonthYear(exp.startDate)} - {exp.currentlyWorking ? 'Present' : formatMonthYear(exp.endDate)}</div>
                 </div>
-                <div style={{ fontSize: 11, fontWeight: 700, color: '#222', marginBottom: 6 }}>{exp.jobTitle}</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: '#222' }}>{exp.jobTitle}</div>
+                  {exp.location && <div style={{ fontSize: 11, fontWeight: 700, color: '#222' }}>{exp.location}</div>}
+                </div>
                 {exp.description && (
                   <div style={{ fontSize: 11, color: '#444', lineHeight: 1.6 }}
                     dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(exp.description || '') }}

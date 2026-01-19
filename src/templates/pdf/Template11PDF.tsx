@@ -238,7 +238,10 @@ const Template11PDF: React.FC<Template11PDFProps> = ({ data }) => {
                   <Text style={styles.itemTitle}>{w.companyName}</Text>
                   <Text style={styles.itemDate}>{formatMonthYear(w.startDate)} - {w.currentlyWorking ? 'Present' : formatMonthYear(w.endDate)}</Text>
                 </View>
-                <Text style={styles.itemSubtitle}>{w.jobTitle}</Text>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 6 }}>
+                  <Text style={styles.itemSubtitle}>{w.jobTitle}</Text>
+                  {w.location && <Text style={styles.itemSubtitle}>{w.location}</Text>}
+                </View>
                 {w.description && renderBulletedParagraph(w.description, styles.bulletText)}
               </View>
             ))}
