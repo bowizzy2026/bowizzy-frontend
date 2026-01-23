@@ -6,7 +6,7 @@ import type { ResumeData } from "@/types/resume";
 const styles = StyleSheet.create({
   page: {
     paddingTop: 0,
-    paddingBottom: 24,
+    paddingBottom: 12,
     paddingLeft: 0,
     paddingRight: 0,
     fontSize: 10,
@@ -14,9 +14,9 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
   },
   header: {
-    paddingTop: 18,
-    paddingBottom: 16,
-    marginBottom: 12,
+    paddingTop: 12,
+    paddingBottom: 8,
+    marginBottom: 6,
     paddingLeft: 36,
     paddingRight: 36,
     flexDirection: "column",
@@ -30,11 +30,11 @@ const styles = StyleSheet.create({
     width: '100%'
   },
   name: {
-    fontSize: 36,
+    fontSize: 28,
     fontFamily: "Times-Bold",
     color: "#111827",
-    marginBottom: 30,
-    lineHeight: 5,
+    marginBottom: 8,
+    lineHeight: 1.2,
     textAlign: 'left',
     width: '100%',
     alignSelf: 'flex-start'
@@ -73,30 +73,31 @@ const styles = StyleSheet.create({
   },
 
   sectionTitle: {
-    fontSize: 12,
+    fontSize: 11,
     fontFamily: "Times-Bold",
     color: "#111827",
-    marginBottom: 6,
+    marginBottom: 2,
   },
   itemTitle: {
-    fontSize: 11,
+    fontSize: 10,
     fontFamily: "Times-Bold",
     color: "#111827",
-    marginBottom: 2,
+    marginBottom: 0,
   },
   itemSubtitle: {
-    fontSize: 11,
+    fontSize: 10,
     color: "#4a5568",
-    marginBottom: 2,
+    marginBottom: 0,
   },
   itemDate: {
-    fontSize: 10,
+    fontSize: 9,
     color: "#111827",
     fontFamily: "Times-Bold",
   },
   bulletText: {
     fontSize: 10,
-    color: '#4a5568',
+    color: '#000000',
+    fontWeight: 'normal',
     marginBottom: 4,
   }
 });
@@ -158,10 +159,10 @@ const Template11PDF: React.FC<Template11PDFProps> = ({ data }) => {
       <View style={{ marginTop: 6 }}>
         {lines.map((line, idx) => (
           <View key={idx} style={{ flexDirection: 'row', marginTop: idx > 0 ? 2 : 0 }}>
-            <Text style={{ width: 12, flexShrink: 0, color: '#444', fontSize: 10 }}>
+            <Text style={{ width: 12, flexShrink: 0, color: '#000000', fontSize: 10, fontWeight: 'normal' }}>
               {line.startsWith('•') ? '•' : ''}
             </Text>
-            <Text style={{ flex: 1, color: '#444', fontSize: 10 }}>
+            <Text style={{ flex: 1, color: '#000000', fontSize: 10, fontWeight: 'normal' }}>
               {line.startsWith('•') ? line.substring(1).trim() : line}
             </Text>
           </View>
@@ -171,6 +172,28 @@ const Template11PDF: React.FC<Template11PDFProps> = ({ data }) => {
   };
 
   const getYear = (s?: string) => (s ? s.split('-')[0] : '');
+
+  const degreeMap: Record<string, string> = {
+    'B.E': 'Bachelor of Technology',
+    'B.Tech': 'Bachelor of Technology',
+    'B.S': 'Bachelor of Science',
+    'BS': 'Bachelor of Science',
+    'B.A': 'Bachelor of Arts',
+    'BA': 'Bachelor of Arts',
+    'M.Tech': 'Master of Technology',
+    'M.S': 'Master of Science',
+    'MS': 'Master of Science',
+    'M.A': 'Master of Arts',
+    'MA': 'Master of Arts',
+    'MBA': 'Master of Business Administration',
+    'M.B.A': 'Master of Business Administration',
+    'Ph.D': 'Doctor of Philosophy',
+    'PhD': 'Doctor of Philosophy',
+  };
+
+  const getFullDegreeName = (degree: string) => {
+    return degreeMap[degree] || degree;
+  };
 
   const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const formatDate = (s?: string) => {
@@ -220,71 +243,103 @@ const Template11PDF: React.FC<Template11PDFProps> = ({ data }) => {
     <Document>
       <Page size="A4" style={styles.page}>
         {/* Header */}
-        <View style={styles.header}>
-            <View style={styles.nameSection}>
-              <Text style={styles.name}>{personal.firstName}{personal.middleName ? ' ' + personal.middleName : ''}{personal.lastName ? ' ' + personal.lastName : ''}</Text>
-              <Text style={styles.contactLine}>{[personal.email, personal.mobileNumber, personal.address].filter(Boolean).join(' | ')}</Text>
-            </View>
+        {/* Header Section - Classic Serif look */}
+        <View style={{ paddingTop: 18, paddingBottom: 6, paddingLeft: 36, paddingRight: 36 }}>
+          <Text style={{ fontSize: 36, fontFamily: 'Times-Bold', color: '#111827', marginBottom: 0, lineHeight: 1, textAlign: 'left' }}>
+            {personal.firstName}{personal.middleName ? ' ' + personal.middleName : ''}{personal.lastName ? ' ' + personal.lastName : ''}
+          </Text>
+          <Text style={{ fontSize: 11, color: '#111827', marginTop: 8, textAlign: 'left' }}>
+            {[personal.email, personal.mobileNumber, personal.address].filter(Boolean).join(' | ')}
+          </Text>
         </View>
 
-        {/* Experience */}
-        {experience.workExperiences.length > 0 && (
-          <View style={{ marginTop: 28, marginBottom: 12, paddingLeft: 36, paddingRight: 36 }}>
-            <Text style={styles.sectionTitle}>EXPERIENCE</Text>
-            <View style={{ height: 1, backgroundColor: '#333', width: '100%', marginBottom: 8 }} />
-            {experience.workExperiences.filter((w: any) => w.enabled).map((w: any, i: number) => (
-              <View key={i} style={{ marginBottom: 8 }}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                  <Text style={styles.itemTitle}>{w.companyName}</Text>
-                  <Text style={styles.itemDate}>{formatMonthYear(w.startDate)} - {w.currentlyWorking ? 'Present' : formatMonthYear(w.endDate)}</Text>
+        {/* Content - Single column like image */}
+        <View style={{ paddingLeft: 36, paddingRight: 36, paddingBottom: 36 }}>
+          {/* Experience Section */}
+          {experience.workExperiences.length > 0 && (
+            <View style={{ marginBottom: 22 }}>
+              <Text style={{ fontSize: 13, fontFamily: 'Times-Bold', color: '#111827', letterSpacing: 1.2, marginBottom: 8 }}>EXPERIENCE</Text>
+              <View style={{ height: 1, backgroundColor: '#333', width: '100%', marginBottom: 12 }} />
+              {experience.workExperiences.filter((w: any) => w.enabled).map((w: any, i: number) => (
+                <View key={i} style={{ marginBottom: 12 }}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 }}>
+                    <Text style={{ fontSize: 12, fontFamily: 'Times-Bold', color: '#111827' }}>{w.companyName}</Text>
+                    <Text style={{ fontSize: 11, color: '#111827', fontFamily: 'Times-Bold' }}>{formatMonthYear(w.startDate)} - {w.currentlyWorking ? 'Present' : formatMonthYear(w.endDate)}</Text>
+                  </View>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                    <Text style={{ fontSize: 11, color: '#000000', fontFamily: 'Times-Bold' }}>{w.jobTitle}</Text>
+                    {w.location && <Text style={{ fontSize: 11, color: '#000000', fontFamily: 'Times-Bold' }}>{w.location}</Text>}
+                  </View>
+                  {w.description && renderBulletedParagraph(w.description, { fontSize: 11, color: '#000000', fontWeight: 'normal', lineHeight: 1.6 })}
                 </View>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 6 }}>
-                  <Text style={styles.itemSubtitle}>{w.jobTitle}</Text>
-                  {w.location && <Text style={styles.itemSubtitle}>{w.location}</Text>}
-                </View>
-                {w.description && renderBulletedParagraph(w.description, styles.bulletText)}
-              </View>
-            ))}
-          </View>
-        )}
-
-        {/* Education */}
-        {education.higherEducationEnabled && education.higherEducation.length > 0 && (
-          <View style={{ marginBottom: 12, paddingLeft: 36, paddingRight: 36 }}>
-            <Text style={styles.sectionTitle}>EDUCATION</Text>
-            <View style={{ height: 1, backgroundColor: '#333', width: '100%', marginBottom: 8 }} />
-            {education.higherEducation.map((edu, idx) => (
-              <View key={idx} style={{ marginBottom: 8 }}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap' }}>
-                  <Text style={[styles.itemTitle, { flex: 1, marginRight: 8 }]}>{edu.instituteName}</Text>
-                  <Text style={styles.itemDate}>{formatMonthYear(edu.startYear)} - {edu.currentlyPursuing ? 'Present' : formatMonthYear(edu.endYear)}</Text>
-                </View>
-                <Text style={styles.itemSubtitle}>{edu.degree}</Text>
-              </View>
-            ))}
-          </View>
-        )}
-
-        {/* Other: Skills, Certifications, Languages */}
-        <View style={{ paddingLeft: 36, paddingRight: 36 }}>
-          <Text style={styles.sectionTitle}>OTHER</Text>
-          <View style={{ height: 1, backgroundColor: '#333', width: '100%', marginBottom: 8 }} />
-
-          {skillsLinks.skills.length > 0 && (
-            <View style={{ marginBottom: 6 }}>
-              <Text style={{ fontSize: 10 }}><Text style={{ fontFamily: 'Times-Bold', fontSize: 11 }}>Technical Skills:</Text> <Text style={{ fontSize: 10 }}>{skillsLinks.skills.filter((s: any) => s.enabled && s.skillName).map((s: any) => s.skillName).join(', ')}</Text></Text>
+              ))}
             </View>
           )}
 
+          {/* Education Section */}
+          {education.higherEducationEnabled && education.higherEducation.length > 0 && (
+            <View style={{ marginBottom: 22 }}>
+              <Text style={{ fontSize: 13, fontFamily: 'Times-Bold', color: '#111827', letterSpacing: 1.2, marginBottom: 8 }}>EDUCATION</Text>
+              <View style={{ height: 1, backgroundColor: '#333', width: '100%', marginBottom: 12 }} />
+              {education.higherEducation.map((edu, idx) => (
+                <View key={idx} style={{ marginBottom: 10 }}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+                    <Text style={{ fontSize: 11, fontFamily: 'Times-Bold', color: '#000000', flex: 1, marginRight: 8 }}>{edu.instituteName}</Text>
+                    <Text style={{ fontSize: 10, color: '#000000', fontFamily: 'Times-Bold' }}>{formatMonthYear(edu.startYear)} - {edu.currentlyPursuing ? 'Present' : formatMonthYear(edu.endYear)}</Text>
+                  </View>
+                  <Text style={{ fontSize: 11, color: '#000000', fontFamily: 'Times-Roman', fontWeight: 'normal', marginTop: 4 }}>
+                    {getFullDegreeName(edu.degree)}{edu.fieldOfStudy ? ` in ${edu.fieldOfStudy}` : ''}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          )}
+
+          {/* Certifications Section */}
           {certifications.length > 0 && (
-            <View style={{ marginBottom: 6 }}>
-              <Text style={{ fontSize: 10 }}><Text style={{ fontFamily: 'Times-Bold', fontSize: 11 }}>Certifications & Training:</Text> <Text style={{ fontSize: 10 }}>{Array.from(new Set(certifications.filter((c: any) => c.enabled && c.certificateTitle).map((c: any) => c.certificateTitle))).join(', ')}</Text></Text>
+            <View style={{ marginBottom: 22 }}>
+              <Text style={{ fontSize: 13, fontFamily: 'Times-Bold', color: '#111827', letterSpacing: 1.2, marginBottom: 8 }}>TECHNICAL CERTIFICATIONS</Text>
+              <View style={{ height: 1, backgroundColor: '#333', width: '100%', marginBottom: 12 }} />
+              {certifications.filter((c: any) => c.enabled).map((cert: any, idx: number) => (
+                <View key={idx} style={{ marginBottom: 10 }}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+                    <Text style={{ fontSize: 11, fontFamily: 'Times-Bold', color: '#000000', flex: 1, marginRight: 8 }}>{cert.certificateTitle}</Text>
+                    <Text style={{ fontSize: 10, color: '#000000', fontFamily: 'Times-Bold' }}>{cert.date}</Text>
+                  </View>
+                  {cert.description && (
+                    <Text style={{ fontSize: 11, color: '#000000', fontFamily: 'Times-Roman', fontWeight: 'normal', marginTop: 4 }}>
+                      {DOMPurify.sanitize(cert.description).replace(/<[^>]+>/g, '')}
+                    </Text>
+                  )}
+                </View>
+              ))}
             </View>
           )}
 
-          <View style={{ marginBottom: 0 }}>
-            <Text style={{ fontSize: 10 }}><Text style={{ fontFamily: 'Times-Bold', fontSize: 11 }}>Languages:</Text> <Text style={{ fontSize: 10 }}>{personal.languagesKnown && personal.languagesKnown.length > 0 ? personal.languagesKnown.join(', ') : ''}</Text></Text>
-          </View>
+          {/* Other Section - Skills Only (show only if there are enabled skills) */}
+          {skillsLinks.skills.filter((s: any) => s.enabled && s.skillName).length > 0 && (
+            <View>
+              <Text style={{ fontSize: 13, fontFamily: 'Times-Bold', color: '#111827', letterSpacing: 1.2, marginBottom: 8 }}>OTHER</Text>
+              <View style={{ height: 1, backgroundColor: '#333', width: '100%', marginBottom: 12 }} />
+
+              {/* Skills */}
+              <View style={{ marginBottom: 10 }}>
+                <Text style={{ fontSize: 11, fontFamily: 'Times-Bold', color: '#000000', marginBottom: 4 }}>Technical Skills:</Text>
+                <Text style={{ fontSize: 11, color: '#000000', fontWeight: 'normal' }}>
+                  {skillsLinks.skills
+                    .filter((s: any) => s.enabled && s.skillName)
+                    .map((s: any) => s.skillName)
+                    .join(', ')}
+                </Text>
+              </View>
+
+              {/* Languages (commented out for now) */}
+              {/* <View style={{ marginBottom: 0 }}>
+                <Text style={{ fontSize: 11, fontFamily: 'Times-Bold', color: '#000000', marginBottom: 4 }}>Languages:</Text>
+                <Text style={{ fontSize: 11, color: '#000000', fontWeight: 'normal' }}>{personal.languagesKnown && personal.languagesKnown.length > 0 ? personal.languagesKnown.join(', ') : ''}</Text>
+              </View> */}
+            </View>
+          )}
         </View>
       </Page>
     </Document>

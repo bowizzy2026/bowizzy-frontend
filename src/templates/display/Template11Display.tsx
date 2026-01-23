@@ -43,6 +43,28 @@ const Template11Display: React.FC<Template11DisplayProps> = ({
 
   const getYear = (s?: string) => (s ? s.split('-')[0] : '');
 
+  const degreeMap: Record<string, string> = {
+    'B.E': 'Bachelor of Technology',
+    'B.Tech': 'Bachelor of Technology',
+    'B.S': 'Bachelor of Science',
+    'BS': 'Bachelor of Science',
+    'B.A': 'Bachelor of Arts',
+    'BA': 'Bachelor of Arts',
+    'M.Tech': 'Master of Technology',
+    'M.S': 'Master of Science',
+    'MS': 'Master of Science',
+    'M.A': 'Master of Arts',
+    'MA': 'Master of Arts',
+    'MBA': 'Master of Business Administration',
+    'M.B.A': 'Master of Business Administration',
+    'Ph.D': 'Doctor of Philosophy',
+    'PhD': 'Doctor of Philosophy',
+  };
+
+  const getFullDegreeName = (degree: string) => {
+    return degreeMap[degree] || degree;
+  };
+
   const formatMonthYear = (s?: string) => {
     if (!s) return '';
     // Accepts YYYY-MM, YYYY-MM-DD, MM/YYYY, MonthName YYYY, or plain YYYY
@@ -118,11 +140,11 @@ const Template11Display: React.FC<Template11DisplayProps> = ({
                   <div style={{ fontSize: 11, color: '#111827', fontWeight: 700 }}>{formatMonthYear(exp.startDate)} - {exp.currentlyWorking ? 'Present' : formatMonthYear(exp.endDate)}</div>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: '#222' }}>{exp.jobTitle}</div>
-                  {exp.location && <div style={{ fontSize: 11, fontWeight: 700, color: '#222' }}>{exp.location}</div>}
+                  <div style={{ fontSize: 11, fontWeight: 700, color: '#000000' }}>{exp.jobTitle}</div>
+                  {exp.location && <div style={{ fontSize: 11, fontWeight: 700, color: '#000000' }}>{exp.location}</div>}
                 </div>
                 {exp.description && (
-                  <div style={{ fontSize: 11, color: '#444', lineHeight: 1.6 }}
+                  <div style={{ fontSize: 11, color: '#000000', fontWeight: 'normal', lineHeight: 1.6 }}
                     dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(exp.description || '') }}
                   />
                 )}
@@ -139,38 +161,54 @@ const Template11Display: React.FC<Template11DisplayProps> = ({
             {sortedHigherEducation.map((edu, idx) => (
               <div key={idx} style={{ marginBottom: 10 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap' }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: '#111827', flex: 1, marginRight: 8 }}>{edu.instituteName}</div>
-                  <div style={{ fontSize: 10, color: '#111827', fontWeight: 700 }}>{formatMonthYear(edu.startYear)} - {edu.currentlyPursuing ? 'Present' : formatMonthYear(edu.endYear)}</div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: '#000000', flex: 1, marginRight: 8 }}>{edu.instituteName}</div>
+                  <div style={{ fontSize: 10, color: '#000000', fontWeight: 700 }}>{formatMonthYear(edu.startYear)} - {edu.currentlyPursuing ? 'Present' : formatMonthYear(edu.endYear)}</div>
                 </div>
-                <div style={{ fontSize: 11, color: '#6b7280', marginTop: 4 }}>{edu.degree}</div>
+                <div style={{ fontSize: 11, color: '#000000', fontWeight: 'normal', marginTop: 4 }}>
+                  {getFullDegreeName(edu.degree)}{edu.fieldOfStudy ? ` in ${edu.fieldOfStudy}` : ''}
+                </div>
               </div>
             ))}
           </section>
         )}
 
-        {/* Other Section - Skills, Certifications, Languages */}
+        {/* Certifications Section */}
+        {certifications.length > 0 && (
+          <section style={{ marginBottom: 22 }}>
+            <h2 style={{ fontSize: 13, fontWeight: 700, color: '#111827', letterSpacing: 1.2, marginBottom: 8 }}>TECHNICAL CERTIFICATIONS</h2>
+            <div style={{ height: 1, background: '#333', width: '100%', marginBottom: 12 }} />
+            {certifications.filter(c => c.enabled).map((cert, idx) => (
+              <div key={idx} style={{ marginBottom: 10 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap' }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: '#000000', flex: 1, marginRight: 8 }}>{cert.certificateTitle}</div>
+                  <div style={{ fontSize: 10, color: '#000000', fontWeight: 700 }}>{cert.date}</div>
+                </div>
+                {cert.description && (
+                  <div style={{ fontSize: 11, color: '#000000', fontWeight: 'normal', marginTop: 4 }} dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(cert.description) }} />
+                )}
+              </div>
+            ))}
+          </section>
+        )}
+
+        {/* Other Section - Skills Only */}
         <section>
           <h2 style={{ fontSize: 13, fontWeight: 700, color: '#111827', letterSpacing: 1.2, marginBottom: 8 }}>OTHER</h2>
           <div style={{ height: 1, background: '#333', width: '100%', marginBottom: 12 }} />
 
           {/* Skills */}
           {skillsLinks.skills.length > 0 && (
-            <div style={{ marginBottom: 8, fontSize: 11, color: '#444' }}>
-              <span style={{ fontSize: 11, fontWeight: 700 }}>Technical Skills:</span> <span style={{ fontSize: 11 }}>{skillsLinks.skills.filter(s => s.enabled && s.skillName).map(s => s.skillName).join(', ')}</span>
-            </div>
-          )}
-
-          {/* Certifications */}
-          {certifications.length > 0 && (
-            <div style={{ marginBottom: 8, fontSize: 11, color: '#444' }}>
-              <span style={{ fontSize: 11, fontWeight: 700 }}>Certifications & Training:</span> <span style={{ fontSize: 11 }}>{Array.from(new Set(certifications.filter(c => c.enabled && c.certificateTitle).map(c => c.certificateTitle))).join(', ')}</span>
+            <div style={{ marginBottom: 10 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#000000', marginBottom: 4 }}>Technical Skills:</div>
+              <div style={{ fontSize: 11, color: '#000000', fontWeight: 'normal' }}>{skillsLinks.skills.filter(s => s.enabled && s.skillName).map(s => s.skillName).join(', ')}</div>
             </div>
           )}
 
           {/* Languages */}
-          <div style={{ marginBottom: 0, fontSize: 11, color: '#444' }}>
-            <span style={{ fontSize: 11, fontWeight: 700 }}>Languages:</span> <span style={{ fontSize: 11 }}>{personal.languagesKnown && personal.languagesKnown.length > 0 ? personal.languagesKnown.join(', ') : ''}</span>
-          </div>
+          {/* <div style={{ marginBottom: 0 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#000000', marginBottom: 4 }}>Languages:</div>
+            <div style={{ fontSize: 11, color: '#000000', fontWeight: 'normal' }}>{personal.languagesKnown && personal.languagesKnown.length > 0 ? personal.languagesKnown.join(', ') : ''}</div>
+          </div> */}
         </section>
       </div>
     </div>
