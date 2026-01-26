@@ -18,7 +18,7 @@ const styles = StyleSheet.create({
   },
   name: { fontSize: 28, fontFamily: 'Times-Bold', marginBottom: 6 },
   summary: { fontSize: 10, color: '#333', marginBottom: 6 },
-  contact: { fontSize: 10, color: '#6b7280' },
+  contact: { fontSize: 10, color: '#2b2a2a' },
   divider: { height: 1, backgroundColor: '#333', marginVertical: 12 },
 
   grid: { flexDirection: 'row' },
@@ -28,8 +28,8 @@ const styles = StyleSheet.create({
 
   sectionTitle: { fontSize: 11, fontFamily: 'Times-Bold', marginBottom: 6 },
   itemTitle: { fontSize: 11, fontFamily: 'Times-Bold' },
-  itemSub: { fontSize: 10, color: '#111827', fontFamily: 'Times-Bold' },
-  bullet: { fontSize: 10, color: '#444', marginTop: 4 },
+  itemSub: { fontSize: 10, color: '#2b2a2a', fontFamily: 'Times-Bold' },
+  bullet: { fontSize: 10, color: '#2b2a2a', marginTop: 4 },
 });
 
 interface Template12PDFProps { data: ResumeData }
@@ -129,13 +129,37 @@ const Template12PDF: React.FC<Template12PDFProps> = ({ data }) => {
                   <Text style={styles.itemTitle}>{w.jobTitle} — {w.companyName}</Text>
                   <Text style={styles.itemSub}>{formatMonthYear(w.startDate)} — {w.currentlyWorking ? 'Present' : formatMonthYear(w.endDate)}</Text>
                 </View>
-                {w.description && renderBulletedParagraph(w.description)}
+                {w.description && (
+                  <View style={{ color: '#2b2a2a' }}>{renderBulletedParagraph(w.description)}</View>
+                )}
               </View>
             ))}
           </View>
         </View>
 
         {/* divider after work experience */}
+        <View style={{ height: 1, backgroundColor: '#aaa', width: '100%', marginVertical: 12 }} />
+
+        {/* Projects Section */}
+        <View style={{ height: 12 }} />
+        <View style={styles.grid}>
+          <View style={styles.leftCol}>
+            <Text style={styles.sectionHeading}>PROJECTS</Text>
+          </View>
+          <View style={styles.rightCol}>
+            {projects && projects.filter((p: any) => p.enabled).map((p: any, i: number) => (
+              <View key={i} style={{ marginBottom: 8 }}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                  <Text style={styles.itemTitle}>{p.projectTitle}</Text>
+                  <Text style={styles.itemSub}>{formatMonthYear(p.startDate)} — {p.currentlyWorking ? 'Present' : formatMonthYear(p.endDate)}</Text>
+                </View>
+                {p.description && renderBulletedParagraph(p.description)}
+              </View>
+            ))}
+          </View>
+        </View>
+
+        {/* divider before education */}
         <View style={{ height: 1, backgroundColor: '#333', width: '100%', marginVertical: 12 }} />
 
         {/* Education */}
@@ -151,9 +175,9 @@ const Template12PDF: React.FC<Template12PDFProps> = ({ data }) => {
                   <Text style={styles.itemTitle}>{edu.degree}</Text>
                   <Text style={styles.itemSub}>{edu.currentlyPursuing ? 'Present' : formatMonthYear(edu.endYear)}</Text>
                 </View>
-                <Text style={{ fontSize: 10, color: '#111827', marginTop: 4 }}>{edu.instituteName}</Text>
+                <Text style={{ fontSize: 10, color: '#2b2a2a', marginTop: 4 }}>{edu.instituteName}</Text>
                 {edu.resultFormat && edu.result && (
-                  <Text style={{ fontSize: 10, color: '#111827', marginTop: 4 }}>{edu.resultFormat}: {edu.result}</Text>
+                  <Text style={{ fontSize: 10, color: '#2b2a2a', marginTop: 4 }}>{edu.resultFormat}: {edu.result}</Text>
                 )}
               </View>
             ))}
@@ -164,9 +188,9 @@ const Template12PDF: React.FC<Template12PDFProps> = ({ data }) => {
                   <Text style={styles.itemTitle}>PUC</Text>
                   <Text style={styles.itemSub}>{formatMonthYear(education.preUniversity.yearOfPassing) || ''}</Text>
                 </View>
-                <Text style={{ fontSize: 10, color: '#111827', marginTop: 4 }}>{education.preUniversity.instituteName}</Text>
+                <Text style={{ fontSize: 10, color: '#2b2a2a', marginTop: 4 }}>{education.preUniversity.instituteName}</Text>
                 {education.preUniversity.resultFormat && education.preUniversity.result && (
-                  <Text style={{ fontSize: 10, color: '#111827', marginTop: 4 }}>{education.preUniversity.resultFormat}: {education.preUniversity.result}</Text>
+                  <Text style={{ fontSize: 10, color: '#2b2a2a', marginTop: 4 }}>{education.preUniversity.resultFormat}: {education.preUniversity.result}</Text>
                 )}
               </View>
             )}
@@ -177,9 +201,9 @@ const Template12PDF: React.FC<Template12PDFProps> = ({ data }) => {
                   <Text style={styles.itemTitle}>SSLC</Text>
                   <Text style={styles.itemSub}>{formatMonthYear(education.sslc.yearOfPassing) || ''}</Text>
                 </View>
-                <Text style={{ fontSize: 10, color: '#111827', marginTop: 4 }}>{education.sslc.instituteName}</Text>
+                <Text style={{ fontSize: 10, color: '#2b2a2a', marginTop: 4 }}>{education.sslc.instituteName}</Text>
                 {education.sslc.resultFormat && education.sslc.result && (
-                  <Text style={{ fontSize: 10, color: '#111827', marginTop: 4 }}>{education.sslc.resultFormat}: {education.sslc.result}</Text>
+                  <Text style={{ fontSize: 10, color: '#2b2a2a', marginTop: 4 }}>{education.sslc.resultFormat}: {education.sslc.result}</Text>
                 )}
               </View>
             )}
@@ -193,13 +217,13 @@ const Template12PDF: React.FC<Template12PDFProps> = ({ data }) => {
         <View style={{ height: 12 }} />
         <View style={styles.grid}>
           <View style={styles.leftCol}><Text style={styles.sectionHeading}>SKILLS</Text></View>
-          <View style={styles.rightCol}><Text>{skillsLinks.skills.filter((s: any) => s.enabled && s.skillName).map((s: any) => s.skillName).join(', ')}</Text></View>
+          <View style={styles.rightCol}><Text style={{ color: '#2b2a2a' }}>{skillsLinks.skills.filter((s: any) => s.enabled && s.skillName).map((s: any) => s.skillName).join(', ')}</Text></View>
         </View>
 
         <View style={{ height: 8 }} />
         <View style={styles.grid}>
           <View style={styles.leftCol}><Text style={styles.sectionHeading}>CERTIFICATIONS</Text></View>
-          <View style={styles.rightCol}><Text>{certifications.filter((c: any) => c.enabled && c.certificateTitle).map((c: any) => c.certificateTitle).join(', ')}</Text></View>
+          <View style={styles.rightCol}><Text style={{ color: '#2b2a2a' }}>{certifications.filter((c: any) => c.enabled && c.certificateTitle).map((c: any) => c.certificateTitle).join(', ')}</Text></View>
         </View>
 
       </Page>

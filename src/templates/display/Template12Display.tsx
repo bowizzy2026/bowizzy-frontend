@@ -55,7 +55,7 @@ const Template12Display: React.FC<Template12DisplayProps> = ({ data }) => {
           {personal.aboutCareerObjective && (
             <div style={{ marginTop: 8, fontSize: 11, color: '#333' }}>{htmlToLines(personal.aboutCareerObjective).join(' ')}</div>
           )}
-          <div style={{ marginTop: 8, fontSize: 11, color: '#6b7280' }}>{[personal.email, personal.mobileNumber, personal.address].filter(Boolean).join(' | ')}</div>
+          <div style={{ marginTop: 8, fontSize: 11, color: '#2b2a2a' }}>{[personal.email, personal.mobileNumber, personal.address].filter(Boolean).join(' | ')}</div>
         </div>
 
         <hr style={{ border: 'none', borderTop: '1px solid #333', margin: '18px 0' }} />
@@ -70,13 +70,36 @@ const Template12Display: React.FC<Template12DisplayProps> = ({ data }) => {
                   <div style={{ color: '#111827', fontSize: 11, fontWeight: 700 }}>{formatMonthYear(w.startDate)} — {w.currentlyWorking ? 'Present' : formatMonthYear(w.endDate)}</div>
                 </div>
                 {w.description && (
-                  <div style={{ marginTop: 6, color: '#444' }}
+                  <div style={{ marginTop: 6, color: '#2b2a2a' }}
                     dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(w.description || '') }}
                   />
                 )}
               </div>
             ))}
             {/* divider after work experience */}
+          </div>
+        </div>
+
+        {/* Divider after Work Experience, before Projects */}
+        <hr style={{ border: 'none', borderTop: '1px solid #aaa', margin: '18px 0' }} />
+
+        {/* Projects Section */}
+        <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '16px', padding: '0 8px', marginTop: 8 }}>
+          <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.5, color: '#111827', fontWeight: 700 }}>Projects</div>
+          <div>
+            {projects && projects.filter(p => p.enabled).map((p, i) => (
+              <div key={i} style={{ marginBottom: 12 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div style={{ fontWeight: 700, color: '#111827' }}>{p.projectTitle}</div>
+                  <div style={{ color: '#111827', fontSize: 11, fontWeight: 700 }}>{formatMonthYear(p.startDate)} — {p.currentlyWorking ? 'Present' : formatMonthYear(p.endDate)}</div>
+                </div>
+                {p.description && (
+                  <div style={{ marginTop: 6, color: '#2b2a2a' }}
+                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(p.description || '') }}
+                  />
+                )}
+              </div>
+            ))}
           </div>
         </div>
 
@@ -93,7 +116,7 @@ const Template12Display: React.FC<Template12DisplayProps> = ({ data }) => {
                 </div>
                 <div style={{ color: '#111827', fontSize: 11, marginTop: 4 }}>{edu.instituteName}</div>
                 {edu.resultFormat && edu.result && (
-                  <div style={{ fontSize: 11, color: '#111827', marginTop: 4 }}>{edu.resultFormat}: {edu.result}</div>
+                  <div style={{ fontSize: 11, color: '#2b2a2a', marginTop: 4 }}>{edu.resultFormat}: {edu.result}</div>
                 )}
               </div>
             ))}
@@ -106,7 +129,7 @@ const Template12Display: React.FC<Template12DisplayProps> = ({ data }) => {
                 </div>
                 <div style={{ color: '#111827', fontSize: 11, marginTop: 4 }}>{education.preUniversity.instituteName}</div>
                 {education.preUniversity.resultFormat && education.preUniversity.result && (
-                  <div style={{ fontSize: 11, color: '#111827', marginTop: 4 }}>{education.preUniversity.resultFormat}: {education.preUniversity.result}</div>
+                  <div style={{ fontSize: 11, color: '#2b2a2a', marginTop: 4 }}>{education.preUniversity.resultFormat}: {education.preUniversity.result}</div>
                 )}
               </div>
             )}
@@ -119,7 +142,7 @@ const Template12Display: React.FC<Template12DisplayProps> = ({ data }) => {
                 </div>
                 <div style={{ color: '#111827', fontSize: 11, marginTop: 4 }}>{education.sslc.instituteName}</div>
                 {education.sslc.resultFormat && education.sslc.result && (
-                  <div style={{ fontSize: 11, color: '#111827', marginTop: 4 }}>{education.sslc.resultFormat}: {education.sslc.result}</div>
+                  <div style={{ fontSize: 11, color: '#2b2a2a', marginTop: 4 }}>{education.sslc.resultFormat}: {education.sslc.result}</div>
                 )}
               </div>
             )}
@@ -129,12 +152,12 @@ const Template12Display: React.FC<Template12DisplayProps> = ({ data }) => {
 
           <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.5, color: '#111827', fontWeight: 700 }}>Skills</div>
           <div>
-            <div>{skillsLinks.skills.filter(s => s.enabled && s.skillName).map(s => s.skillName).join(', ')}</div>
+            <div style={{ color: '#2b2a2a' }}>{skillsLinks.skills.filter(s => s.enabled && s.skillName).map(s => s.skillName).join(', ')}</div>
           </div>
 
           <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.5, color: '#111827', fontWeight: 700 }}>Certifications</div>
           <div>
-            <div>{certifications.filter(c => c.enabled && c.certificateTitle).map(c => c.certificateTitle).join(', ')}</div>
+            <div style={{ color: '#2b2a2a' }}>{certifications.filter(c => c.enabled && c.certificateTitle).map(c => c.certificateTitle).join(', ')}</div>
           </div>
         </div>
 
