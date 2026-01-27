@@ -51,7 +51,7 @@ const Template20Display: React.FC<Template20DisplayProps> = ({ data }) => {
   const contactItems = [personal.mobileNumber && `Phone: ${formatMobile(personal.mobileNumber)}`, personal.email && `Email: ${personal.email}`, personal.address && `Address: ${personal.address}`, skillsLinks && skillsLinks.links && skillsLinks.links.portfolioUrl && `Portfolio: ${skillsLinks.links.portfolioUrl}`].filter(Boolean);
 
   return (
-    <div style={{ width: '210mm', minHeight: '297mm', fontFamily: 'Helvetica, Arial, sans-serif', background: '#fff', padding: 24, boxSizing: 'border-box' }}>
+    <div style={{ width: '210mm', minHeight: '297mm', fontFamily: 'Georgia, serif', background: '#fff', padding: 24, boxSizing: 'border-box' }}>
       <div style={{ paddingBottom: 12 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h1 style={{ margin: 0, fontFamily: 'Georgia, serif', fontSize: 28 }}>{personal.firstName} {personal.middleName || ''} {personal.lastName}</h1>
@@ -82,7 +82,7 @@ const Template20Display: React.FC<Template20DisplayProps> = ({ data }) => {
               <div key={idx} style={{ marginBottom: 14 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                   <div style={{ fontWeight: 700 }}>{w.jobTitle}</div>
-                  <div style={{ color: '#6b7280', fontWeight: 700 }}>{w.startDate ? formatMonthYear(w.startDate) : ''} {w.currentlyWorking ? '— Present' : (w.endDate ? `— ${formatMonthYear(w.endDate)}` : '')}</div>
+                  <div style={{ color: '#000', fontWeight: 400 }}>{w.startDate ? formatMonthYear(w.startDate) : ''} {w.currentlyWorking ? '— Present' : (w.endDate ? `— ${formatMonthYear(w.endDate)}` : '')}</div>
                 </div>
                 <div style={{ color: '#000', marginTop: 4, fontWeight: 700 }}>{w.companyName}</div>
                 {w.description && (
@@ -107,9 +107,9 @@ const Template20Display: React.FC<Template20DisplayProps> = ({ data }) => {
                   <div style={{ fontWeight: 800, color: '#000' }}>{edu.degree}{(edu.startYear || edu.endYear) ? ` ${edu.startYear ? formatYear(edu.startYear) : ''} | ${edu.endYear ? formatYear(edu.endYear) : ''}` : ''}</div>
                   <div style={{ color: '#000', fontWeight: 800, fontFamily: "'Times New Roman', Times, serif" }}>{edu.endYear ? `Graduated: ${String(edu.endYear).match(/(\d{4})/)?.[1]}` : ''}</div>
                 </div>
-                <div style={{ color: '#444', marginTop: 6 }}>{edu.instituteName}</div>
+                <div style={{ color: '#000', marginTop: 6 }}>{edu.instituteName}</div>
                 {edu.resultFormat && edu.result ? (
-                  <div style={{ marginTop: 6, color: '#515157ff', fontWeight: 700 }}>{edu.resultFormat}: {edu.result}</div>
+                  <div style={{ marginTop: 6, color: '#000' }}>{edu.resultFormat}: {edu.result}</div>
                 ) : null}
                 {edu.description && (
                   <ul style={{ marginTop: 8, paddingLeft: 18 }}>

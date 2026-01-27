@@ -59,7 +59,7 @@ const renderBulletedParagraph = (html?: string) => {
       {lines.map((line, idx) => (
         <View key={idx} style={{ flexDirection: 'row', marginTop: idx > 0 ? 2 : 0 }}>
           <Text style={{ width: 12, flexShrink: 0, color: '#444', fontSize: 10 }}>
-            {line.startsWith('•') ? '•' : ''}
+            •
           </Text>
           <Text style={{ flex: 1, color: '#444', fontSize: 10 }}>
             {line.startsWith('•') ? line.substring(1).trim() : line}
@@ -142,7 +142,7 @@ const Template20PDF: React.FC<Template20PDFProps> = ({ data }) => {
               <View key={i} style={{ marginBottom: 10 }}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                   <Text style={{ fontFamily: 'Times-Bold' }}>{w.jobTitle}</Text>
-                  <Text style={{ color: '#000', fontFamily: 'Times-Bold' }}>{w.startDate ? formatMonthYear(w.startDate) : ''} {w.currentlyWorking ? '— Present' : (w.endDate ? `— ${formatMonthYear(w.endDate)}` : '')}</Text>
+                  <Text style={{ color: '#000' }}>{w.startDate ? formatMonthYear(w.startDate) : ''} {w.currentlyWorking ? '— Present' : (w.endDate ? `— ${formatMonthYear(w.endDate)}` : '')}</Text>
                 </View>
                 <Text style={{ marginTop: 4, fontFamily: 'Times-Bold', color: '#000' }}>{w.companyName}</Text>
                 {w.description && renderBulletedParagraph(w.description)}
@@ -163,9 +163,9 @@ const Template20PDF: React.FC<Template20PDFProps> = ({ data }) => {
                   <Text style={{ fontFamily: 'Times-Bold' }}>{edu.degree}{(edu.startYear || edu.endYear) ? ` ${formatYear(edu.startYear)} | ${formatYear(edu.endYear)}` : ''}</Text>
                   <Text style={{ fontSize: 11, color: '#000', fontFamily: 'Times-Bold' }}>{edu.endYear ? `Graduated: ${formatYear(edu.endYear)}` : ''}</Text>
                 </View>
-                <Text style={{ fontSize: 11, color: '#444', marginTop: 6 }}>{edu.instituteName}</Text>
+                <Text style={{ fontSize: 11, color: '#000', marginTop: 6 }}>{edu.instituteName}</Text>
                 {edu.resultFormat && edu.result ? (
-                  <Text style={{ fontSize: 11, color: '#0f0f0fff', fontFamily: 'Times-Bold', marginTop: 6 }}>{edu.resultFormat}: {edu.result}</Text>
+                  <Text style={{ fontSize: 11, color: '#000', marginTop: 6 }}>{edu.resultFormat}: {edu.result}</Text>
                 ) : null}
                 {edu.description && renderBulletedParagraph(edu.description)}
               </View>
