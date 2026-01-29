@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api";
+import { checkCoupon } from "../services/couponService";
 import { Eye, EyeOff } from "lucide-react";
 import Bowizzy from "../assets/bowizzy.png";
 
@@ -17,11 +18,15 @@ export default function Register() {
   const [dateOfBirth, setDateOfBirth] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [coupon, setCoupon] = useState("");
+  const [couponStatus, setCouponStatus] = useState(""); // "valid" | "invalid" | ""
+  const [couponMessage, setCouponMessage] = useState("");
+  const [checkingCoupon, setCheckingCoupon] = useState(false);
   const [agree, setAgree] = useState(false);
   const [formError, setFormError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [errors, setErrors] = useState<RegisterErrors>({});
+  
   const [loading, setLoading] = useState(false);
 
   type RegisterErrors = {
@@ -35,6 +40,7 @@ export default function Register() {
     password?: string;
     confirmPassword?: string;
   };
+  const [errors, setErrors] = useState<RegisterErrors>({});
 
   const setFieldError = (field, message) => {
     setErrors((prev) => ({ ...prev, [field]: message }));
@@ -66,6 +72,38 @@ export default function Register() {
       pwd
     );
   };
+  const handleCouponCheck = async () => {
+    if (!coupon.trim()) {
+      setCouponStatus("invalid");
+      setCouponMessage("Please enter coupon code");
+      return;
+    }
+
+    try {
+      setCheckingCoupon(true);
+      setCouponStatus("");
+      setCouponMessage("");
+
+      const res = await checkCoupon(coupon);
+
+      // if success
+      if (res.exists) {
+        setCouponStatus("valid");
+        setCouponMessage("Coupon code valid");
+      } else {
+        setCouponStatus("invalid");
+        setCouponMessage("Coupon code not valid");
+      }
+    } catch (err) {
+      setCouponStatus("invalid");
+      setCouponMessage(
+        err?.response?.data?.message || "Invalid coupon"
+      );
+    } finally {
+      setCheckingCoupon(false);
+    }
+  };
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -96,6 +134,35 @@ export default function Register() {
       return setFormError("Invalid LinkedIn identifier.");
 
     try {
+      // If a coupon was entered but not checked/validated yet, validate it now
+      if (coupon && coupon.trim()) {
+        if (couponStatus !== "valid") {
+          try {
+            setCheckingCoupon(true);
+            const couponRes = await checkCoupon(coupon);
+
+            if (!couponRes.exists) {
+              setCouponStatus("invalid");
+              setCouponMessage("Coupon code not valid");
+              setFormError("Coupon code not valid.");
+              setLoading(false);
+              return;
+            } else {
+              setCouponStatus("valid");
+              setCouponMessage("Coupon code valid");
+            }
+          } catch (err) {
+            setCouponStatus("invalid");
+            setCouponMessage(err?.response?.data?.message || "Invalid coupon");
+            setFormError("Coupon code not valid.");
+            setLoading(false);
+            return;
+          } finally {
+            setCheckingCoupon(false);
+          }
+        }
+      }
+
       await api.post("/auth", {
         type: "signup",
         email,
@@ -107,6 +174,7 @@ export default function Register() {
         date_of_birth: dateOfBirth,
         linkedin_url: `https://www.linkedin.com/in/${linkedinUsername}`,
         gender,
+        coupon_code: coupon,
       });
 
       navigate("/login");
@@ -404,6 +472,44 @@ export default function Register() {
                   </p>
                 )}
               </div>
+              {/* COUPON */}
+              <div className="col-span-12">
+                <label>Coupon Code</label>
+
+                <div className="flex gap-2 mt-2">
+                  <input
+                    value={coupon}
+                    onChange={(e) => {
+                      setCoupon(e.target.value);
+                      setCouponStatus("");
+                      setCouponMessage("");
+                    }}
+                    className="w-full px-4 py-3 border rounded-lg"
+                    placeholder="Enter coupon code"
+                  />
+
+                  <button
+                    type="button"
+                    onClick={handleCouponCheck}
+                    disabled={checkingCoupon}
+                    className={`px-4 py-3 rounded-lg text-white font-medium ${checkingCoupon ? "bg-gray-400 cursor-not-allowed" : "bg-orange-500"
+                      }`}
+                  >
+                    {checkingCoupon ? "Checking..." : "Check"}
+                  </button>
+                </div>
+
+                {couponMessage && (
+                  <p
+                    className={`text-sm mt-2 ${couponStatus === "valid" ? "text-green-600" : "text-red-500"
+                      }`}
+                  >
+                    {couponMessage}
+                  </p>
+                )}
+              </div>
+
+
             </div>
 
             {formError && <p className="text-red-500 text-sm">{formError}</p>}
@@ -426,7 +532,7 @@ export default function Register() {
               disabled={!agree || loading}
               className={`w-full py-3 rounded-lg text-white font-medium flex items-center justify-center ${
                 agree ? "bg-gray-700" : "bg-gray-300 cursor-not-allowed"
-              } ${loading ? "opacity-60 cursor-not-allowed" : ""}`}
+                } ${loading ? "opacity-60 cursor-not-allowed" : ""}`}
             >
               {loading ? (
                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
