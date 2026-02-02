@@ -67,6 +67,7 @@ const isAuthenticated = () => {
   }
 };
 
+// Only show Profile & My resumes for now. Remaining items are hidden as requested. (okna)
 const careerMap = [
   {
     href: "/profile",
@@ -78,39 +79,40 @@ const careerMap = [
     icon: <FileArchive color="#3B3B3B" size={16} />,
     label: "My resumes",
   },
-  {
-    href: "/interview-prep",
-    icon: <Video color="#3B3B3B" size={16} />,
-    label: "Interview Prep",
-  },
-  {
-    href: "/profile",
-    icon: <Phone color="#3B3B3B" size={16} />,
-    label: "Career guidance",
-  },
-  {
-    href: "/linkedin-optimization",
-    icon: <Linkedin color="#3B3B3B" size={16} />,
-    label: "LinkedIn optimization",
-  },
+  // {
+  //   href: "/interview-prep",
+  //   icon: <Video color="#3B3B3B" size={16} />,
+  //   label: "Interview Prep",
+  // },
+  // {
+  //   href: "/profile",
+  //   icon: <Phone color="#3B3B3B" size={16} />,
+  //   label: "Career guidance",
+  // },
+  // {
+  //   href: "/linkedin-optimization",
+  //   icon: <Linkedin color="#3B3B3B" size={16} />,
+  //   label: "LinkedIn optimization",
+  // },
 ];
 
+// All Bowizzy items hidden for now as requested.
 const bowizzy = [
-  {
-    href: "/digital-product",
-    icon: <Box color="#3B3B3B" size={16} />,
-    label: "Digital product",
-  },
-  {
-    href: "/premium",
-    icon: <Crown color="#3B3B3B" size={16} />,
-    label: "Go premium",
-  },
-  {
-    href: "/feeedback",
-    icon: <MessageSquare color="#3B3B3B" size={16} />,
-    label: "Feedback",
-  },
+  // {
+  //   href: "/digital-product",
+  //   icon: <Box color="#3B3B3B" size={16} />,
+  //   label: "Digital product",
+  // },
+  // {
+  //   href: "/premium",
+  //   icon: <Crown color="#3B3B3B" size={16} />,
+  //   label: "Go premium",
+  // },
+  // {
+  //   href: "/feeedback",
+  //   icon: <MessageSquare color="#3B3B3B" size={16} />,
+  //   label: "Feedback",
+  // },
 ];
 
 function LayoutWrapper({ children }: { children: React.ReactNode }) {
@@ -162,6 +164,7 @@ function LayoutWrapper({ children }: { children: React.ReactNode }) {
           </SidebarGroupContent>
         </SidebarGroup>
 
+        {/*
         <SidebarGroup>
           <SidebarGroupLabel className="p-5">Bowizzy</SidebarGroupLabel>
           <SidebarGroupContent>
@@ -183,6 +186,7 @@ function LayoutWrapper({ children }: { children: React.ReactNode }) {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+        */}
 
         <SidebarFooter className="mt-auto mb-4">
           <SidebarMenuButton
