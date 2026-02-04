@@ -222,9 +222,13 @@ export default function SkillsLinksDetailsForm({
 
     if (field === "skillName") {
       const error = validateSkillName(value);
-      setErrors((prev) => ({ ...prev, [`skill-${index}-skillName`]: error }));
+      setErrors((prev) => {
+        const next = { ...prev, [`skill-${index}-skillName`]: error };
+        if (value.trim()) delete next.skills;
+        return next;
+      });
     }
-  };
+  }; 
 
   // Handler for saving all skills in bulk (individual PUT/POST based on change tracking)
   const handleSaveAllSkills = async () => {
@@ -407,10 +411,13 @@ export default function SkillsLinksDetailsForm({
     // Validation
     if (field === "linkedinProfile") {
       const error = validateUrl(value, "LinkedIn");
-      setErrors((prev) => ({
-        ...prev,
-        [`link-${linkIndex}-linkedinProfile`]: error,
-      }));
+      setErrors((prev) => {
+        const next = { ...prev, [`link-${linkIndex}-linkedinProfile`]: error };
+        if (value.trim()) {
+          delete next.linkedinProfile; // clear any global 'missing' error
+        }
+        return next;
+      });
     } else if (field === "githubProfile") {
       const error = validateUrl(value, "GitHub");
       setErrors((prev) => ({
@@ -430,7 +437,7 @@ export default function SkillsLinksDetailsForm({
         [`link-${linkIndex}-publicationUrl`]: error,
       }));
     }
-  };
+  }; 
 
   // Helper to clear single link input field
   const clearLinkField = (linkIndex: number, field: string) => {
@@ -599,6 +606,27 @@ export default function SkillsLinksDetailsForm({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Require at least one skill
+    const hasSkill = skills.some((s) => s.skillName && s.skillName.trim());
+    if (!hasSkill) {
+      setErrors((prev) => ({ ...prev, skills: "At least one skill is required" }));
+      setSkillsExpanded(true);
+      const firstSkill = document.querySelector('#skills-links-details-form-root input[aria-required="true"]') as HTMLInputElement | null;
+      if (firstSkill) firstSkill.focus();
+      return;
+    }
+
+    // Require LinkedIn profile (at least one) when Links are present
+    const hasLinkedIn = links.some((l) => l.linkedinProfile && l.linkedinProfile.trim());
+    if (!hasLinkedIn) {
+      // attach error to the first link linkedin field so UI shows under the input
+      setErrors((prev) => ({ ...prev, [`link-0-linkedinProfile`]: "LinkedIn Profile is required" }));
+      setLinksExpanded(true);
+      const ln = document.querySelector('#skills-links-details-form-root input[placeholder^="Enter LinkedIn"]') as HTMLInputElement | null;
+      if (ln) ln.focus();
+      return;
+    }
+
     if (hasUnsavedChanges) {
       Object.keys(skillChanges).forEach((id) => {
         setSkillFeedback((prev) => ({
@@ -663,7 +691,7 @@ export default function SkillsLinksDetailsForm({
     return (
       <div key={fieldName} className={isTextArea ? "sm:col-span-2" : ""}>
         <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5">
-          {label}
+          {label} {fieldName === "linkedinProfile" && <span className="text-red-500">*</span>}
         </label>
         {isDescriptionField ? (
           <RichTextEditor
@@ -682,6 +710,9 @@ export default function SkillsLinksDetailsForm({
               onChange={(e) =>
                 handleLinkChange(linkIndex, fieldName as string, e.target.value)
               }
+              required={fieldName === "linkedinProfile"}
+              aria-required={fieldName === "linkedinProfile"}
+              aria-invalid={!!errors[`link-${linkIndex}-${fieldName}`]}
               placeholder={`Enter ${label}...`}
               className={`w-full px-3 py-2 sm:py-2.5 border rounded-lg focus:outline-none focus:ring-2 text-xs sm:text-sm pr-8 ${
                 errors[`link-${linkIndex}-${fieldName}`]
@@ -758,7 +789,7 @@ export default function SkillsLinksDetailsForm({
           {/* Skills Header */}
           <div className="flex items-center justify-between px-4 sm:px-5 md:px-6 py-3 md:py-4 border-b border-gray-200">
             <h3 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900">
-              Skills
+              Skills <span className="text-red-500">*</span>
             </h3>
             <div className="flex gap-2 items-center">
               {/* SAVE BUTTON FOR SKILLS (Moved to Header) */}
@@ -849,9 +880,11 @@ export default function SkillsLinksDetailsForm({
                                   e.target.value
                                 )
                               }
+                              aria-required={true}
+                              aria-invalid={!!(errors[`skill-${index}-skillName`] || errors.skills)}
                               placeholder="Enter Skill Name..."
                               className={`w-full px-3 py-2 sm:py-2.5 border rounded-lg focus:outline-none focus:ring-2 text-xs sm:text-sm pr-8 ${
-                                errors[`skill-${index}-skillName`]
+                                (errors[`skill-${index}-skillName`] || errors.skills)
                                   ? "border-red-500 focus:ring-red-400"
                                   : "border-gray-300 focus:ring-orange-400 focus:border-transparent"
                               }`}
@@ -914,6 +947,10 @@ export default function SkillsLinksDetailsForm({
                     </div>
                   );
                 })}
+
+                {errors.skills && (
+                  <p className="mt-1 text-xs text-red-500">{errors.skills}</p>
+                )}
 
                 {/* Add Skill Button */}
                 <button

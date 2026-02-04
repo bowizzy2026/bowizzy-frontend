@@ -249,8 +249,17 @@ export default function ExperienceDetailsForm({
 
   // Handler for Job Role change
   const handleJobRoleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setJobRole(e.target.value);
-  };
+    const val = e.target.value;
+    setJobRole(val);
+    if (val.trim()) {
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next.jobRole;
+        return next;
+      });
+      setJobRoleFeedback("");
+    }
+  }; 
 
   // Handler for saving Job Role (PUT call to new endpoint)
   const handleSaveJobRole = async () => {
@@ -652,6 +661,16 @@ export default function ExperienceDetailsForm({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Ensure Job Role is provided when visible
+    if (!hideJobRole && !jobRole.trim()) {
+      setErrors((prev) => ({ ...prev, jobRole: "Job Role is required" }));
+      setJobRoleFeedback("Job Role is required");
+      setJobRoleExpanded(true);
+      const sel = document.querySelector('#experience-details-form-root select[aria-required="true"]') as HTMLSelectElement | null;
+      if (sel) sel.focus();
+      return;
+    }
+
     if (hasUnsavedChanges) {
       setJobRoleFeedback(
         jobRoleChanged
@@ -1040,7 +1059,7 @@ export default function ExperienceDetailsForm({
           {/* Header */}
           <div className="flex items-center justify-between px-4 sm:px-5 md:px-6 py-3 md:py-4 border-b border-gray-200">
             <h3 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900">
-              Job Role*
+              Job Role <span className="text-red-500">*</span>
             </h3>
             <div className="flex gap-2 items-center">
               {jobRoleChanged && (
@@ -1102,34 +1121,30 @@ export default function ExperienceDetailsForm({
               </p>
               <div>
                 <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5">
-                  Job Role
+                  Job Role <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <select
                     value={jobRole}
                     onChange={handleJobRoleChange}
-                    className="w-full px-3 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent text-xs sm:text-sm appearance-none bg-white pr-8"
+                    required
+                    aria-required="true"
+                    aria-invalid={!!errors.jobRole}
+                    className={`w-full px-3 py-2 sm:py-2.5 border rounded-lg focus:outline-none ${errors.jobRole ? 'border-red-300 ring-2 ring-red-100' : 'border-gray-300 focus:ring-2 focus:ring-orange-400 focus:border-transparent'} text-xs sm:text-sm appearance-none bg-white pr-8`}
                   >
                     <option value="">Select Job Role</option>
                     <option value="Software Engineer">Software Engineer</option>
-                    <option value="Software Developer">
-                      Software Developer
-                    </option>
-                    <option value="Senior Software Engineer">
-                      Senior Software Engineer
-                    </option>
-                    <option value="Full Stack Developer">
-                      Full Stack Developer
-                    </option>
-                    <option value="Frontend Developer">
-                      Frontend Developer
-                    </option>
+                    <option value="Software Developer">Software Developer</option>
+                    <option value="Senior Software Engineer">Senior Software Engineer</option>
+                    <option value="Full Stack Developer">Full Stack Developer</option>
+                    <option value="Frontend Developer">Frontend Developer</option>
                     <option value="Backend Developer">Backend Developer</option>
                     <option value="DevOps Engineer">DevOps Engineer</option>
                     <option value="Data Scientist">Data Scientist</option>
                     <option value="Product Manager">Product Manager</option>
                     <option value="UI/UX Designer">UI/UX Designer</option>
                   </select>
+                  {errors.jobRole && <p className="mt-1 text-xs text-red-500">{errors.jobRole}</p>}
                   <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                 </div>
               </div>

@@ -608,6 +608,9 @@ export default function PersonalDetailsForm({
           <p className="text-xs sm:text-sm text-gray-600">
             Add your personal information and contact details
           </p>
+          <p className="text-xs text-gray-500 mb-2">
+            <span className="text-red-500">*</span> Required fields
+          </p>
         </div>
 
         <div className="bg-white border border-gray-200 rounded-xl mb-4 md:mb-5 overflow-hidden">
@@ -864,7 +867,7 @@ export default function PersonalDetailsForm({
         <div className="bg-white border border-gray-200 rounded-xl mb-4 md:mb-5 overflow-visible">
           <div className="flex items-center justify-between px-4 sm:px-5 md:px-6 py-3 md:py-4 border-b border-gray-200">
             <h3 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900">
-              Languages Known
+              Languages Known <span className="text-red-500">*</span>
             </h3>
             <div className="flex gap-2 items-center">
               {languagesChanged && (
@@ -1040,7 +1043,7 @@ export default function PersonalDetailsForm({
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                 <div className="sm:col-span-2 lg:col-span-3">
                   <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5">
-                    Address
+                    Address <span className="text-red-500">*</span>
                   </label>
                   <textarea
                     name="address"
@@ -1061,7 +1064,7 @@ export default function PersonalDetailsForm({
 
                 <div>
                   <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5">
-                    Country
+                    Country <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <select
@@ -1082,7 +1085,7 @@ export default function PersonalDetailsForm({
 
                 <div>
                   <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5">
-                    State
+                    State <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <select
@@ -1103,7 +1106,7 @@ export default function PersonalDetailsForm({
 
                 <div>
                   <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5">
-                    City
+                    City <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <select
@@ -1124,7 +1127,7 @@ export default function PersonalDetailsForm({
 
                 <div>
                   <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5">
-                    Pincode
+                    Pincode <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -1147,7 +1150,7 @@ export default function PersonalDetailsForm({
 
                 <div>
                   <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5">
-                    Nationality
+                    Nationality <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <select

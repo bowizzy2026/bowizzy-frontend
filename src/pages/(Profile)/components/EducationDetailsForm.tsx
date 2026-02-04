@@ -1118,7 +1118,11 @@ export default function EducationDetailsForm({
       >
         <div className="flex items-center justify-between px-4 sm:px-5 md:px-6 py-3 md:py-4 border-b border-gray-200">
           <h3 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900">
-            {isExtra ? `Higher Education ${index + 1}` : "Higher Education*"}
+            {isExtra ? `Higher Education ${index + 1}` : (
+              <>
+                Higher Education<span className="text-red-500">*</span>
+              </>
+            )}
           </h3>
           <div className="flex gap-2 items-center">
             {changed && (
@@ -1432,7 +1436,7 @@ export default function EducationDetailsForm({
         <div className="bg-white border border-gray-200 rounded-xl mb-4 md:mb-5 overflow-hidden">
           <div className="flex items-center justify-between px-4 sm:px-5 md:px-6 py-3 md:py-4 border-b border-gray-200">
             <h3 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900">
-              SSLC (10th Standard)*
+              SSLC (10th Standard)<span className="text-red-500">*</span>
             </h3>
             <div className="flex gap-2 items-center">
               {sslcChanged && (
@@ -1593,7 +1597,7 @@ export default function EducationDetailsForm({
         <div className="bg-white border border-gray-200 rounded-xl mb-4 md:mb-5 overflow-hidden">
           <div className="flex items-center justify-between px-4 sm:px-5 md:px-6 py-3 md:py-4 border-b border-gray-200">
             <h3 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900">
-              Pre-university (12th Standard)*
+              Pre-university (12th Standard)<span className="text-red-500">*</span>
             </h3>
             <div className="flex gap-2 items-center">
               {puChanged && (
