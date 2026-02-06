@@ -72,6 +72,7 @@ export default function PersonalDetailsForm({
   const [loadingCountries, setLoadingCountries] = useState(false);
   const [loadingStates, setLoadingStates] = useState(false);
   const [loadingCities, setLoadingCities] = useState(false);
+
     // Fetch countries on mount
     useEffect(() => {
       setLoadingCountries(true);
@@ -82,6 +83,45 @@ export default function PersonalDetailsForm({
         .catch(() => setCountryOptions([]))
         .finally(() => setLoadingCountries(false));
     }, []);
+
+    // Fetch states and cities when initial data has values
+    useEffect(() => {
+      if (initialLocation.current.country && countryOptions.length > 0 && stateOptions.length === 0) {
+        const selectedCountry = countryOptions.find(
+          (c) => c.name === initialLocation.current.country || c.isoCode === initialLocation.current.country
+        );
+        if (!selectedCountry) return;
+        
+        setLoadingStates(true);
+        fetchStates(selectedCountry.isoCode)
+          .then((data) => {
+            setStateOptions(data || []);
+          })
+          .catch(() => setStateOptions([]))
+          .finally(() => setLoadingStates(false));
+      }
+    }, [countryOptions]);
+
+    // Fetch cities when states are loaded and initial city data exists
+    useEffect(() => {
+      if (initialLocation.current.state && stateOptions.length > 0 && cityOptions.length === 0) {
+        const selectedCountry = countryOptions.find(
+          (c) => c.name === initialLocation.current.country || c.isoCode === initialLocation.current.country
+        );
+        const selectedState = stateOptions.find(
+          (s) => s.name === initialLocation.current.state || s.isoCode === initialLocation.current.state
+        );
+        if (!selectedCountry || !selectedState) return;
+        
+        setLoadingCities(true);
+        fetchCities(selectedCountry.isoCode, selectedState.isoCode)
+          .then((data) => {
+            setCityOptions(data || []);
+          })
+          .catch(() => setCityOptions([]))
+          .finally(() => setLoadingCities(false));
+      }
+    }, [stateOptions, countryOptions]);
 
     // Fetch states when country changes
     useEffect(() => {
@@ -102,7 +142,10 @@ export default function PersonalDetailsForm({
         .catch(() => setStateOptions([]))
         .finally(() => setLoadingStates(false));
       setCityOptions([]);
-      setFormData((prev) => ({ ...prev, state: "", city: "" }));
+      // Don't reset state and city if they already have values from initialData
+      if (!formData.state && !initialLocation.current.state) {
+        setFormData((prev) => ({ ...prev, state: "", city: "" }));
+      }
     }, [formData.country, countryOptions]);
 
     // Fetch cities when state changes
@@ -125,7 +168,10 @@ export default function PersonalDetailsForm({
         })
         .catch(() => setCityOptions([]))
         .finally(() => setLoadingCities(false));
-      setFormData((prev) => ({ ...prev, city: "" }));
+      // Don't reset city if it already has a value from initialData
+      if (!formData.city && !initialLocation.current.city) {
+        setFormData((prev) => ({ ...prev, city: "" }));
+      }
     }, [formData.state, formData.country, countryOptions, stateOptions]);
   const [newLanguage, setNewLanguage] = useState("");
   const [personalDetailsExpanded, setPersonalDetailsExpanded] = useState(true);
