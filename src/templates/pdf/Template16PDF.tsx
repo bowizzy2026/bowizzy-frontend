@@ -4,13 +4,13 @@ import { Document, Page, View, Text, StyleSheet } from '@react-pdf/renderer';
 import type { ResumeData } from '@/types/resume';
 
 const styles = StyleSheet.create({
-  page: { paddingTop: 24, paddingBottom: 24, paddingLeft: 36, paddingRight: 36, fontSize: 10, fontFamily: 'Times-Roman' },
+  page: { paddingTop: 24, paddingBottom: 24, paddingLeft: 36, paddingRight: 36, fontSize: 10 },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 },
-  name: { fontSize: 22, fontFamily: 'Times-Bold', color: '#111827' },
-  role: { fontSize: 11, color: '#000', marginTop: 4, fontFamily: 'Times-Bold' },
+  name: { fontSize: 22, color: '#111827' },
+  role: { fontSize: 11, marginTop: 4 },
   contact: { fontSize: 10, color: '#6b7280', textAlign: 'right' },
-  sectionHeading: { fontSize: 11, fontFamily: 'Times-Bold', letterSpacing: 1.2, textTransform: 'uppercase', color: '#111827' },
-  itemTitle: { fontSize: 11, fontFamily: 'Times-Bold' },
+  sectionHeading: { fontSize: 11, letterSpacing: 1.2, textTransform: 'uppercase' },
+  itemTitle: { fontSize: 11 },
   itemSub: { fontSize: 10, color: '#6b7280' },
   bullet: { fontSize: 10, color: '#444', marginTop: 4 },
 });
@@ -102,10 +102,37 @@ const getStarsByLevel = (skillLevel?: string): string => {
   return '*****';
 };
 
-interface Template16PDFProps { data: ResumeData }
+interface Template16PDFProps { data: ResumeData; primaryColor?: string; fontFamily?: string }
 
-const Template16PDF: React.FC<Template16PDFProps> = ({ data }) => {
+const Template16PDF: React.FC<Template16PDFProps> = ({ data, primaryColor = '#111827', fontFamily = 'Times-Roman, serif' }) => {
   const { personal, experience, education, projects, skillsLinks, certifications } = data;
+
+  const getPdfFontFamily = (cssFont?: string): string => {
+    if (!cssFont) return 'Times-Roman';
+    const fontLower = cssFont.toLowerCase();
+    if (fontLower.includes('arial')) return 'Helvetica';
+    if (fontLower.includes('times')) return 'Times-Roman';
+    if (fontLower.includes('georgia')) return 'Times-Roman';
+    if (fontLower.includes('calibri')) return 'Helvetica';
+    if (fontLower.includes('roboto')) return 'Helvetica';
+    if (fontLower.includes('inter')) return 'Helvetica';
+    return 'Times-Roman';
+  };
+
+  const getPdfFontFamilyBold = (cssFont?: string): string => {
+    if (!cssFont) return 'Times-Bold';
+    const fontLower = cssFont.toLowerCase();
+    if (fontLower.includes('arial')) return 'Helvetica-Bold';
+    if (fontLower.includes('times')) return 'Times-Bold';
+    if (fontLower.includes('georgia')) return 'Times-Bold';
+    if (fontLower.includes('calibri')) return 'Helvetica-Bold';
+    if (fontLower.includes('roboto')) return 'Helvetica-Bold';
+    if (fontLower.includes('inter')) return 'Helvetica-Bold';
+    return 'Times-Bold';
+  };
+
+  const pdfFontFamily = getPdfFontFamily(fontFamily);
+  const pdfFontFamilyBold = getPdfFontFamilyBold(fontFamily);
   const role = (experience && (experience as any).jobRole) || (experience.workExperiences && experience.workExperiences.find((w: any) => w.enabled && w.jobTitle) && experience.workExperiences.find((w: any) => w.enabled && w.jobTitle).jobTitle) || '';
 
   const addressLine = personal.address && String(personal.address).split(',')[0];
@@ -117,8 +144,8 @@ const Template16PDF: React.FC<Template16PDFProps> = ({ data }) => {
       <Page size="A4" style={styles.page}>
         <View style={styles.headerRow}>
           <View>
-            <Text style={styles.name}>{personal.firstName} {(personal.middleName || '')} {personal.lastName}</Text>
-            {role && <Text style={styles.role}>{role}</Text>}
+            <Text style={{ ...styles.name, fontFamily: pdfFontFamilyBold, color: primaryColor }}>{personal.firstName} {(personal.middleName || '')} {personal.lastName}</Text>
+            {role && <Text style={{ ...styles.role, fontFamily: pdfFontFamily, color: primaryColor }}>{role}</Text>}
             <View style={{ marginTop: 6 }}>
               {addressLine && <Text style={{ fontSize: 10, color: '#000' }}>{addressLine}</Text>}
               {phone && <Text style={{ fontSize: 10, color: '#000' }}>{phone}</Text>}
@@ -130,24 +157,24 @@ const Template16PDF: React.FC<Template16PDFProps> = ({ data }) => {
         </View>
 
         <View style={{ marginTop: 12 }}>
-          <Text style={styles.sectionHeading}>Summary</Text>
-          <View style={{ height: 1, backgroundColor: '#ddd', width: '100%', marginTop: 4, marginBottom: 0 }} />
+          <Text style={{ ...styles.sectionHeading, fontFamily: pdfFontFamilyBold, color: primaryColor }}>Summary</Text>
+          <View style={{ height: 1, backgroundColor: primaryColor, width: '100%', marginTop: 4, marginBottom: 0 }} />
         </View>
         {personal.aboutCareerObjective ? htmlToPlainText(personal.aboutCareerObjective).split('\n').map((ln, idx) => (
           <Text key={idx} style={{ fontSize: 10, color: '#444', marginTop: idx === 0 ? 6 : 4 }}>{ln}</Text>
         )) : null}
 
         <View style={{ marginTop: 12 }}>
-          <Text style={styles.sectionHeading}>Experience</Text>
-          <View style={{ height: 1, backgroundColor: '#ddd', width: '100%', marginTop: 4, marginBottom: 0 }} />
+          <Text style={{ ...styles.sectionHeading, fontFamily: pdfFontFamilyBold, color: primaryColor }}>Experience</Text>
+          <View style={{ height: 1, backgroundColor: primaryColor, width: '100%', marginTop: 4, marginBottom: 0 }} />
         </View>
 
         <View style={{ marginTop: 8 }}>
           {experience.workExperiences.filter((w: any) => w.enabled).map((w: any, i: number) => (
             <View key={i} style={{ marginBottom: 8 }}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                <Text style={styles.itemTitle}>{w.jobTitle} — {w.companyName}{w.location ? `, ${w.location}` : ''}</Text>
-                <Text style={{ ...styles.itemSub, color: '#000' }}>{formatMonthYear(w.startDate)} — {w.currentlyWorking ? 'Present' : formatMonthYear(w.endDate)}</Text>
+                <Text style={{ ...styles.itemTitle, fontFamily: pdfFontFamilyBold }}>{w.jobTitle} — {w.companyName}{w.location ? `, ${w.location}` : ''}</Text>
+                <Text style={{ ...styles.itemSub, fontFamily: pdfFontFamilyBold, color: '#000' }}>{formatMonthYear(w.startDate)} — {w.currentlyWorking ? 'Present' : formatMonthYear(w.endDate)}</Text>
               </View>
               {w.description && renderBulletedParagraph(w.description)}
             </View>
@@ -165,8 +192,8 @@ const Template16PDF: React.FC<Template16PDFProps> = ({ data }) => {
               {projects.filter((p: any) => p.enabled).map((p: any, i: number) => (
                 <View key={i} style={{ marginBottom: 8 }}>
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                    <Text style={styles.itemTitle}>{p.projectTitle}</Text>
-                    <Text style={{ ...styles.itemSub, color: '#000' }}>{formatMonthYear(p.startDate)} — {p.currentlyWorking ? 'Present' : formatMonthYear(p.endDate)}</Text>
+                        <Text style={{ ...styles.itemTitle, fontFamily: pdfFontFamilyBold }}>{p.projectTitle}</Text>
+                        <Text style={{ ...styles.itemSub, fontFamily: pdfFontFamilyBold, color: '#000' }}>{formatMonthYear(p.startDate)} — {p.currentlyWorking ? 'Present' : formatMonthYear(p.endDate)}</Text>
                   </View>
                   {p.description && renderBulletedParagraph(p.description)}
                 </View>

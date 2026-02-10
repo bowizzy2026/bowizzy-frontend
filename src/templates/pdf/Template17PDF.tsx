@@ -4,12 +4,12 @@ import { Document, Page, View, Text, StyleSheet, Svg, Path } from '@react-pdf/re
 import type { ResumeData } from '@/types/resume';
 
 const styles = StyleSheet.create({
-  page: { flexDirection: 'row', padding: 0, fontFamily: 'Times-Roman', fontSize: 10 },
+  page: { flexDirection: 'row', padding: 0, fontSize: 10 },
   sidebar: { width: 220, backgroundColor: '#f3f4f6', padding: 18 },
-  name: { fontSize: 20, fontFamily: 'Times-Bold', color: '#0f172a' },
-  role: { fontSize: 11, color: '#000', marginTop: 6, fontFamily: 'Times-Bold' },
-  sectionHeading: { fontSize: 10, fontFamily: 'Times-Bold', letterSpacing: 1.2, textTransform: 'uppercase', color: '#111827' },
-  divider: { height: 1, backgroundColor: '#e5e7eb', marginTop: 6, width: '100%' },
+  name: { fontSize: 20, color: '#0f172a' },
+  role: { fontSize: 11, marginTop: 6 },
+  sectionHeading: { fontSize: 10, letterSpacing: 1.2, textTransform: 'uppercase' },
+  divider: { height: 1, marginTop: 6, width: '100%' },
   content: { flex: 1, padding: 18, paddingLeft: 24 }
 });
 
@@ -48,7 +48,7 @@ const formatYear = (s?: string) => {
   return y ? y[1] : str;
 };
 
-interface Template17PDFProps { data: ResumeData }
+interface Template17PDFProps { data: ResumeData; primaryColor?: string; fontFamily?: string }
 
 const IconEmail = () => (
   <Svg width="12" height="12" viewBox="0 0 24 24" style={{ marginRight: 6 }}>
@@ -86,34 +86,60 @@ const getSkillStars = (level?: string) => {
   }
 };
 
-const Template17PDF: React.FC<Template17PDFProps> = ({ data }) => {
+const Template17PDF: React.FC<Template17PDFProps> = ({ data, primaryColor = '#111827', fontFamily = 'Times-Roman, serif' }) => {
   const { personal, experience, education, projects, skillsLinks, certifications } = data;
+  const getPdfFontFamily = (cssFont?: string): string => {
+    if (!cssFont) return 'Times-Roman';
+    const fontLower = cssFont.toLowerCase();
+    if (fontLower.includes('arial')) return 'Helvetica';
+    if (fontLower.includes('times')) return 'Times-Roman';
+    if (fontLower.includes('georgia')) return 'Times-Roman';
+    if (fontLower.includes('calibri')) return 'Helvetica';
+    if (fontLower.includes('roboto')) return 'Helvetica';
+    if (fontLower.includes('inter')) return 'Helvetica';
+    return 'Times-Roman';
+  };
+
+  const getPdfFontFamilyBold = (cssFont?: string): string => {
+    if (!cssFont) return 'Times-Bold';
+    const fontLower = cssFont.toLowerCase();
+    if (fontLower.includes('arial')) return 'Helvetica-Bold';
+    if (fontLower.includes('times')) return 'Times-Bold';
+    if (fontLower.includes('georgia')) return 'Times-Bold';
+    if (fontLower.includes('calibri')) return 'Helvetica-Bold';
+    if (fontLower.includes('roboto')) return 'Helvetica-Bold';
+    if (fontLower.includes('inter')) return 'Helvetica-Bold';
+    return 'Times-Bold';
+  };
+
+  const pdfFontFamily = getPdfFontFamily(fontFamily);
+  const pdfFontFamilyBold = getPdfFontFamilyBold(fontFamily);
   const role = (experience && (experience as any).jobRole) || (experience.workExperiences && experience.workExperiences.find((w: any) => w.enabled && w.jobTitle) && experience.workExperiences.find((w: any) => w.enabled && w.jobTitle).jobTitle) || '';
 
   return (
     <Document>
       <Page size="A4" style={styles.page}>
         <View style={styles.sidebar}>
-          <Text style={styles.name}>{personal.firstName} {(personal.middleName || '')} {personal.lastName}</Text>
-          {role && <Text style={styles.role}>{role}</Text>}
+          <Text style={{ ...styles.name, fontFamily: pdfFontFamilyBold, color: primaryColor }}>{personal.firstName} {(personal.middleName || '')} {personal.lastName}</Text>
+          {role && <Text style={{ ...styles.role, fontFamily: pdfFontFamily, color: primaryColor }}>{role}</Text>}
 
           <View style={{ marginTop: 12 }}>
-            <Text style={{ fontSize: 11, fontFamily: 'Times-Bold', letterSpacing: 1, color: '#000', marginBottom: 6 }}>DETAILS</Text>
-            <View style={{ height: 1, backgroundColor: '#999', marginBottom: 8 }} />
+            <Text style={{ fontSize: 11, fontFamily: pdfFontFamilyBold, letterSpacing: 1, color: primaryColor, marginBottom: 6 }}>DETAILS</Text>
+            <View style={{ height: 1, backgroundColor: primaryColor, marginBottom: 8 }} />
             {personal.email && <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}><IconEmail /><Text style={{ fontSize: 10, color: '#000' }}>{personal.email}</Text></View>}
             {personal.mobileNumber && <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}><IconPhone /><Text style={{ fontSize: 10, color: '#000' }}>{personal.mobileNumber}</Text></View>}
             {personal.address && <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}><IconLocation /><Text style={{ fontSize: 10, color: '#000' }}>{String(personal.address).split(',')[0]}</Text></View>}
           </View>
 
           <View style={{ marginTop: 18 }}>
-            <Text style={styles.sectionHeading}>Skills</Text>
-            <View style={{ ...styles.divider, backgroundColor: '#999' }} />
+            <Text style={{ ...styles.sectionHeading, fontFamily: pdfFontFamilyBold, color: primaryColor }}>Skills</Text>
+            <View style={{ ...styles.divider, backgroundColor: primaryColor }} />
             { (skillsLinks.skills || []).filter((s:any)=>s.enabled && s.skillName).slice(0,6).map((s:any,i:number)=>(<View key={i} style={{ marginTop: 6, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}><Text style={{ fontSize: 10, color: '#000', flex: 1 }}>• {s.skillName}</Text><Text style={{ fontSize: 10, color: '#000' }}>{getSkillStars(s.skillLevel)}</Text></View>)) }
           </View>
 
           <View style={{ marginTop: 18 }}>
-            <Text style={styles.sectionHeading}>Languages</Text>
-            <View style={{ ...styles.divider, backgroundColor: '#999' }} />
+            <Text style={{ ...styles.sectionHeading, fontFamily: pdfFontFamilyBold, color: primaryColor }}>Languages</Text>
+            <View style={{ ...styles.divider, backgroundColor: primaryColor }} />
             {(((personal as any).languagesKnown || (personal as any).languages || [])).map((l:string,i:number)=>(<Text key={i} style={{ marginTop: 6, fontSize: 10, color: '#000' }}>• {l}</Text>))}
           </View>
 
@@ -133,7 +159,7 @@ const Template17PDF: React.FC<Template17PDFProps> = ({ data }) => {
               {experience.workExperiences.filter((w:any)=>w.enabled).map((w:any,i:number)=>(
                 <View key={i} style={{ marginBottom: 10 }}>
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                    <Text style={{ fontSize: 11, fontFamily: 'Times-Bold' }}>{w.jobTitle}</Text>
+                      <Text style={{ fontSize: 11, fontFamily: pdfFontFamilyBold }}>{w.jobTitle}</Text>
                     <Text style={{ fontSize: 10, color: '#000' }}>{formatMonthYear(w.startDate)} — {w.currentlyWorking ? 'Present' : formatMonthYear(w.endDate)}</Text>
                   </View>
                   <Text style={{ marginTop: 6, color: '#000' }}>{w.companyName}{w.location ? ` — ${w.location}` : ''}</Text>
