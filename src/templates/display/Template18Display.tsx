@@ -2,7 +2,10 @@ import React from 'react';
 import DOMPurify from 'dompurify';
 import type { ResumeData } from '@/types/resume';
 
-interface Template18DisplayProps { data: ResumeData }
+interface Template18DisplayProps { data: ResumeData 
+  fontFamily?: string;
+  primaryColor?: string;
+}
 
 const htmlToLines = (s?: string) => {
   if (!s) return [] as string[];
@@ -48,8 +51,11 @@ const formatMonthYearParts = (s?: string) => {
   return { month: String(s), year: '' };
 };
 
-const Template18Display: React.FC<Template18DisplayProps> = ({ data }) => {
-  const { personal, experience, education, projects, skillsLinks, certifications } = data;
+const Template18Display: React.FC<Template18DisplayProps> = ({
+  data,
+  fontFamily = 'Times New Roman, serif',
+  primaryColor = '#000000',
+}) => {  const { personal, experience, education, projects, skillsLinks, certifications } = data;
   const role = (experience && (experience as any).jobRole) || (experience.workExperiences && experience.workExperiences.find((w: any) => w.enabled && w.jobTitle) && experience.workExperiences.find((w: any) => w.enabled && w.jobTitle).jobTitle) || '';
 
   // Helpers for contact formatting
@@ -81,9 +87,9 @@ const Template18Display: React.FC<Template18DisplayProps> = ({ data }) => {
   const contactLine = [locNat, personal.email, formatMobile(personal.mobileNumber), linkedinLabel].filter(Boolean).join(' | ');
 
   return (
-    <div style={{ width: '210mm', minHeight: '297mm', fontFamily: 'Times New Roman, serif', background: '#fff', padding: 24, boxSizing: 'border-box' }}>
+    <div style={{ width: '210mm', minHeight: '297mm', fontFamily: fontFamily, background: '#fff', padding: 24, boxSizing: 'border-box' }}>
       <header style={{ textAlign: 'center', marginBottom: 18 }}>
-        <h1 style={{ margin: 0, fontSize: 28, letterSpacing: 1, color: '#000' }}>{personal.firstName} {(personal.middleName || '')} {personal.lastName}</h1>
+        <h1 style={{ margin: 0, fontSize: 28, letterSpacing: 1, color: primaryColor }}>{personal.firstName} {(personal.middleName || '')} {personal.lastName}</h1>
         {role && <div style={{ marginTop: 6, color: '#000', fontSize: 12, fontWeight: 800 }}>{role}</div>}
         {contactLine && <div style={{ marginTop: 10, color: '#374151', fontSize: 12 }}>{contactLine}</div>}
       </header>
@@ -91,7 +97,7 @@ const Template18Display: React.FC<Template18DisplayProps> = ({ data }) => {
       <main>
         <section style={{ marginTop: 8 }}>
           <div>
-            <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.2, color: '#111827', fontWeight: 700 }}>Professional Summary</div>
+            <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.2, color: primaryColor, fontWeight: 700 }}>Professional Summary</div>
             <div style={{ height: 1, background: '#ddd', marginTop: 6, width: '100%' }} />
           </div>
           <div style={{ marginTop: 8, color: '#444' }}>{personal.aboutCareerObjective && <div>{DOMPurify.sanitize(personal.aboutCareerObjective).replace(/<[^>]+>/g, '')}</div>}</div>
@@ -99,7 +105,7 @@ const Template18Display: React.FC<Template18DisplayProps> = ({ data }) => {
 
         <section style={{ marginTop: 18 }}>
           <div>
-            <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.2, color: '#111827', fontWeight: 700 }}>Work Experience</div>
+            <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.2, color: primaryColor, fontWeight: 700 }}>Work Experience</div>
             <div style={{ height: 1, background: '#ddd', marginTop: 6, width: '100%' }} />
           </div>
           <div style={{ marginTop: 8 }}>
@@ -133,7 +139,7 @@ const Template18Display: React.FC<Template18DisplayProps> = ({ data }) => {
 
         <section style={{ marginTop: 18 }}>
           <div>
-            <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.2, color: '#111827', fontWeight: 700 }}>Education</div>
+            <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.2, color: primaryColor, fontWeight: 700 }}>Education</div>
             <div style={{ height: 1, background: '#ddd', marginTop: 6, width: '100%' }} />
           </div>
           <div style={{ marginTop: 8 }}>
@@ -173,7 +179,7 @@ const Template18Display: React.FC<Template18DisplayProps> = ({ data }) => {
 
         <section style={{ marginTop: 18 }}>
           <div>
-            <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.2, color: '#111827', fontWeight: 700 }}>Skills</div>
+            <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.2, color: primaryColor, fontWeight: 700 }}>Skills</div>
             <div style={{ height: 1, background: '#ddd', marginTop: 6, width: '100%' }} />
           </div>
           <div style={{ marginTop: 8 }}>
@@ -185,7 +191,7 @@ const Template18Display: React.FC<Template18DisplayProps> = ({ data }) => {
 
         <section style={{ marginTop: 18 }}>
           <div>
-            <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.2, color: '#111827', fontWeight: 700 }}>Certifications</div>
+            <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.2, color: primaryColor, fontWeight: 700 }}>Certifications</div>
             <div style={{ height: 1, background: '#ddd', marginTop: 6, width: '100%' }} />
           </div>
           <div style={{ marginTop: 8 }}>

@@ -2,7 +2,10 @@ import React from 'react';
 import DOMPurify from 'dompurify';
 import type { ResumeData } from '@/types/resume';
 
-interface Template20DisplayProps { data: ResumeData }
+interface Template20DisplayProps { data: ResumeData 
+  fontFamily?: string;
+  primaryColor?: string;
+}
 
 const htmlToLines = (s?: string) => {
   if (!s) return [] as string[];
@@ -31,8 +34,11 @@ const formatMonthYear = (s?: string) => {
   return yr || String(s);
 };
 
-const Template20Display: React.FC<Template20DisplayProps> = ({ data }) => {
-  const { personal, experience, education, certifications, skillsLinks } = data;
+const Template20Display: React.FC<Template20DisplayProps> = ({
+  data,
+  fontFamily = 'Georgia, serif',
+  primaryColor = '#111827',
+}) => {  const { personal, experience, education, certifications, skillsLinks } = data;
 
   const formatMobile = (m?: string) => {
     if (!m) return '';
@@ -51,11 +57,11 @@ const Template20Display: React.FC<Template20DisplayProps> = ({ data }) => {
   const contactItems = [personal.mobileNumber && `Phone: ${formatMobile(personal.mobileNumber)}`, personal.email && `Email: ${personal.email}`, personal.address && `Address: ${personal.address}`, skillsLinks && skillsLinks.links && skillsLinks.links.portfolioUrl && `Portfolio: ${skillsLinks.links.portfolioUrl}`].filter(Boolean);
 
   return (
-    <div style={{ width: '210mm', minHeight: '297mm', fontFamily: 'Georgia, serif', background: '#fff', padding: 24, boxSizing: 'border-box' }}>
+    <div style={{ width: '210mm', minHeight: '297mm', fontFamily: fontFamily, background: '#fff', padding: 24, boxSizing: 'border-box' }}>
       <div style={{ paddingBottom: 12 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h1 style={{ margin: 0, fontFamily: 'Georgia, serif', fontSize: 28 }}>{personal.firstName} {personal.middleName || ''} {personal.lastName}</h1>
-          { (experience && (experience as any).jobRole) && <div style={{ fontSize: 14, color: '#111827', fontFamily: 'monospace' }}>{(experience as any).jobRole}</div> }
+          <h1 style={{ margin: 0, fontFamily: fontFamily, fontSize: 28,color: primaryColor, }}>{personal.firstName} {personal.middleName || ''} {personal.lastName}</h1>
+          { (experience && (experience as any).jobRole) && <div style={{ fontSize: 14, color: primaryColor, fontFamily: 'monospace' }}>{(experience as any).jobRole}</div> }
         </div>
       </div>
 
@@ -64,8 +70,19 @@ const Template20Display: React.FC<Template20DisplayProps> = ({ data }) => {
       <div>
         {/* CONTACT row */}
         <div style={{ display: 'flex', alignItems: 'flex-start' }}>
-          <div style={{ width: 170, paddingRight: 12, fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1.2 }}>Contact</div>
-          <div style={{ flex: 1 }}>
+<div
+  style={{
+    width: 170,
+    paddingRight: 12,
+    fontSize: 11,
+    fontWeight: 800,
+    textTransform: 'uppercase',
+    letterSpacing: 1.2,
+    color: primaryColor, // ✅ headline accent
+  }}
+>
+  Contact
+</div>          <div style={{ flex: 1 }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, fontSize: 12, color: '#111827', lineHeight: 1.6 }}>
               {contactItems.map((c, i) => (<div key={i} style={{ marginBottom: 6 }}>{c}</div>))}
             </div>
@@ -76,8 +93,19 @@ const Template20Display: React.FC<Template20DisplayProps> = ({ data }) => {
 
         {/* PROFESSIONAL EXPERIENCE row */}
         <div style={{ display: 'flex', alignItems: 'flex-start' }}>
-          <div style={{ width: 170, paddingRight: 12, fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1.2 }}>Professional Experience</div>
-          <div style={{ flex: 1 }}>
+<div
+  style={{
+    width: 170,
+    paddingRight: 12,
+    fontSize: 11,
+    fontWeight: 800,
+    textTransform: 'uppercase',
+    letterSpacing: 1.2,
+    color: primaryColor, // ✅ ADD THIS
+  }}
+>
+  Professional Experience
+</div>          <div style={{ flex: 1 }}>
             {experience.workExperiences.filter((w:any)=>w.enabled).map((w:any, idx:number)=> (
               <div key={idx} style={{ marginBottom: 14 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -99,8 +127,19 @@ const Template20Display: React.FC<Template20DisplayProps> = ({ data }) => {
 
         {/* EDUCATION row */}
         <div style={{ display: 'flex', alignItems: 'flex-start' }}>
-          <div style={{ width: 170, paddingRight: 12, fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1.2 }}>Education</div>
-          <div style={{ flex: 1 }}>
+<div
+  style={{
+    width: 170,
+    paddingRight: 12,
+    fontSize: 11,
+    fontWeight: 800,
+    textTransform: 'uppercase',
+    letterSpacing: 1.2,
+    color: primaryColor, // ✅ add this
+  }}
+>
+  Education
+</div>          <div style={{ flex: 1 }}>
             {education.higherEducationEnabled && education.higherEducation.slice().map((edu:any,i:number)=> (
               <div key={i} style={{ marginBottom: 12 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -151,8 +190,19 @@ const Template20Display: React.FC<Template20DisplayProps> = ({ data }) => {
 
         {/* CERTIFICATES row */}
         <div style={{ display: 'flex', alignItems: 'flex-start' }}>
-          <div style={{ width: 140, paddingRight: 12, fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1.2 }}>Certificates</div>
-          <div style={{ flex: 1 }}>
+<div
+  style={{
+    width: 140,
+    paddingRight: 12,
+    fontSize: 11,
+    fontWeight: 800,
+    textTransform: 'uppercase',
+    letterSpacing: 1.2,
+    color: primaryColor, // ✅ headline accent
+  }}
+>
+  Certificates
+</div>          <div style={{ flex: 1 }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               {(certifications || []).filter((c:any)=>c.enabled && c.certificateTitle).map((c:any,i:number)=> (
                 <div key={i} style={{ fontSize: 12 }}>

@@ -90,8 +90,16 @@ const Template15Display: React.FC<Template15DisplayProps> = ({
   return (
     <div style={{ width: '210mm', minHeight: '297mm', fontFamily: fontFamily, background: '#fff' }}>
       <div style={{ padding: '28px 36px 8px 36px', textAlign: 'center' }}>
-      <h1 style={{margin: 0,fontSize: 28,fontWeight: 800,color: primaryColor,}}></h1>
-   {role && <div style={{ fontSize: 12, color: primaryColor, marginTop: 6, fontWeight: 600 }}>{role}</div>}
+<h1
+  style={{
+    margin: 0,
+    fontSize: 28,
+    fontWeight: 800,
+    color: primaryColor,
+  }}
+>
+  {personal.firstName} {(personal.middleName || '')} {personal.lastName}
+</h1>   {role && <div style={{ fontSize: 12, color: primaryColor, marginTop: 6, fontWeight: 600 }}>{role}</div>}
         <div style={{ marginTop: 6, fontSize: 11, color: '#6b7280' }}>{contactNodes.map((c, i) => <React.Fragment key={i}>{i > 0 && ' | '}{c}</React.Fragment>)}</div>
       </div>
 
@@ -99,7 +107,7 @@ const Template15Display: React.FC<Template15DisplayProps> = ({
         <section style={{ display: 'block' }}>
 
           <div style={{ marginTop: 12 }}>
-            <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.2, color: '#08306b', fontWeight: 700 }}>OBJECTIVE</div>
+            <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.2, color: primaryColor, fontWeight: 700 }}>OBJECTIVE</div>
             <div style={{ height: 1, background: '#ddd', marginTop: 4, width: '100%' }} />
           </div>
 
@@ -122,7 +130,7 @@ const Template15Display: React.FC<Template15DisplayProps> = ({
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6 }}>
                   <div style={{ fontSize: 11, color: '#6b7280' }}>{edu.degree}{edu.fieldOfStudy ? ` — ${edu.fieldOfStudy}` : ''}</div>
                   {edu.resultFormat && edu.result ? (
-                    <div style={{ fontSize: 11, color: '#08306b', fontWeight: 700 }}>{edu.resultFormat}: {edu.result}</div>
+                    <div style={{ fontSize: 11, color: primaryColor, fontWeight: 700 }}>{edu.resultFormat}: {edu.result}</div>
                   ) : null}
                 </div>
               </div>
@@ -182,7 +190,7 @@ const Template15Display: React.FC<Template15DisplayProps> = ({
 
               return Object.entries(categories).map(([cat, items]) => items.length ? (
                 <div key={cat} style={{ marginBottom: 8 }}>
-                  <div style={{ fontWeight: 700, color: '#0b60d6' }}>{cat}</div>
+                  <div style={{ fontWeight: 700, color: primaryColor }}>{cat}</div>
                   <div style={{ marginTop: 4, color: '#444' }}>{items.join(', ')}</div>
                 </div>
               ) : null);
@@ -196,7 +204,7 @@ const Template15Display: React.FC<Template15DisplayProps> = ({
           <div style={{ marginTop: 6 }}>{certifications.filter(c => c.enabled && c.certificateTitle).map((c,i) => <div key={i} style={{ marginBottom: 6, color: '#444' }}>{c.certificateTitle}{c.providedBy ? ` — ${c.providedBy}` : ''}</div>)}</div>
 
           <div style={{ marginTop: 12 }}>
-            <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.2, color: '#08306b', fontWeight: 700 }}>Internships</div>
+            <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.2, color: primaryColor, fontWeight: 700 }}>Internships</div>
             <div style={{ height: 1, background: '#ddd', marginTop: 4, width: '100%' }} />
           </div>
 
@@ -206,7 +214,7 @@ const Template15Display: React.FC<Template15DisplayProps> = ({
                 {w.jobTitle ? (
                   <>
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <div style={{ fontWeight: 700, color: '#08306b' }}>{w.jobTitle}</div>
+                      <div style={{ fontWeight: 700, color: primaryColor }}>{w.jobTitle}</div>
                       <div style={{ color: '#111827', fontWeight: 700 }}>{formatMonthYear(w.startDate)} — {w.currentlyWorking ? 'Present' : formatMonthYear(w.endDate)}</div>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6 }}>
