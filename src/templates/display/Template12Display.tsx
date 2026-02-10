@@ -4,10 +4,15 @@ import type { ResumeData } from '@/types/resume';
 
 interface Template12DisplayProps {
   data: ResumeData;
+   fontFamily?: string;
+  primaryColor?: string;
 }
 
-const Template12Display: React.FC<Template12DisplayProps> = ({ data }) => {
-  const { personal, experience, education, projects, skillsLinks, certifications } = data;
+const Template12Display: React.FC<Template12DisplayProps> = ({
+  data,
+  fontFamily = "Times New Roman, serif",
+  primaryColor = "#000000",
+}) => {  const { personal, experience, education, projects, skillsLinks, certifications } = data;
 
   const formatMonthYear = (s?: string) => {
     if (!s) return '';
@@ -48,11 +53,18 @@ const Template12Display: React.FC<Template12DisplayProps> = ({ data }) => {
   };
 
   return (
-    <div style={{ width: '210mm', minHeight: '297mm', fontFamily: 'Times New Roman, serif', background: '#fff' }}>
+    <div style={{ width: '210mm', minHeight: '297mm', fontFamily: fontFamily, background: '#fff' }}>
       <div style={{ padding: '20px 36px' }}>
         <div style={{ textAlign: 'center' }}>
-          <h1 style={{ margin: 0, fontSize: 28, fontFamily: 'Georgia, serif' }}>{personal.firstName} {(personal.middleName || '')} {personal.lastName}</h1>
-          {personal.aboutCareerObjective && (
+<h1
+  style={{
+    margin: 0,
+    fontSize: 28,
+    color: primaryColor,
+  }}
+>
+  {personal.firstName} {(personal.middleName || '')} {personal.lastName}
+</h1>          {personal.aboutCareerObjective && (
             <div style={{ marginTop: 8, fontSize: 11, color: '#333' }}>{htmlToLines(personal.aboutCareerObjective).join(' ')}</div>
           )}
           <div style={{ marginTop: 8, fontSize: 11, color: '#2b2a2a' }}>{[personal.email, personal.mobileNumber, personal.address].filter(Boolean).join(' | ')}</div>
@@ -61,7 +73,7 @@ const Template12Display: React.FC<Template12DisplayProps> = ({ data }) => {
         <hr style={{ border: 'none', borderTop: '1px solid #333', margin: '18px 0' }} />
 
         <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '16px', padding: '0 8px' }}>
-          <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.5, color: '#111827', fontWeight: 700 }}>Work Experience</div>
+          <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.5, color:primaryColor, fontWeight: 700 }}>Work Experience</div>
           <div>
             {experience.workExperiences.filter(e => e.enabled).map((w, i) => (
               <div key={i} style={{ marginBottom: 12 }}>
@@ -85,7 +97,7 @@ const Template12Display: React.FC<Template12DisplayProps> = ({ data }) => {
 
         {/* Projects Section */}
         <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '16px', padding: '0 8px', marginTop: 8 }}>
-          <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.5, color: '#111827', fontWeight: 700 }}>Projects</div>
+          <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.5, color:primaryColor, fontWeight: 700 }}>Projects</div>
           <div>
             {projects && projects.filter(p => p.enabled).map((p, i) => (
               <div key={i} style={{ marginBottom: 12 }}>
@@ -106,7 +118,7 @@ const Template12Display: React.FC<Template12DisplayProps> = ({ data }) => {
         <hr style={{ border: 'none', borderTop: '1px solid #333', margin: '12px 0', width: '100%' }} />
 
         <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '16px', padding: '0 8px' }}>
-          <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.5, color: '#111827', fontWeight: 700 }}>Education</div>
+          <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.5, color:primaryColor, fontWeight: 700 }}>Education</div>
           <div>
             {education.higherEducationEnabled && education.higherEducation.map((edu, i) => (
               <div key={i} style={{ marginBottom: 12 }}>
@@ -150,12 +162,12 @@ const Template12Display: React.FC<Template12DisplayProps> = ({ data }) => {
 
           <hr style={{ border: 'none', borderTop: '1px solid #333', margin: '12px 0', gridColumn: '1 / -1' }} />
 
-          <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.5, color: '#111827', fontWeight: 700 }}>Skills</div>
+          <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.5, color:primaryColor, fontWeight: 700 }}>Skills</div>
           <div>
             <div style={{ color: '#2b2a2a' }}>{skillsLinks.skills.filter(s => s.enabled && s.skillName).map(s => s.skillName).join(', ')}</div>
           </div>
 
-          <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.5, color: '#111827', fontWeight: 700 }}>Certifications</div>
+          <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.5, color:primaryColor, fontWeight: 700 }}>Certifications</div>
           <div>
             <div style={{ color: '#2b2a2a' }}>{certifications.filter(c => c.enabled && c.certificateTitle).map(c => c.certificateTitle).join(', ')}</div>
           </div>

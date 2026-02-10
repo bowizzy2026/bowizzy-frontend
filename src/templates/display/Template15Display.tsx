@@ -3,7 +3,12 @@ import DOMPurify from 'dompurify';
 
 import type { ResumeData } from '@/types/resume';
 
-interface Template15DisplayProps { data: ResumeData }
+interface Template15DisplayProps { 
+  data: ResumeData;
+   fontFamily?: string;
+  primaryColor?: string;
+
+}
 
 const htmlToLines = (s?: string) => {
   if (!s) return [] as string[];
@@ -48,8 +53,11 @@ const formatYear = (s?: string) => {
   return y ? y[1] : str;
 };
 
-const Template15Display: React.FC<Template15DisplayProps> = ({ data }) => {
-  const { personal, experience, education, projects, skillsLinks, certifications } = data;
+const Template15Display: React.FC<Template15DisplayProps> = ({
+  data,
+  fontFamily = "Times New Roman, serif",
+  primaryColor = "#000000",
+}) => {  const { personal, experience, education, projects, skillsLinks, certifications } = data;
   const role = (experience && (experience as any).jobRole) || (experience.workExperiences && experience.workExperiences.find((w: any) => w.enabled && w.jobTitle) && experience.workExperiences.find((w: any) => w.enabled && w.jobTitle).jobTitle) || '';
 
   const mobile = personal.mobileNumber;
@@ -80,10 +88,10 @@ const Template15Display: React.FC<Template15DisplayProps> = ({ data }) => {
   if (github) contactNodes.push(<a href={(skillsLinks as any).links?.githubProfile || (personal as any).githubProfile} target="_blank" rel="noreferrer" style={{ color: '#111', textDecoration: 'none' }}>{extractHandle(github)}</a>);
 
   return (
-    <div style={{ width: '210mm', minHeight: '297mm', fontFamily: 'Times New Roman, serif', background: '#fff' }}>
+    <div style={{ width: '210mm', minHeight: '297mm', fontFamily: fontFamily, background: '#fff' }}>
       <div style={{ padding: '28px 36px 8px 36px', textAlign: 'center' }}>
-        <h1 style={{ margin: 0, fontSize: 28, color: '#0b60d6', fontFamily: 'Georgia, serif', fontWeight: 800 }}>{personal.firstName} {(personal.middleName || '')} {personal.lastName}</h1>
-        {role && <div style={{ fontSize: 12, color: '#08306b', marginTop: 6, fontWeight: 600 }}>{role}</div>}
+      <h1 style={{margin: 0,fontSize: 28,fontWeight: 800,color: primaryColor,}}></h1>
+   {role && <div style={{ fontSize: 12, color: primaryColor, marginTop: 6, fontWeight: 600 }}>{role}</div>}
         <div style={{ marginTop: 6, fontSize: 11, color: '#6b7280' }}>{contactNodes.map((c, i) => <React.Fragment key={i}>{i > 0 && ' | '}{c}</React.Fragment>)}</div>
       </div>
 
@@ -100,7 +108,7 @@ const Template15Display: React.FC<Template15DisplayProps> = ({ data }) => {
           </div>
 
           <div style={{ marginTop: 12 }}>
-            <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.2, color: '#08306b', fontWeight: 700 }}>Education</div>
+            <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.2, color:primaryColor, fontWeight: 700 }}>Education</div>
             <div style={{ height: 1, background: '#ddd', marginTop: 4, width: '100%' }} />
           </div>
 
@@ -146,7 +154,7 @@ const Template15Display: React.FC<Template15DisplayProps> = ({ data }) => {
           </div>
 
           <div style={{ marginTop: 12 }}>
-            <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.2, color: '#08306b', fontWeight: 700 }}>Skills</div>
+            <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.2, color: primaryColor, fontWeight: 700 }}>Skills</div>
             <div style={{ height: 1, background: '#ddd', marginTop: 4, width: '100%' }} />
           </div>
           <div style={{ marginTop: 6 }}>
@@ -182,7 +190,7 @@ const Template15Display: React.FC<Template15DisplayProps> = ({ data }) => {
           </div>
 
           <div style={{ marginTop: 12 }}>
-            <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.2, color: '#08306b', fontWeight: 700 }}>Certifications</div>
+            <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.2, color: primaryColor, fontWeight: 700 }}>Certifications</div>
             <div style={{ height: 1, background: '#ddd', marginTop: 4, width: '100%' }} />
           </div>
           <div style={{ marginTop: 6 }}>{certifications.filter(c => c.enabled && c.certificateTitle).map((c,i) => <div key={i} style={{ marginBottom: 6, color: '#444' }}>{c.certificateTitle}{c.providedBy ? ` — ${c.providedBy}` : ''}</div>)}</div>
@@ -223,7 +231,7 @@ const Template15Display: React.FC<Template15DisplayProps> = ({ data }) => {
           </div>
 
           <div style={{ marginTop: 12 }}>
-            <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.2, color: '#08306b', fontWeight: 700 }}>ACADEMIC Projects</div>
+            <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.2, color: primaryColor, fontWeight: 700 }}>ACADEMIC Projects</div>
             <div style={{ height: 1, background: '#ddd', marginTop: 4, width: '100%' }} />
           </div>
           <div style={{ marginTop: 8 }}>

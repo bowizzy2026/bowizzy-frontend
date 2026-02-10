@@ -4,7 +4,10 @@ import { FiPhone, FiMail, FiMapPin, FiLinkedin, FiGithub } from 'react-icons/fi'
 
 import type { ResumeData } from '@/types/resume';
 
-interface Template13DisplayProps { data: ResumeData }
+interface Template13DisplayProps {
+   data: ResumeData;
+  fontFamily?: string;
+  primaryColor?: string;}
 
 const htmlToLines = (s?: string) => {
   if (!s) return [] as string[];
@@ -58,14 +61,33 @@ const educationPriority = (degree?: string) => {
   return 4;
 };
 
-const Template13Display: React.FC<Template13DisplayProps> = ({ data }) => {
-  const { personal, experience, education, projects, skillsLinks, certifications } = data;
+const Template13Display: React.FC<Template13DisplayProps> = ({
+  data,
+  fontFamily = "Times New Roman, serif",
+  primaryColor = "#000000",
+}) => {  const { personal, experience, education, projects, skillsLinks, certifications } = data;
 
   return (
-    <div style={{ width: '210mm', minHeight: '297mm', fontFamily: 'Times New Roman, serif', background: '#fff' }}>
-      <div style={{ padding: '28px 36px 8px 36px', textAlign: 'center' }}>
-<h1 style={{ margin: 0, marginBottom: 4, fontSize: 28, fontFamily: 'Georgia, serif', fontWeight: 700, lineHeight: 1 }}>{personal.firstName} {(personal.middleName || '')} {personal.lastName}</h1>
-        <div style={{ marginTop: 4, fontSize: 11, color: '#6b7280' }}>
+<div
+  style={{
+    width: '210mm',
+    minHeight: '297mm',
+    fontFamily: fontFamily,
+    background: '#fff',
+  }}
+>      <div style={{ padding: '28px 36px 8px 36px', textAlign: 'center' }}>
+<h1
+  style={{
+    margin: 0,
+    marginBottom: 4,
+    fontSize: 28,
+    fontWeight: 700,
+    lineHeight: 1,
+    color: primaryColor,
+  }}
+>
+  {personal.firstName} {(personal.middleName || '')} {personal.lastName}
+</h1>        <div style={{ marginTop: 4, fontSize: 11, color: '#6b7280' }}>
           {(() => {
             const address = personal.address && String(personal.address).split(',')[0];
             const email = personal.email;
@@ -107,7 +129,7 @@ const Template13Display: React.FC<Template13DisplayProps> = ({ data }) => {
           </div>
 
           <div style={{ gridColumn: '1 / -1', marginTop: 12 }}>
-            <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.5, color: '#111827', fontWeight: 700 }}>EXPERIENCE</div>
+            <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.5, color: primaryColor, fontWeight: 700 }}>EXPERIENCE</div>
             <div style={{ height: 1, background: '#cfcfcf', marginTop: 0, marginBottom: 0, width: '100%' }} />
           </div>
           <div style={{ gridColumn: '1 / -1', marginTop: 0 }}>
@@ -127,7 +149,7 @@ const Template13Display: React.FC<Template13DisplayProps> = ({ data }) => {
           </div>
 
           <div style={{ gridColumn: '1 / -1', marginTop: 12 }}>
-            <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.5, color: '#111827', fontWeight: 700 }}>PROJECTS</div>
+            <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.5, color: primaryColor, fontWeight: 700 }}>PROJECTS</div>
             <div style={{ height: 1, background: '#cfcfcf', marginTop: 0, marginBottom: 0, width: '100%' }} />
           </div>
           <div style={{ gridColumn: '1 / -1', marginTop: 0 }}>
@@ -147,7 +169,7 @@ const Template13Display: React.FC<Template13DisplayProps> = ({ data }) => {
           </div>
 
           <div style={{ gridColumn: '1 / -1', marginTop: 12 }}>
-            <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.5, color: '#111827', fontWeight: 700 }}>EDUCATION</div>
+            <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.5, color: primaryColor, fontWeight: 700 }}>EDUCATION</div>
             <div style={{ height: 1, background: '#cfcfcf', marginTop: 0, marginBottom: 0, width: '100%' }} />
           </div>
           <div style={{ gridColumn: '1 / -1', marginTop: 0 }}>
@@ -180,7 +202,7 @@ const Template13Display: React.FC<Template13DisplayProps> = ({ data }) => {
           </div>
 
           <div style={{ gridColumn: '1 / -1', marginTop: 12 }}>
-            <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.5, color: '#111827', fontWeight: 700 }}>SKILLS</div>
+            <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.5, color: primaryColor, fontWeight: 700 }}>SKILLS</div>
             <div style={{ height: 1, background: '#cfcfcf', marginTop: 0, marginBottom: 0, width: '100%' }} />
           </div>
           <div style={{ gridColumn: '1 / -1', marginTop: 0 }}>
@@ -188,7 +210,7 @@ const Template13Display: React.FC<Template13DisplayProps> = ({ data }) => {
           </div>
 
           <div style={{ gridColumn: '1 / -1', marginTop: 12 }}>
-            <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.5, color: '#111827', fontWeight: 700 }}>CERTIFICATIONS</div>
+            <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.5, color: primaryColor, fontWeight: 700 }}>CERTIFICATIONS</div>
             <div style={{ height: 1, background: '#cfcfcf', marginTop: 0, marginBottom: 0, width: '100%' }} />
           </div>
           <div style={{ gridColumn: '1 / -1', marginTop: 0 }}>

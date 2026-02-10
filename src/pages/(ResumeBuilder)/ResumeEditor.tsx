@@ -252,6 +252,21 @@ const mapLinksApiToLocal = (apiData: any[]) => {
 
   return linksObject;
 };
+const FONT_OPTIONS = [
+  { label: "Times New Roman", value: "Times New Roman, serif" },
+  { label: "Georgia", value: "Georgia, serif" },
+  { label: "Arial", value: "Arial, Helvetica, sans-serif" },
+  { label: "Roboto", value: "Roboto, sans-serif" },
+  { label: "Inter", value: "Inter, sans-serif" },
+];
+
+const COLOR_OPTIONS = [
+  { label: "Black", value: "#000000" },
+  { label: "Navy Blue", value: "#1A1A43" },
+  { label: "Teal", value: "#0F766E" },
+  { label: "Dark Brown", value: "#7C2D12" },
+  { label: "Dark Purple", value: "#4C1D95" },
+];
 
 export const ResumeEditor: React.FC = () => {
   const navigate = useNavigate();
@@ -266,6 +281,10 @@ export const ResumeEditor: React.FC = () => {
   const [previewLoading, setPreviewLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [fetchTimedOut, setFetchTimedOut] = useState(false);
+  const [fontName, setFontName] = useState("Times New Roman");
+const [fontFamily, setFontFamily] = useState("Times New Roman, serif");
+const [colorName, setColorName] = useState("Black");
+const [primaryColor, setPrimaryColor] = useState("#000000");
 
   const [userId, setUserId] = useState<string>("");
   const [token, setToken] = useState<string>("");
@@ -696,7 +715,7 @@ export const ResumeEditor: React.FC = () => {
     switch (currentStep) {
       case 0:
         return (
-          <PersonalDetailsForm
+          <PersonalDetailsForm 
             data={resumeData.personal}
             onChange={updatePersonalData}
             userId={userId}
@@ -783,7 +802,7 @@ export const ResumeEditor: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50 font-['Baloo_2'] overflow-hidden">
+    <div className="flex flex-col h-screen bg-gray-50 overflow-hidden">
       <DashNav heading="Resume Builder" />
 
       <div className="flex-1 flex flex-col overflow-hidden p-4">
@@ -800,9 +819,48 @@ export const ResumeEditor: React.FC = () => {
           <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
             <div className="flex-1 lg:w-[50%] overflow-auto scrollbar-hide">
               <div className="p-4 md:p-6">
-                <h2 className="text-lg font-semibold text-[#1A1A43] mb-5">
-                  {stepTitles[currentStep]}
-                </h2>
+               <div className="flex items-center justify-between mb-5">
+  <h2 className="text-lg font-semibold text-[#1A1A43]">
+    {stepTitles[currentStep]}
+  </h2>
+
+  {/* Style controls */}
+  <div className="flex gap-2 items-center">
+   <select
+  value={fontName}
+  onChange={(e) => {
+    const selected = FONT_OPTIONS.find(
+      (f) => f.label === e.target.value
+    );
+    if (selected) {
+      setFontName(selected.label);
+      setFontFamily(selected.value);
+    }
+  }}
+  className="border rounded px-2 py-1 text-sm"
+>
+  {FONT_OPTIONS.map((font) => (
+    <option key={font.label} value={font.label}>
+      {font.label}
+    </option>
+  ))}
+</select>
+    <select
+  value={primaryColor}
+  onChange={(e) => setPrimaryColor(e.target.value)}
+  className="border rounded px-2 py-1 text-sm"
+>
+  {COLOR_OPTIONS.map((color) => (
+    <option key={color.value} value={color.value}>
+      {color.label}
+    </option>
+  ))}
+</select>
+  
+
+   
+  </div>
+</div>
 
                 <div className="mb-6">{renderCurrentForm()}</div>
 
@@ -835,6 +893,7 @@ export const ResumeEditor: React.FC = () => {
               </div>
             </div>
 
+
             <div className="hidden lg:flex lg:w-[50%] bg-white overflow-auto scrollbar-hide">
               <div className="flex-1 p-4 overflow-auto scrollbar-hide border border-gray-300 m-4 rounded-lg">
                 <div className="relative w-full h-full flex items-start justify-center">
@@ -859,18 +918,21 @@ export const ResumeEditor: React.FC = () => {
                   )}
 
                   {/* Preview content with markers */}
-                  <div className="relative transform scale-75 origin-top -mt-4">
-                    <div ref={previewContentRef} className="relative">
+<div
+  className="relative transform scale-75 origin-top -mt-4"
+  style={{ fontFamily: fontFamily }}
+>                    <div ref={previewContentRef} className="relative">
                       {selectedTemplate && (
                         <DisplayComponent
-                          data={resumeData}
-                          supportsPhoto={selectedTemplate.supportsPhoto ?? false}
-                          // avoid running the heavy pagination while initial data is still loading
-                          showPageBreaks={paginatePreview && !loading}
-                            onPageCountChange={(n: number) => setPreviewPageCount(n)}
-                            onPageChange={(i: number) => setPreviewCurrentPage(i)}
-                            pageControllerRef={paginatedRef}
-                        />
+  data={resumeData}
+  supportsPhoto={selectedTemplate.supportsPhoto ?? false}
+  fontFamily={fontFamily}
+  primaryColor={primaryColor}
+  showPageBreaks={paginatePreview && !loading}
+  onPageCountChange={(n: number) => setPreviewPageCount(n)}
+  onPageChange={(i: number) => setPreviewCurrentPage(i)}
+  pageControllerRef={paginatedRef}
+/>
                       )}
                       {/* <PageBreakMarkers markers={markers} /> */}
                     </div>

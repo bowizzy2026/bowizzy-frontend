@@ -3,7 +3,11 @@ import DOMPurify from 'dompurify';
 
 import type { ResumeData } from '@/types/resume';
 
-interface Template14DisplayProps { data: ResumeData }
+interface Template14DisplayProps { data: ResumeData
+  fontFamily?: string;
+  primaryColor?: string;
+
+ }
 
 const htmlToLines = (s?: string) => {
   if (!s) return [] as string[];
@@ -43,16 +47,26 @@ const formatYear = (s?: string) => {
   return y ? y[1] : str;
 };
 
-const Template14Display: React.FC<Template14DisplayProps> = ({ data }) => {
+const Template14Display: React.FC<Template14DisplayProps> = ({
+  data,
+  fontFamily = "Times New Roman, serif",
+  primaryColor = "#000000",
+}) => {
   const { personal, experience, education, projects, skillsLinks, certifications } = data;
   // Use the separate jobRole if set by the user; otherwise fall back to first work experience jobTitle
   const profession = (experience && (experience as any).jobRole) || (experience.workExperiences && experience.workExperiences.find((w: any) => w.enabled && w.jobTitle) && experience.workExperiences.find((w: any) => w.enabled && w.jobTitle).jobTitle) || '';
 
   return (
-    <div style={{ width: '210mm', minHeight: '297mm', fontFamily: 'Georgia, serif', background: '#fff' }}>
-      <div style={{ padding: '28px 36px 8px 36px' }}>
+<div
+  style={{
+    width: '210mm',
+    minHeight: '297mm',
+    fontFamily: fontFamily,
+    background: '#fff',
+  }}
+>      <div style={{ padding: '28px 36px 8px 36px' }}>
         <div style={{ textAlign: 'left' }}>
-          <h1 style={{ margin: 0, marginBottom: 6, fontSize: 30, color: '#b91c1c', fontWeight: 800, lineHeight: 1 }}>{personal.firstName} {(personal.middleName || '')} {personal.lastName}</h1>
+          <h1 style={{ margin: 0, marginBottom: 6, fontSize: 30, color: primaryColor, fontWeight: 800, lineHeight: 1 }}>{personal.firstName} {(personal.middleName || '')} {personal.lastName}</h1>
           {profession && <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>{profession}</div>}
           <div style={{ marginTop: 6, fontSize: 11, color: '#6b7280' }}>
             {(() => {
@@ -77,7 +91,7 @@ const Template14Display: React.FC<Template14DisplayProps> = ({ data }) => {
         <section style={{ display: 'block', gap: '0 16px' }}>
 
           <div style={{ marginTop: 16 }}>
-            <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.5, color: '#b91c1c', fontWeight: 700 }}>Work Experience</div>
+            <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.5, color: primaryColor, fontWeight: 700 }}>Work Experience</div>
             <div style={{ height: 1.5, background: '#999', marginTop: 4, width: '100%' }} />
           </div>
 
@@ -101,7 +115,7 @@ const Template14Display: React.FC<Template14DisplayProps> = ({ data }) => {
           </div>
 
           <div style={{ marginTop: 16 }}>
-            <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.5, color: '#b91c1c', fontWeight: 700 }}>Projects</div>
+            <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.5, color: primaryColor, fontWeight: 700 }}>Projects</div>
             <div style={{ height: 1.5, background: '#999', marginTop: 4, width: '100%' }} />
           </div>
 
@@ -125,7 +139,7 @@ const Template14Display: React.FC<Template14DisplayProps> = ({ data }) => {
           </div>
 
           <div style={{ marginTop: 16 }}>
-            <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.5, color: '#b91c1c', fontWeight: 700 }}>Education</div>
+            <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.5, color: primaryColor, fontWeight: 700 }}>Education</div>
             <div style={{ height: 1.5, background: '#999', marginTop: 4, width: '100%' }} />
           </div>
 
@@ -169,13 +183,13 @@ const Template14Display: React.FC<Template14DisplayProps> = ({ data }) => {
           </div>
 
           <div style={{ marginTop: 16 }}>
-            <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.5, color: '#b91c1c', fontWeight: 700 }}>Skills</div>
+            <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.5, color: primaryColor, fontWeight: 700 }}>Skills</div>
             <div style={{ height: 1.5, background: '#999', marginTop: 4, width: '100%' }} />
           </div>
           <div style={{ marginTop: 8, color: '#2b2a2a' }}>{skillsLinks.skills.filter(s => s.enabled && s.skillName).map((s,i) => <span key={i} style={{ marginRight: 6 }}>{s.skillName}{i < skillsLinks.skills.filter(s => s.enabled && s.skillName).length - 1 ? ',' : ''}</span>)}</div>
 
           <div style={{ marginTop: 16 }}>
-            <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.5, color: '#b91c1c', fontWeight: 700 }}>Certifications</div>
+            <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.5, color: primaryColor, fontWeight: 700 }}>Certifications</div>
             <div style={{ height: 1.5, background: '#999', marginTop: 4, width: '100%' }} />
           </div>
           <div style={{ marginTop: 8, color: '#2b2a2a' }}>{certifications.filter(c => c.enabled && c.certificateTitle).map((c,i) => <span key={i} style={{ marginRight: 6 }}>{c.certificateTitle}{i < certifications.filter(c => c.enabled && c.certificateTitle).length - 1 ? ',' : ''}</span>)}</div>
