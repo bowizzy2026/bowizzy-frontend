@@ -8,6 +8,7 @@ import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { uploadToCloudinary } from "@/utils/uploadToCloudinary";
 import api from "@/api";
+import { getExperienceSummary } from "@/services/experienceSummaryService";
 
 interface ResumePreviewModalProps {
   isOpen: boolean;
@@ -22,6 +23,9 @@ interface ResumePreviewModalProps {
   userId?: string;
   token?: string;
   resumeTemplateId?: string | null;
+  username?: string;
+  experienceSummary?: string;
+  jobRole?: string;
 }
 
 const ResumePreviewModal: React.FC<ResumePreviewModalProps> = ({
@@ -37,16 +41,78 @@ const ResumePreviewModal: React.FC<ResumePreviewModalProps> = ({
   userId,
   token,
   resumeTemplateId,
+  username,
+  experienceSummary = '',
+  jobRole = '',
 }) => {
+  // Generate default resume name based on user info
+  const generateDefaultResumeName = (): string => {
+    // Prefer explicit `username` prop, then try resumeData.personal names
+    let namePart = '';
+    if (username && String(username).trim()) {
+      namePart = String(username).trim();
+    } else if (resumeData?.personal) {
+      const fn = (resumeData.personal.firstName || '').trim();
+      const ln = (resumeData.personal.lastName || '').trim();
+      namePart = [fn, ln].filter(Boolean).join('');
+    }
+
+    if (!namePart) namePart = 'User';
+
+    // sanitize: replace spaces with empty, remove disallowed chars
+    namePart = namePart.replace(/\s+/g, '').replace(/[^a-zA-Z0-9-_]/g, '');
+
+    const expPart = (experienceSummary || apiExperienceSummary || '').trim();
+    const jobPart = (jobRole || apiJobRole || '').trim();
+    const cleanedExp = expPart.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9-_]/g, '');
+    const cleanedJob = jobPart.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9-_]/g, '');
+
+    const parts = [namePart];
+    if (cleanedExp) parts.push(cleanedExp);
+    if (cleanedJob) parts.push(cleanedJob);
+    parts.push('Bowizzy');
+
+    return parts.join('_').replace(/_+/g, '_');
+  };
   const [showDownloadDialog, setShowDownloadDialog] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false); 
   const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [showNameDialog, setShowNameDialog] = useState(false);
-  const [resumeName, setResumeName] = useState('resume');
+  const [resumeName, setResumeName] = useState<string>('');
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
   const [isSavingTemplate, setIsSavingTemplate] = useState(false);
   const [saveMode, setSaveMode] = useState<'download' | 'template' | null>(null);
+
+  // Initialize resume name with dynamic default
+  useEffect(() => {
+    if (showNameDialog && !resumeName) {
+      setResumeName(generateDefaultResumeName());
+    }
+  }, [showNameDialog]);
+
+  // API-provided experience summary and job role (fetched when needed)
+  const [apiExperienceSummary, setApiExperienceSummary] = useState<string>('');
+  const [apiJobRole, setApiJobRole] = useState<string>('');
+
+  // Fetch experience summary from backend when modal opens or when dialog opens
+  useEffect(() => {
+    const fetchExp = async () => {
+      if (!userId || !token) return;
+      try {
+        const data = await getExperienceSummary(userId, token);
+        if (data) {
+          if (data.experience_summary) setApiExperienceSummary(String(data.experience_summary));
+          if (data.job_role) setApiJobRole(String(data.job_role));
+        }
+      } catch (err) {
+        // silent fail — leave fields empty
+        // console.error('Failed to fetch experience summary', err);
+      }
+    };
+
+    if (isOpen) fetchExp();
+  }, [isOpen, userId, token]);
 
   const previewContentRef = useRef<HTMLDivElement>(null);
   const [modalPaginatePageCount, setModalPaginatePageCount] = useState<number | null>(null);
@@ -184,7 +250,7 @@ const ResumePreviewModal: React.FC<ResumePreviewModalProps> = ({
     }
     setPdfUrl(null);
     setPdfBlob(null);
-    setResumeName('resume');
+    setResumeName(generateDefaultResumeName());
     setShowNameDialog(true);
   };
 
@@ -820,7 +886,7 @@ const ResumePreviewModal: React.FC<ResumePreviewModalProps> = ({
                         }
                         setPdfUrl(null);
                         setPdfBlob(null);
-                        setResumeName('resume');
+                        setResumeName(generateDefaultResumeName());
                         setShowNameDialog(true);
                       }}
                       className="px-6 py-2.5 text-sm font-medium text-white bg-orange-500 rounded-full hover:bg-orange-600 transition-colors flex items-center gap-2"
