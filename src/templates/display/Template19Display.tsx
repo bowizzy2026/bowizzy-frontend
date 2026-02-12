@@ -2,7 +2,10 @@ import React from 'react';
 import DOMPurify from 'dompurify';
 import type { ResumeData } from '@/types/resume';
 
-interface Template19DisplayProps { data: ResumeData }
+interface Template19DisplayProps { data: ResumeData 
+  fontFamily?: string;
+  primaryColor?: string;
+}
 
 const htmlToLines = (s?: string) => {
   if (!s) return [] as string[];
@@ -30,17 +33,20 @@ const formatMonthYear = (s?: string) => {
   return String(s);
 };
 
-const Template19Display: React.FC<Template19DisplayProps> = ({ data }) => {
-  const { personal, experience, education, skillsLinks, certifications } = data;
+const Template19Display: React.FC<Template19DisplayProps> = ({
+  data,
+  fontFamily = 'Georgia, serif',
+  primaryColor = '#111827',
+}) => {  const { personal, experience, education, skillsLinks, certifications } = data;
   const role = (experience && (experience as any).jobRole) || (experience.workExperiences && experience.workExperiences.find((w: any) => w.enabled && w.jobTitle) && experience.workExperiences.find((w: any) => w.enabled && w.jobTitle).jobTitle) || '';
   const contactLine = [personal.email, personal.mobileNumber, (skillsLinks && skillsLinks.links && skillsLinks.links.linkedinProfile) || ''].filter(Boolean).join(' | ');
 
   return (
-    <div style={{ width: '210mm', minHeight: '297mm', fontFamily: 'Georgia, serif', background: '#fff', padding: 24, boxSizing: 'border-box' }}>
+    <div style={{ width: '210mm', minHeight: '297mm', fontFamily: fontFamily, background: '#fff', padding: 24, boxSizing: 'border-box' }}>
       <div style={{ background: '#f3f4f6', padding: '18px 24px', marginBottom: 12, borderBottom: '1px solid #e5e7eb' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <h1 style={{ margin: 0, fontSize: 26, fontFamily: 'Georgia, serif', letterSpacing: 1 }}>{personal.firstName} {(personal.middleName || '')} {personal.lastName}</h1>
+            <h1 style={{ margin: 0, fontSize: 26, fontFamily: fontFamily, letterSpacing: 1, color: primaryColor }}>{personal.firstName} {(personal.middleName || '')} {personal.lastName}</h1>
             {role && <div style={{ marginTop: 4, color: '#6b7280', fontSize: 12, fontWeight: 700 }}>{role}</div>}
           </div>
 
@@ -55,7 +61,7 @@ const Template19Display: React.FC<Template19DisplayProps> = ({ data }) => {
 
       <div style={{ paddingTop: 12 }}>
         <section style={{ textAlign: 'center', marginTop: 0 }}>
-          <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.2, color: '#111827', fontWeight: 700, marginBottom: 6 }}>SUMMARY</div>
+          <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.2, color: primaryColor, fontWeight: 700, marginBottom: 6 }}>SUMMARY</div>
           <div style={{ height: 1, background: '#999', width: '100%' }} />
           <div style={{ marginTop: 12, color: '#444', maxWidth: 720, marginLeft: 'auto', marginRight: 'auto', textAlign: 'left' }}>{personal.aboutCareerObjective && <div>{DOMPurify.sanitize(personal.aboutCareerObjective).replace(/<[^>]+>/g, '')}</div>}</div>
         </section>
@@ -63,14 +69,14 @@ const Template19Display: React.FC<Template19DisplayProps> = ({ data }) => {
         <div style={{ display: 'flex', marginTop: 18, gap: 24 }}>
           {/* Left sidebar (fixed width) */}
           <aside style={{ width: 260, paddingRight: 12 }}>
-            <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.2, color: '#111827', fontWeight: 700 }}>Skills</div>
+            <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.2, color: primaryColor, fontWeight: 700 }}>Skills</div>
             <div style={{ height: 1, background: '#999', marginTop: 6, width: '80%' }} />
             <ul style={{ paddingLeft: 20, marginTop: 8, listStyleType: 'disc' }}>
               {(skillsLinks.skills || []).filter((s:any)=>s.enabled && s.skillName).map((s:any,i:number)=>(<li key={i} style={{ marginBottom: 6 }}>{s.skillName}</li>))}
             </ul>
 
             <div style={{ marginTop: 18 }}>
-              <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.2, color: '#111827', fontWeight: 700 }}>Education</div>
+              <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.2, color: primaryColor, fontWeight: 700 }}>Education</div>
               <div style={{ height: 1, background: '#999', marginTop: 6, width: '80%' }} />
               <div style={{ marginTop: 8 }}>
                 {education.higherEducationEnabled && education.higherEducation.slice().map((edu:any,i:number)=>(
@@ -98,7 +104,7 @@ const Template19Display: React.FC<Template19DisplayProps> = ({ data }) => {
             </div>
 
             <div style={{ marginTop: 18 }}>
-              <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.2, color: '#111827', fontWeight: 700 }}>Language</div>
+              <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.2, color: primaryColor, fontWeight: 700 }}>Language</div>
               <div style={{ height: 1, background: '#999', marginTop: 6, width: '60%' }} />
               <div style={{ marginTop: 8 }}>
                 {(((personal as any).languagesKnown || (personal as any).languages || [])).map((l:string, i:number)=>(<div key={i} style={{ marginBottom: 6 }}>• {l}</div>))}
@@ -106,7 +112,7 @@ const Template19Display: React.FC<Template19DisplayProps> = ({ data }) => {
             </div>
 
             <div style={{ marginTop: 18 }}>
-              <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.2, color: '#111827', fontWeight: 700 }}>Certification</div>
+              <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.2, color: primaryColor, fontWeight: 700 }}>Certification</div>
               <div style={{ height: 1, background: '#999', marginTop: 6, width: '80%' }} />
               <div style={{ marginTop: 8 }}>
                 {(certifications || []).filter((c:any)=>c.enabled && c.certificateTitle).map((c:any,i:number)=>(<div key={i} style={{ marginBottom: 6 }}>• {c.certificateTitle}{c.providedBy ? ` — ${c.providedBy}` : ''}</div>))}
@@ -117,7 +123,7 @@ const Template19Display: React.FC<Template19DisplayProps> = ({ data }) => {
 
           {/* Right main content */}
           <div style={{ flex: 1 }}>
-            <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.2, color: '#111827', fontWeight: 700 }}>Professional Experience</div>
+            <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.2, color: primaryColor, fontWeight: 700 }}>Professional Experience</div>
             <div style={{ height: 1, background: '#999', marginTop: 6, width: '100%' }} />
 
             <div style={{ marginTop: 8 }}>

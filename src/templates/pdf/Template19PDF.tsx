@@ -4,13 +4,13 @@ import { Document, Page, View, Text, StyleSheet } from '@react-pdf/renderer';
 import type { ResumeData } from '@/types/resume';
 
 const styles = StyleSheet.create({
-  page: { padding: 24, fontFamily: 'Times-Roman', fontSize: 10 },
+  page: { padding: 24, fontSize: 10 },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, padding: 12, backgroundColor: '#f3f4f6', borderBottomWidth: 1, borderBottomColor: '#e5e7eb' },
-  name: { fontSize: 20, fontFamily: 'Times-Bold' },
-  role: { fontSize: 11, color: '#6b7280', fontFamily: 'Times-Bold' },
+  name: { fontSize: 20 },
+  role: { fontSize: 11, color: '#6b7280' },
   contact: { fontSize: 10, color: '#374151' },
-  sectionHeading: { fontSize: 10, fontFamily: 'Times-Bold', letterSpacing: 1.2, textTransform: 'uppercase', color: '#111827' },
-  divider: { height: 1, backgroundColor: '#ddd', marginTop: 6, width: '100%' },
+  sectionHeading: { fontSize: 10, letterSpacing: 1.2, textTransform: 'uppercase' },
+  divider: { height: 1, marginTop: 6, width: '100%' },
   leftCol: { flex: 1, paddingRight: 12 },
   rightCol: { width: 220 }
 });
@@ -66,10 +66,36 @@ const formatMonthYearParts = (s?: string) => {
   return { month: String(s), year: '' };
 };
 
-interface Template19PDFProps { data: ResumeData }
+interface Template19PDFProps { data: ResumeData; primaryColor?: string; fontFamily?: string }
 
-const Template19PDF: React.FC<Template19PDFProps> = ({ data }) => {
+const Template19PDF: React.FC<Template19PDFProps> = ({ data, primaryColor = '#111827', fontFamily = 'Times-Roman, serif' }) => {
   const { personal, experience, education, skillsLinks, certifications } = data;
+  const getPdfFontFamily = (cssFont?: string): string => {
+    if (!cssFont) return 'Times-Roman';
+    const fontLower = cssFont.toLowerCase();
+    if (fontLower.includes('arial')) return 'Helvetica';
+    if (fontLower.includes('times')) return 'Times-Roman';
+    if (fontLower.includes('georgia')) return 'Times-Roman';
+    if (fontLower.includes('calibri')) return 'Helvetica';
+    if (fontLower.includes('roboto')) return 'Helvetica';
+    if (fontLower.includes('inter')) return 'Helvetica';
+    return 'Times-Roman';
+  };
+
+  const getPdfFontFamilyBold = (cssFont?: string): string => {
+    if (!cssFont) return 'Times-Bold';
+    const fontLower = cssFont.toLowerCase();
+    if (fontLower.includes('arial')) return 'Helvetica-Bold';
+    if (fontLower.includes('times')) return 'Times-Bold';
+    if (fontLower.includes('georgia')) return 'Times-Bold';
+    if (fontLower.includes('calibri')) return 'Helvetica-Bold';
+    if (fontLower.includes('roboto')) return 'Helvetica-Bold';
+    if (fontLower.includes('inter')) return 'Helvetica-Bold';
+    return 'Times-Bold';
+  };
+
+  const pdfFontFamily = getPdfFontFamily(fontFamily);
+  const pdfFontFamilyBold = getPdfFontFamilyBold(fontFamily);
   const role = (experience && (experience as any).jobRole) || (experience.workExperiences && experience.workExperiences.find((w: any) => w.enabled && w.jobTitle) && experience.workExperiences.find((w: any) => w.enabled && w.jobTitle).jobTitle) || '';
   const contactLine = [personal.email, personal.mobileNumber, personal.address, personal.dateOfBirth].filter(Boolean).join(' | ');
 
@@ -78,8 +104,8 @@ const Template19PDF: React.FC<Template19PDFProps> = ({ data }) => {
       <Page size="A4" style={styles.page}>
         <View style={styles.headerRow}>
           <View>
-            <Text style={styles.name}>{personal.firstName} {(personal.middleName || '')} {personal.lastName}</Text>
-            {role && <Text style={styles.role}>{role}</Text>}
+            <Text style={{ ...styles.name, fontFamily: pdfFontFamilyBold, color: primaryColor }}>{personal.firstName} {(personal.middleName || '')} {personal.lastName}</Text>
+            {role && <Text style={{ ...styles.role, fontFamily: pdfFontFamily, color: primaryColor }}>{role}</Text>}
           </View>
           <View style={{ textAlign: 'right' }}>
             {personal.email && <Text style={[styles.contact, { color: '#2563eb' }]}>{personal.email}</Text>}
@@ -91,8 +117,8 @@ const Template19PDF: React.FC<Template19PDFProps> = ({ data }) => {
 
         <View>
           <View style={{ alignItems: 'center' }}>
-            <Text style={{ fontFamily: 'Times-Bold', fontSize: 10, marginBottom: 6 }}>SUMMARY</Text>
-            <View style={{ height: 1, backgroundColor: '#999', width: '100%' }} />
+            <Text style={{ fontFamily: pdfFontFamilyBold, fontSize: 10, marginBottom: 6, color: primaryColor }}>SUMMARY</Text>
+            <View style={{ height: 1, backgroundColor: primaryColor, width: '100%' }} />
           </View>
           {personal.aboutCareerObjective ? <Text style={{ marginTop: 12, color: '#444', textAlign: 'justify' }}>{htmlToPlainText(personal.aboutCareerObjective)}</Text> : null}
 

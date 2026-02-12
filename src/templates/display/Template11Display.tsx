@@ -5,6 +5,8 @@ import type { ResumeData } from '@/types/resume';
 
 interface Template11DisplayProps {
   data: ResumeData;
+  fontFamily?: string;
+  primaryColor?: string;
   showPageBreaks?: boolean;
   supportsPhoto?: boolean;
   onPageCountChange?: (n: number) => void;
@@ -14,6 +16,8 @@ interface Template11DisplayProps {
 
 const Template11Display: React.FC<Template11DisplayProps> = ({
   data,
+  fontFamily = 'Times New Roman, serif',
+  primaryColor = '#111827',
   showPageBreaks = false,
   supportsPhoto = true,
   onPageCountChange,
@@ -68,7 +72,7 @@ const Template11Display: React.FC<Template11DisplayProps> = ({
   const formatMonthYear = (s?: string) => {
     if (!s) return '';
     // Accepts YYYY-MM, YYYY-MM-DD, MM/YYYY, MonthName YYYY, or plain YYYY
-    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     try {
       const str = String(s).trim();
       // YYYY-MM or YYYY-MM-DD
@@ -130,12 +134,25 @@ const Template11Display: React.FC<Template11DisplayProps> = ({
   }, [personal, skillsLinks]);
 
   return (
-    <div className="w-[210mm] bg-white" style={{ minHeight: '297mm', fontFamily: 'Times New Roman, serif' }}>
+    <div className="w-[210mm] bg-white" style={{ minHeight: '297mm', fontFamily: fontFamily, }}>
       {/* Header Section - Classic Serif look */}
       <div style={{ padding: '18px 36px 6px 36px' }}>
-        <h1 style={{ fontSize: '36px', fontWeight: 700, color: '#111827', margin: 0, lineHeight: '1', fontFamily: 'Georgia, serif', textAlign: 'left' }}>{personal.firstName}{personal.middleName ? ' ' + personal.middleName : ''}{personal.lastName ? ' ' + personal.lastName : ''}</h1>
-        <div style={{ fontSize: '11px', color: '#111827', marginTop: 8, textAlign: 'left' }}>
-          { headerContactItems.filter(Boolean).join(' | ') }
+        <h1
+          style={{
+            fontSize: '36px',
+            fontWeight: 700,
+            color: primaryColor,
+            margin: 0,
+            lineHeight: '1',
+            fontFamily: fontFamily,
+            textAlign: 'left',
+          }}
+        >
+          {personal.firstName}
+          {personal.middleName ? ' ' + personal.middleName : ''}
+          {personal.lastName ? ' ' + personal.lastName : ''}
+        </h1>        <div style={{ fontSize: '11px', color: '#111827', marginTop: 8, textAlign: 'left' }}>
+          {headerContactItems.filter(Boolean).join(' | ')}
         </div>
       </div>
 
@@ -146,7 +163,7 @@ const Template11Display: React.FC<Template11DisplayProps> = ({
         {/* About / Career Objective Section */}
         {personal.aboutCareerObjective && personal.aboutCareerObjective.trim() !== '' && (
           <section style={{ marginBottom: 22 }}>
-            <h2 style={{ fontSize: 13, fontWeight: 700, color: '#111827', letterSpacing: 1.2, marginBottom: 8 }}>CAREER OBJECTIVE</h2>
+            <h2 style={{ fontSize: 13, fontWeight: 700, color: primaryColor, letterSpacing: 1.2, marginBottom: 8 }}>CAREER OBJECTIVE</h2>
             <div style={{ height: 1, background: '#333', width: '100%', marginBottom: 12 }} />
             <div style={{ fontSize: 11, color: '#000000', fontWeight: 'normal', lineHeight: 1.6 }} dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(personal.aboutCareerObjective || '') }} />
           </section>
@@ -155,8 +172,18 @@ const Template11Display: React.FC<Template11DisplayProps> = ({
         {/* Experience Section */}
         {experience.workExperiences.length > 0 && (
           <section style={{ marginBottom: 22 }}>
-            <h2 style={{ fontSize: 13, fontWeight: 700, color: '#111827', letterSpacing: 1.2, marginBottom: 8 }}>EXPERIENCE</h2>
-            <div style={{ height: 1, background: '#333', width: '100%', marginBottom: 12 }} />
+            <h2
+              style={{
+                fontSize: 13,
+                fontWeight: 700,
+                color: primaryColor,
+                letterSpacing: 1.2,
+                marginBottom: 8,
+              }}
+            >
+              EXPERIENCE
+            </h2>                      <div style={{ height: 1, background: '#333', width: '100%', marginBottom: 12 }} />
+
 
             {experience.workExperiences.filter(exp => exp.enabled).map((exp, idx) => (
               <div key={idx} style={{ marginBottom: 12 }}>
@@ -181,7 +208,7 @@ const Template11Display: React.FC<Template11DisplayProps> = ({
         {/* Education Section */}
         {(education.higherEducationEnabled && education.higherEducation.length > 0) && (
           <section style={{ marginBottom: 22 }}>
-            <h2 style={{ fontSize: 13, fontWeight: 700, color: '#111827', letterSpacing: 1.2, marginBottom: 8 }}>EDUCATION</h2>
+            <h2 style={{ fontSize: 13, fontWeight: 700, color:primaryColor, letterSpacing: 1.2, marginBottom: 8 }}>EDUCATION</h2>
             <div style={{ height: 1, background: '#333', width: '100%', marginBottom: 12 }} />
             {sortedHigherEducation.map((edu, idx) => (
               <div key={idx} style={{ marginBottom: 10 }}>
@@ -209,7 +236,7 @@ const Template11Display: React.FC<Template11DisplayProps> = ({
                   <div style={{ marginTop: 6, color: '#000000' }}>{education.preUniversity.resultFormat}: {education.preUniversity.result}</div>
                 )}
               </div>
-            )} 
+            )}
 
             {/* SSLC (10th) */}
             {(education.sslcEnabled || education.sslc.instituteName || education.higherEducation.length > 0) && (
@@ -230,7 +257,7 @@ const Template11Display: React.FC<Template11DisplayProps> = ({
         {/* Certifications Section */}
         {certifications.length > 0 && (
           <section style={{ marginBottom: 22 }}>
-            <h2 style={{ fontSize: 13, fontWeight: 700, color: '#111827', letterSpacing: 1.2, marginBottom: 8 }}>TECHNICAL CERTIFICATIONS</h2>
+            <h2 style={{ fontSize: 13, fontWeight: 700, color: primaryColor, letterSpacing: 1.2, marginBottom: 8 }}>TECHNICAL CERTIFICATIONS</h2>
             <div style={{ height: 1, background: '#333', width: '100%', marginBottom: 12 }} />
             {certifications.filter(c => c.enabled).map((cert, idx) => (
               <div key={idx} style={{ marginBottom: 10 }}>
@@ -248,7 +275,7 @@ const Template11Display: React.FC<Template11DisplayProps> = ({
 
         {/* Other Section - Skills Only */}
         <section>
-          <h2 style={{ fontSize: 13, fontWeight: 700, color: '#111827', letterSpacing: 1.2, marginBottom: 8 }}>OTHER</h2>
+          <h2 style={{ fontSize: 13, fontWeight: 700, color: primaryColor, letterSpacing: 1.2, marginBottom: 8 }}>OTHER</h2>
           <div style={{ height: 1, background: '#333', width: '100%', marginBottom: 12 }} />
 
           {/* Skills */}
