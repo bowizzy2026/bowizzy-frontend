@@ -1,4 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
+// Get resume amount from Vite env
+const RESUME_AMOUNT = Number(import.meta.env.VITE_RESUME_AMOUNT) || 19;
 import { Lock } from "lucide-react";
 import { X, Download, Eye, Save } from "lucide-react";
 import type { ResumeData } from "@/types/resume";
@@ -889,14 +891,14 @@ const ResumePreviewModal: React.FC<ResumePreviewModalProps> = ({
                             className="group flex items-center justify-center w-14 h-14 rounded-full bg-orange-50 hover:bg-orange-200 active:bg-orange-400 transition-colors border-2 border-orange-200 focus:outline-none relative"
                             style={{ outline: 'none' }}
                             onClick={() => setShowPayMsg(true)}
-                            title="Unlock this resume for ₹19"
+                            title={`Unlock this resume for ₹${RESUME_AMOUNT}`}
                           >
                             <Lock className="w-8 h-8 text-orange-400 group-hover:text-orange-500 group-active:text-white transition-colors" />
                           </button>
                           <span className="text-gray-700 font-medium mt-2">Payment required to download this resume</span>
                           {showPayMsg && (
                             <div className="mt-4 p-4 bg-orange-100 border border-orange-400 rounded-lg text-orange-700 text-center font-semibold z-50">
-                              Resume is locked. You need to pay <span className="text-orange-600 font-bold">₹19</span> to unlock.<br/>
+                              Resume is locked. You need to pay <span className="text-orange-600 font-bold">₹{RESUME_AMOUNT}</span> to unlock.<br/>
                               <button
                                 className="mt-3 px-6 py-2 rounded-full bg-orange-500 hover:bg-orange-600 text-white font-semibold shadow-md transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                                 disabled={payLoading}
@@ -914,7 +916,7 @@ const ResumePreviewModal: React.FC<ResumePreviewModalProps> = ({
                                     });
                                     await loadRazorpayScript();
                                     // Create order on backend (assume /payment/create-order endpoint exists)
-                                    const amount = 1; // rupees
+                                    const amount = RESUME_AMOUNT; // rupees
                                     const api = (await import('@/api')).default;
                                     const userData = JSON.parse(localStorage.getItem('user') || '{}');
                                     const token = userData?.token;
@@ -948,7 +950,7 @@ const ResumePreviewModal: React.FC<ResumePreviewModalProps> = ({
                                       },
                                       handler: async function (response) {
                                         setPayLoading(false);
-                                        setShowPayMsg(false);
+                                        setShowPayMsg(false);                                                                                                                                                         
                                         setResumeUnlocked(true);
                                         alert('Payment successful! Resume unlocked.');
                                         // TODO: Call backend to unlock resume for user
@@ -966,7 +968,7 @@ const ResumePreviewModal: React.FC<ResumePreviewModalProps> = ({
                                       rzp.on('payment.failed', (resp) => {
                                         setPayLoading(false);
                                         alert('Payment failed or was cancelled.');
-                                      });
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              });
                                     }
                                     rzp.open();
                                   } catch (err) {
@@ -975,7 +977,7 @@ const ResumePreviewModal: React.FC<ResumePreviewModalProps> = ({
                                   }
                                 }}
                               >
-                                {payLoading ? 'Initiating Payment...' : 'Pay ₹1'}
+                                {payLoading ? 'Initiating Payment...' : `Pay ₹${RESUME_AMOUNT}`}
                               </button>
                               <button
                                 className="ml-4 mt-3 px-4 py-2 rounded-full bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium transition-colors"
