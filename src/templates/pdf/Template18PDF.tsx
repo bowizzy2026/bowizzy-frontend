@@ -292,8 +292,25 @@ const Template18PDF: React.FC<Template18PDFProps> = ({ data, primaryColor = '#11
 
 
         </View>
-      </Page>
-    </Document>
+      {/* Footer */}
+      <View style={{
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        bottom: 12,
+        paddingHorizontal: 36,
+        paddingVertical: 8,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        fontSize: 10,
+        color: '#B0B0B0',
+      }} fixed>
+        <Text style={{ color: '#B0B0B0', fontSize: 10, letterSpacing: 0.5 }}>bowizzy.com</Text>
+        <Text style={{ color: '#B0B0B0', fontSize: 10, letterSpacing: 0.5 }}>Powered by Wizzybox</Text>
+      </View>
+    </Page>
+  </Document>
   );
 };
 

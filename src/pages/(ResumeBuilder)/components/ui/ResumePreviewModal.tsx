@@ -862,7 +862,7 @@ const ResumePreviewModal: React.FC<ResumePreviewModalProps> = ({
                           return (
                             <div className="flex flex-col items-center justify-center mb-4">
                               <Lock className="w-8 h-8 text-gray-500 mb-2" />
-                              <span className="text-sm font-semibold text-gray-700">Resume is locked</span>
+                              <span className="text-sm font-semibold text-gray-700">Premium Resume</span>
                             </div>
                           );
                         }
@@ -893,7 +893,7 @@ const ResumePreviewModal: React.FC<ResumePreviewModalProps> = ({
                           >
                             <Lock className="w-8 h-8 text-orange-400 group-hover:text-orange-500 group-active:text-white transition-colors" />
                           </button>
-                          <span className="text-gray-700 font-medium mt-2">Resume is locked</span>
+                          <span className="text-gray-700 font-medium mt-2">Payment required to download this resume</span>
                           {showPayMsg && (
                             <div className="mt-4 p-4 bg-orange-100 border border-orange-400 rounded-lg text-orange-700 text-center font-semibold z-50">
                               Resume is locked. You need to pay <span className="text-orange-600 font-bold">₹19</span> to unlock.<br/>
