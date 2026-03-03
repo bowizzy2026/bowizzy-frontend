@@ -1160,6 +1160,26 @@ export default function ExperienceDetailsForm({
                       <option value="Data Scientist">Data Scientist</option>
                       <option value="Product Manager">Product Manager</option>
                       <option value="UI/UX Designer">UI/UX Designer</option>
+                      <option value="Business Analyst">Business Analyst</option>
+                      <option value="QA Engineer">QA Engineer</option>
+                      <option value="Test Engineer">Test Engineer</option>
+                      <option value="System Administrator">System Administrator</option>
+                      <option value="Database Administrator">Database Administrator</option>
+                      <option value="Cloud Architect">Cloud Architect</option>
+                      <option value="Machine Learning Engineer">Machine Learning Engineer</option>
+                      <option value="AI Engineer">AI Engineer</option>
+                      <option value="Mobile App Developer">Mobile App Developer</option>
+                      <option value="iOS Developer">iOS Developer</option>
+                      <option value="Android Developer">Android Developer</option>
+                      <option value="Technical Lead">Technical Lead</option>
+                      <option value="Solution Architect">Solution Architect</option>
+                      <option value="IT Manager">IT Manager</option>
+                      <option value="Network Engineer">Network Engineer</option>
+                      <option value="Security Analyst">Security Analyst</option>
+                      <option value="Scrum Master">Scrum Master</option>
+                      <option value="Project Coordinator">Project Coordinator</option>
+                      <option value="Technical Writer">Technical Writer</option>
+                      <option value="Support Engineer">Support Engineer</option>
                     </select>
                     {errors.jobRole && <p className="mt-1 text-xs text-red-500">{errors.jobRole}</p>}
                     <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />

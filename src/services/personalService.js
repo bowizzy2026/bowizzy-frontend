@@ -68,7 +68,7 @@ export const savePersonalDetails = async (userId, token, personal) => {
       "Content-Type": "application/json",
     },
   });
-  
+
   return response.data;
 };
 
@@ -81,7 +81,7 @@ export const updatePersonalDetails = async (
 ) => {
   // Create payload with only provided fields
   const payload = {};
-  
+
   // Map frontend field names to backend field names, only if they exist
   if (personal.profilePhotoUrl !== undefined) {
     payload.profile_photo_url = personal.profilePhotoUrl;
@@ -141,7 +141,7 @@ export const updatePersonalDetails = async (
     payload.passport_number = personal.passport_number;
   }
   if (personal.about !== undefined) {
-   payload.about = personal.about;
+    payload.about = personal.about;
   }
 
   // console.log("PUT request payload (only changed fields):", payload);
@@ -156,7 +156,7 @@ export const updatePersonalDetails = async (
       },
     }
   );
-  
+
   return response.data;
 };
 
@@ -174,6 +174,43 @@ export const deletePersonalDetails = async (userId, token, personalDetailsId) =>
     return response.data;
   } catch (error) {
     console.error("Error deleting personal details:", error);
+    throw error;
+  }
+};
+export const sendOtpPersonalChange = async (userId, token) => {
+  try {
+    const response = await api.post(
+      `/personal-details/send-otp`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error sending OTP for personal details change:", error);
+    throw error;
+  }
+};
+
+export const updatePersonalDetailsWithOTP = async (otp, personalDetails, token) => {
+  try {
+    const response = await api.post(
+      `/personal-details/update-with-otp`,
+      { otp, personalDetails },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error updating personal details with OTP:", error);
     throw error;
   }
 };
