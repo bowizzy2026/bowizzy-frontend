@@ -739,6 +739,7 @@ const [primaryColor, setPrimaryColor] = useState("#000000");
         return (
           <PersonalDetailsForm 
             data={resumeData.personal}
+            fullResumeData={resumeData}
             onChange={updatePersonalData}
             userId={userId}
             token={token}

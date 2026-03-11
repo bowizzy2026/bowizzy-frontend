@@ -92,7 +92,7 @@ const ResumePreviewModal: React.FC<ResumePreviewModalProps> = ({
     return parts.join('_').replace(/_+/g, '_');
   };
   const [showDownloadDialog, setShowDownloadDialog] = useState(false);
-  const [isDownloading, setIsDownloading] = useState(false); 
+  const [isDownloading, setIsDownloading] = useState(false);
   const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [showNameDialog, setShowNameDialog] = useState(false);
@@ -216,7 +216,7 @@ const ResumePreviewModal: React.FC<ResumePreviewModalProps> = ({
     try {
       // Convert Blob to File
       const file = new File([blob], `${resumeName.trim()}.pdf`, { type: 'application/pdf' });
-      
+
       const result = await uploadToCloudinary(file);
       return result?.url || null;
     } catch (error) {
@@ -308,201 +308,201 @@ const ResumePreviewModal: React.FC<ResumePreviewModalProps> = ({
     <>
       {/* Modal Container - Hidden when auto-showing PDF preview */}
       {!autoShowPdfPreview && (
-      <div className="fixed right-0 top-0 bottom-0 z-50 flex items-center">
-        {/* Resume Preview */}
-        <div
-          className="h-[calc(100vh-160px)] overflow-auto scrollbar-hide"
-          style={{ width: "calc(100vw - 320px)", maxWidth: "1100px" }}
-        >
-          <div className="p-8 flex justify-center">
-            <div className="flex flex-col items-center">
-              {/* Live Preview */}
-              <div
-                className="shadow-lg w-full relative resume-preview-wrapper"
-                style={{
-                  transform: "scale(1)",
-                  transformOrigin: "center",
-                  maxWidth: "100%",
-                }}
-              >
+        <div className="fixed right-0 top-0 bottom-0 z-50 flex items-center">
+          {/* Resume Preview */}
+          <div
+            className="h-[calc(100vh-160px)] overflow-auto scrollbar-hide"
+            style={{ width: "calc(100vw - 320px)", maxWidth: "1100px" }}
+          >
+            <div className="p-8 flex justify-center">
+              <div className="flex flex-col items-center">
+                {/* Live Preview */}
                 <div
-                  ref={previewContentRef}
-                  className="resume-preview-content relative"
+                  className="shadow-lg w-full relative resume-preview-wrapper"
+                  style={{
+                    transform: "scale(1)",
+                    transformOrigin: "center",
+                    maxWidth: "100%",
+                  }}
                 >
-                  {DisplayComponent && (
-                    <div style={{ position: 'relative' }}>
-                      {/* Top-right modal page indicator when paginated */}
-                      {modalPaginatePageCount ? (
-                        <div style={{ position: 'absolute', right: 12, top: 8, zIndex: 20 }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'white', padding: '6px 10px', borderRadius: 12, boxShadow: '0 6px 18px rgba(15, 23, 42, 0.12)' }}>
-                            <button onClick={() => modalPaginatedRef.current?.prev()} disabled={modalPaginateCurrentPage <= 1} style={{ padding: '6px 8px', borderRadius: 8 }}>&lsaquo;</button>
-                            <span style={{ fontSize: 13 }}>{modalPaginateCurrentPage}/{modalPaginatePageCount} Pages</span>
-                            <button onClick={() => modalPaginatedRef.current?.next()} disabled={modalPaginateCurrentPage >= (modalPaginatePageCount || 1)} style={{ padding: '6px 8px', borderRadius: 8 }}>&rsaquo;</button>
+                  <div
+                    ref={previewContentRef}
+                    className="resume-preview-content relative"
+                  >
+                    {DisplayComponent && (
+                      <div style={{ position: 'relative' }}>
+                        {/* Top-right modal page indicator when paginated */}
+                        {modalPaginatePageCount ? (
+                          <div style={{ position: 'absolute', right: 12, top: 8, zIndex: 20 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'white', padding: '6px 10px', borderRadius: 12, boxShadow: '0 6px 18px rgba(15, 23, 42, 0.12)' }}>
+                              <button onClick={() => modalPaginatedRef.current?.prev()} disabled={modalPaginateCurrentPage <= 1} style={{ padding: '6px 8px', borderRadius: 8 }}>&lsaquo;</button>
+                              <span style={{ fontSize: 13 }}>{modalPaginateCurrentPage}/{modalPaginatePageCount} Pages</span>
+                              <button onClick={() => modalPaginatedRef.current?.next()} disabled={modalPaginateCurrentPage >= (modalPaginatePageCount || 1)} style={{ padding: '6px 8px', borderRadius: 8 }}>&rsaquo;</button>
+                            </div>
                           </div>
-                        </div>
-                      ) : null}
+                        ) : null}
 
-                      {editorPaginatePreview === false ? (
-                        <DisplayComponent
-                          data={resumeData}
-                          supportsPhoto={template?.supportsPhoto ?? false}
-                        />
-                      ) : (
-                        <DisplayComponent
-                          data={resumeData}
-                          supportsPhoto={template?.supportsPhoto ?? false}
-                          showPageBreaks={true}
-                          onPageCountChange={(n: number) => setModalPaginatePageCount(n)}
-                          onPageChange={(i: number) => setModalPaginateCurrentPage(i)}
-                          pageControllerRef={modalPaginatedRef}
-                        />
-                      )}
-                    </div>
-                  )}
-                  {/* <PageBreakMarkers markers={markers} /> */}
+                        {editorPaginatePreview === false ? (
+                          <DisplayComponent
+                            data={resumeData}
+                            supportsPhoto={template?.supportsPhoto ?? false}
+                          />
+                        ) : (
+                          <DisplayComponent
+                            data={resumeData}
+                            supportsPhoto={template?.supportsPhoto ?? false}
+                            showPageBreaks={true}
+                            onPageCountChange={(n: number) => setModalPaginatePageCount(n)}
+                            onPageChange={(i: number) => setModalPaginateCurrentPage(i)}
+                            pageControllerRef={modalPaginatedRef}
+                          />
+                        )}
+                      </div>
+                    )}
+                    {/* <PageBreakMarkers markers={markers} /> */}
+                  </div>
                 </div>
-              </div>
 
-              {/* Hidden Print Version (no markers) */}
-              <div className="print-version hidden">
-                {DisplayComponent && (
-                  <DisplayComponent
-                    data={resumeData}
-                    supportsPhoto={template?.supportsPhoto ?? false}
-                  />
-                )}
-              </div>
+                {/* Hidden Print Version (no markers) */}
+                <div className="print-version hidden">
+                  {DisplayComponent && (
+                    <DisplayComponent
+                      data={resumeData}
+                      supportsPhoto={template?.supportsPhoto ?? false}
+                    />
+                  )}
+                </div>
 
-              {/* Hidden paginated pages for PDF generation (rendered off-screen) */}
-              <div style={{ position: 'absolute', left: '-9999px', top: 0 }} ref={pdfPagesRef} aria-hidden>
-                {DisplayComponent && (
-                  <DisplayComponent
-                    data={resumeData}
-                    supportsPhoto={template?.supportsPhoto ?? false}
-                    showPageBreaks={true}
-                    // make sure PDF-ready pages are rendered inside the DisplayComponent
-                    onPageCountChange={(n: number) => setModalPaginatePageCount(n)}
-                    onPageChange={(i: number) => setModalPaginateCurrentPage(i)}
-                    pageControllerRef={modalPaginatedRef}
-                  />
-                )}
+                {/* Hidden paginated pages for PDF generation (rendered off-screen) */}
+                <div style={{ position: 'absolute', left: '-9999px', top: 0 }} ref={pdfPagesRef} aria-hidden>
+                  {DisplayComponent && (
+                    <DisplayComponent
+                      data={resumeData}
+                      supportsPhoto={template?.supportsPhoto ?? false}
+                      showPageBreaks={true}
+                      // make sure PDF-ready pages are rendered inside the DisplayComponent
+                      onPageCountChange={(n: number) => setModalPaginatePageCount(n)}
+                      onPageChange={(i: number) => setModalPaginateCurrentPage(i)}
+                      pageControllerRef={modalPaginatedRef}
+                    />
+                  )}
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Action Buttons */}
-        <div className="flex flex-col gap-2 ml-0 transform -translate-x-30">
-          {/* Back to Edit Button */}
-          <button
-            onClick={onClose}
-            className="flex items-center bg-white text-left py-3 px-4 rounded-full border-0 hover:bg-gray-50 transition-colors shadow-md cursor-pointer"
-          >
-            <X className="w-5 h-5 mr-2" />
-            <span className="text-black text-sm font-medium whitespace-nowrap">
-              Back to Edit
-            </span>
-          </button>
-
-          {/* Save & Exit Button */}
-          <button
-            onClick={handleSaveAndExitClick}
-            className="flex items-center bg-white text-left py-3 px-4 rounded-full border-0 hover:bg-gray-50 transition-colors shadow-md cursor-pointer"
-          >
-            <Save className="w-5 h-5 mr-2 text-orange-500" />
-            <span className="text-black text-sm font-medium whitespace-nowrap">
-              Save & Exit
-            </span>
-          </button>
-
-          {/* Download PDF Button */}
-          <button
-            onClick={() => setShowNameDialog(true)}
-            className="flex items-center bg-orange-500 text-left py-3 px-4 rounded-full border-0 hover:bg-orange-600 transition-colors shadow-md cursor-pointer"
-          >
-            <Download className="w-5 h-5 mr-2 text-white" />
-            <span className="text-white text-sm font-medium whitespace-nowrap">
-              Download PDF
-            </span>
-          </button>
-
-          {/* Preview Button - Always Visible */}
-          {PDFComponent && (
+          {/* Action Buttons */}
+          <div className="flex flex-col gap-2 ml-0 transform -translate-x-30">
+            {/* Back to Edit Button */}
             <button
-              onClick={async () => {
-                setIsDownloading(true);
-                try {
-                  const waitForPages = async () => {
-                    for (let i = 0; i < 20; i++) {
-                      const container = pdfPagesRef.current;
-                      const printableNow = container ? container.querySelectorAll('.pdf-print-page') : document.querySelectorAll('.pdf-print-page');
-                      if (printableNow && printableNow.length > 0 && (modalPaginatePageCount === null || printableNow.length === modalPaginatePageCount)) {
-                        return printableNow;
+              onClick={onClose}
+              className="flex items-center bg-white text-left py-3 px-4 rounded-full border-0 hover:bg-gray-50 transition-colors shadow-md cursor-pointer"
+            >
+              <X className="w-5 h-5 mr-2" />
+              <span className="text-black text-sm font-medium whitespace-nowrap">
+                Back to Edit
+              </span>
+            </button>
+
+            {/* Save & Exit Button */}
+            <button
+              onClick={handleSaveAndExitClick}
+              className="flex items-center bg-white text-left py-3 px-4 rounded-full border-0 hover:bg-gray-50 transition-colors shadow-md cursor-pointer"
+            >
+              <Save className="w-5 h-5 mr-2 text-orange-500" />
+              <span className="text-black text-sm font-medium whitespace-nowrap">
+                Save & Exit
+              </span>
+            </button>
+
+            {/* Download PDF Button */}
+            <button
+              onClick={() => setShowNameDialog(true)}
+              className="flex items-center bg-orange-500 text-left py-3 px-4 rounded-full border-0 hover:bg-orange-600 transition-colors shadow-md cursor-pointer"
+            >
+              <Download className="w-5 h-5 mr-2 text-white" />
+              <span className="text-white text-sm font-medium whitespace-nowrap">
+                Download PDF
+              </span>
+            </button>
+
+            {/* Preview Button - Always Visible */}
+            {PDFComponent && (
+              <button
+                onClick={async () => {
+                  setIsDownloading(true);
+                  try {
+                    const waitForPages = async () => {
+                      for (let i = 0; i < 20; i++) {
+                        const container = pdfPagesRef.current;
+                        const printableNow = container ? container.querySelectorAll('.pdf-print-page') : document.querySelectorAll('.pdf-print-page');
+                        if (printableNow && printableNow.length > 0 && (modalPaginatePageCount === null || printableNow.length === modalPaginatePageCount)) {
+                          return printableNow;
+                        }
+                        await new Promise((r) => setTimeout(r, 100));
                       }
-                      await new Promise((r) => setTimeout(r, 100));
+                      const container = pdfPagesRef.current;
+                      return container ? container.querySelectorAll('.pdf-print-page') : document.querySelectorAll('.pdf-print-page');
+                    };
+
+                    let generatedBlob: Blob | null = null;
+
+                    const printable = await waitForPages();
+                    if (printable && printable.length > 0) {
+                      const pdfDoc = new jsPDF('p', 'pt', 'a4');
+                      const pdfWidth = pdfDoc.internal.pageSize.getWidth();
+                      const pdfHeight = pdfDoc.internal.pageSize.getHeight();
+
+                      for (let i = 0; i < printable.length; i++) {
+                        const canvas = await html2canvas(printable[i] as HTMLElement, { scale: 2, useCORS: true });
+                        const imgData = canvas.toDataURL('image/png');
+                        if (i > 0) pdfDoc.addPage();
+                        pdfDoc.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+                      }
+
+                      generatedBlob = pdfDoc.output('blob') as Blob;
+                    } else {
+                      const preparedData = await embedProfilePhoto(resumeData);
+                      const doc = <PDFComponent data={preparedData} primaryColor={primaryColor} fontFamily={fontFamily} />;
+                      const asPdf = pdf(doc);
+                      generatedBlob = await asPdf.toBlob();
                     }
-                    const container = pdfPagesRef.current;
-                    return container ? container.querySelectorAll('.pdf-print-page') : document.querySelectorAll('.pdf-print-page');
-                  };
 
-                  let generatedBlob: Blob | null = null;
-
-                  const printable = await waitForPages();
-                  if (printable && printable.length > 0) {
-                    const pdfDoc = new jsPDF('p', 'pt', 'a4');
-                    const pdfWidth = pdfDoc.internal.pageSize.getWidth();
-                    const pdfHeight = pdfDoc.internal.pageSize.getHeight();
-
-                    for (let i = 0; i < printable.length; i++) {
-                      const canvas = await html2canvas(printable[i] as HTMLElement, { scale: 2, useCORS: true });
-                      const imgData = canvas.toDataURL('image/png');
-                      if (i > 0) pdfDoc.addPage();
-                      pdfDoc.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+                    if (generatedBlob) {
+                      setPdfBlob(generatedBlob);
+                      const url = URL.createObjectURL(generatedBlob);
+                      setPdfUrl(url);
+                      setShowDownloadDialog(true);
                     }
-
-                    generatedBlob = pdfDoc.output('blob') as Blob;
-                  } else {
-                    const preparedData = await embedProfilePhoto(resumeData);
-                    const doc = <PDFComponent data={preparedData} primaryColor={primaryColor} fontFamily={fontFamily} />;
-                    const asPdf = pdf(doc);
-                    generatedBlob = await asPdf.toBlob();
+                  } catch (_err) {
+                    console.error('PDF generation error:', _err);
+                    alert('Failed to generate PDF. See console for details.');
+                  } finally {
+                    setIsDownloading(false);
                   }
-
-                  if (generatedBlob) {
-                    setPdfBlob(generatedBlob);
-                    const url = URL.createObjectURL(generatedBlob);
-                    setPdfUrl(url);
-                    setShowDownloadDialog(true);
-                  }
-                } catch (_err) {
-                      console.error('PDF generation error:', _err);
-                      alert('Failed to generate PDF. See console for details.');
-                    } finally {
-                      setIsDownloading(false);
-                    }
-                  }}
-                  disabled={isDownloading}
-                  className="flex items-center bg-blue-500 text-left py-3 px-4 rounded-full border-0 hover:bg-blue-600 transition-colors shadow-md cursor-pointer disabled:opacity-50"
-                >
-                  {isDownloading ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                      <span className="text-white text-sm font-medium whitespace-nowrap">
-                        Processing...
-                      </span>
-                    </>
-                  ) : (
-                    <>
-                      <Eye className="w-5 h-5 mr-2 text-white" />
-                      <span className="text-white text-sm font-medium whitespace-nowrap">
-                        Preview
-                      </span>
-                    </>
-                  )}
-                </button>
-              )}
+                }}
+                disabled={isDownloading}
+                className="flex items-center bg-blue-500 text-left py-3 px-4 rounded-full border-0 hover:bg-blue-600 transition-colors shadow-md cursor-pointer disabled:opacity-50"
+              >
+                {isDownloading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                    <span className="text-white text-sm font-medium whitespace-nowrap">
+                      Processing...
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <Eye className="w-5 h-5 mr-2 text-white" />
+                    <span className="text-white text-sm font-medium whitespace-nowrap">
+                      Preview
+                    </span>
+                  </>
+                )}
+              </button>
+            )}
+          </div>
         </div>
-      </div>
       )}
 
       {/* Resume Name Dialog - Appears when Download PDF is clicked */}
@@ -695,161 +695,161 @@ const ResumePreviewModal: React.FC<ResumePreviewModalProps> = ({
                     </div>
                   </div>
 
-                    {/* Preview Button - GENERATE AND PREVIEW */}
-                    {PDFComponent && (
-                      <button
-                        onClick={async () => {
-                              setIsDownloading(true);
-                              try {
-                                // Wait briefly for paginated pages to be rendered and counted (if any)
-                                const waitForPages = async () => {
-                                  // Prefer pages rendered inside our off-screen container to avoid picking up pages from other components
-                                  for (let i = 0; i < 20; i++) {
-                                    const container = pdfPagesRef.current;
-                                    const printableNow = container ? container.querySelectorAll('.pdf-print-page') : document.querySelectorAll('.pdf-print-page');
-                                    if (printableNow && printableNow.length > 0 && (modalPaginatePageCount === null || printableNow.length === modalPaginatePageCount)) {
-                                      return printableNow;
-                                    }
-                                    // small pause
-                                    // eslint-disable-next-line no-await-in-loop
-                                    await new Promise((r) => setTimeout(r, 100));
-                                  }
-                                  const container = pdfPagesRef.current;
-                                  return container ? container.querySelectorAll('.pdf-print-page') : document.querySelectorAll('.pdf-print-page');
-                                };
-
-                                let generatedBlob: Blob | null = null;
-
-                                const printable = await waitForPages();
-                                if (printable && printable.length > 0) {
-                                  // Generate PDF from paginated DOM
-                                  const pdfDoc = new jsPDF('p', 'pt', 'a4');
-                                  const pdfWidth = pdfDoc.internal.pageSize.getWidth();
-                                  const pdfHeight = pdfDoc.internal.pageSize.getHeight();
-
-                                  for (let i = 0; i < printable.length; i++) {
-                                    // html2canvas each page
-                                    const canvas = await (html2canvas as any)(printable[i] as HTMLElement, { scale: 2, useCORS: true });
-                                    const imgData = canvas.toDataURL('image/png');
-                                    if (i > 0) pdfDoc.addPage();
-                                    pdfDoc.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-                                  }
-
-                                  generatedBlob = pdfDoc.output('blob') as Blob;
-                                } else {
-                                  // Fallback: use react-pdf generation
-                                  const preparedData = await embedProfilePhoto(resumeData);
-                                  const doc = <PDFComponent data={preparedData} primaryColor={primaryColor} fontFamily={fontFamily} />;
-                                  const asPdf = pdf(doc);
-                                  generatedBlob = await asPdf.toBlob();
-                                }
-
-                                // Store the blob and create preview URL
-                                if (generatedBlob) {
-                                  setPdfBlob(generatedBlob);
-                                  const url = URL.createObjectURL(generatedBlob);
-                                  setPdfUrl(url);
-                                }
-                              } catch (err) {
-                                console.error('PDF generation error:', err);
-                                alert('Failed to generate PDF. See console for details.');
-                              } finally {
-                                setIsDownloading(false);
+                  {/* Preview Button - GENERATE AND PREVIEW */}
+                  {PDFComponent && (
+                    <button
+                      onClick={async () => {
+                        setIsDownloading(true);
+                        try {
+                          // Wait briefly for paginated pages to be rendered and counted (if any)
+                          const waitForPages = async () => {
+                            // Prefer pages rendered inside our off-screen container to avoid picking up pages from other components
+                            for (let i = 0; i < 20; i++) {
+                              const container = pdfPagesRef.current;
+                              const printableNow = container ? container.querySelectorAll('.pdf-print-page') : document.querySelectorAll('.pdf-print-page');
+                              if (printableNow && printableNow.length > 0 && (modalPaginatePageCount === null || printableNow.length === modalPaginatePageCount)) {
+                                return printableNow;
                               }
-                            }}
-                        disabled={isDownloading}
-                        className="flex-1 min-w-[120px] px-3 py-2 text-sm font-medium text-white bg-blue-500 rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1"
-                      >
-                        {isDownloading ? (<><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Processing</>) : (<><Eye className="w-4 h-4" /> Preview</>)}
-                      </button>
-                    )}
+                              // small pause
+                              // eslint-disable-next-line no-await-in-loop
+                              await new Promise((r) => setTimeout(r, 100));
+                            }
+                            const container = pdfPagesRef.current;
+                            return container ? container.querySelectorAll('.pdf-print-page') : document.querySelectorAll('.pdf-print-page');
+                          };
 
-                    {/* Download (.pdf) Button */}
-                    {PDFComponent && (
-                      <button
-                        onClick={async () => {
-                              setIsDownloading(true);
-                              try {
-                                // Wait briefly for paginated pages to be rendered and counted (if any)
-                                const waitForPages = async () => {
-                                  // Prefer pages rendered inside our off-screen container to avoid picking up pages from other components
-                                  for (let i = 0; i < 20; i++) {
-                                    const container = pdfPagesRef.current;
-                                    const printableNow = container ? container.querySelectorAll('.pdf-print-page') : document.querySelectorAll('.pdf-print-page');
-                                    if (printableNow && printableNow.length > 0 && (modalPaginatePageCount === null || printableNow.length === modalPaginatePageCount)) {
-                                      return printableNow;
-                                    }
-                                    // small pause
-                                    // eslint-disable-next-line no-await-in-loop
-                                    await new Promise((r) => setTimeout(r, 100));
-                                  }
-                                  const container = pdfPagesRef.current;
-                                  return container ? container.querySelectorAll('.pdf-print-page') : document.querySelectorAll('.pdf-print-page');
-                                };
+                          let generatedBlob: Blob | null = null;
 
-                                const printable = await waitForPages();
-                                if (printable && printable.length > 0) {
-                                  // Generate PDF from paginated DOM
-                                  const pdfDoc = new jsPDF('p', 'pt', 'a4');
-                                  const pdfWidth = pdfDoc.internal.pageSize.getWidth();
-                                  const pdfHeight = pdfDoc.internal.pageSize.getHeight();
+                          const printable = await waitForPages();
+                          if (printable && printable.length > 0) {
+                            // Generate PDF from paginated DOM
+                            const pdfDoc = new jsPDF('p', 'pt', 'a4');
+                            const pdfWidth = pdfDoc.internal.pageSize.getWidth();
+                            const pdfHeight = pdfDoc.internal.pageSize.getHeight();
 
-                                  for (let i = 0; i < printable.length; i++) {
-                                    // html2canvas each page
-                                    const canvas = await (html2canvas as any)(printable[i] as HTMLElement, { scale: 2, useCORS: true });
-                                    const imgData = canvas.toDataURL('image/png');
-                                    if (i > 0) pdfDoc.addPage();
-                                    pdfDoc.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-                                  }
+                            for (let i = 0; i < printable.length; i++) {
+                              // html2canvas each page
+                              const canvas = await (html2canvas as any)(printable[i] as HTMLElement, { scale: 2, useCORS: true });
+                              const imgData = canvas.toDataURL('image/png');
+                              if (i > 0) pdfDoc.addPage();
+                              pdfDoc.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+                            }
 
-                                  pdfDoc.save('resume.pdf');
-                                } else {
-                                  // Fallback: use react-pdf generation
-                                  const preparedData = await embedProfilePhoto(resumeData);
-                                  const doc = <PDFComponent data={preparedData} />;
-                                  const asPdf = pdf(doc);
-                                  const blob: Blob = await asPdf.toBlob();
-                                  const url = URL.createObjectURL(blob);
-                                  const a = document.createElement('a');
-                                  a.href = url;
-                                  a.download = 'resume.pdf';
-                                  document.body.appendChild(a);
-                                  a.click();
-                                  a.remove();
-                                  URL.revokeObjectURL(url);
-                                }
-                              } catch (err) {
-                                console.error('PDF generation error:', err);
-                                alert('Failed to generate PDF. See console for details.');
-                              } finally {
-                                setIsDownloading(false);
+                            generatedBlob = pdfDoc.output('blob') as Blob;
+                          } else {
+                            // Fallback: use react-pdf generation
+                            const preparedData = await embedProfilePhoto(resumeData);
+                            const doc = <PDFComponent data={preparedData} primaryColor={primaryColor} fontFamily={fontFamily} />;
+                            const asPdf = pdf(doc);
+                            generatedBlob = await asPdf.toBlob();
+                          }
+
+                          // Store the blob and create preview URL
+                          if (generatedBlob) {
+                            setPdfBlob(generatedBlob);
+                            const url = URL.createObjectURL(generatedBlob);
+                            setPdfUrl(url);
+                          }
+                        } catch (err) {
+                          console.error('PDF generation error:', err);
+                          alert('Failed to generate PDF. See console for details.');
+                        } finally {
+                          setIsDownloading(false);
+                        }
+                      }}
+                      disabled={isDownloading}
+                      className="flex-1 min-w-[120px] px-3 py-2 text-sm font-medium text-white bg-blue-500 rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1"
+                    >
+                      {isDownloading ? (<><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Processing</>) : (<><Eye className="w-4 h-4" /> Preview</>)}
+                    </button>
+                  )}
+
+                  {/* Download (.pdf) Button */}
+                  {PDFComponent && (
+                    <button
+                      onClick={async () => {
+                        setIsDownloading(true);
+                        try {
+                          // Wait briefly for paginated pages to be rendered and counted (if any)
+                          const waitForPages = async () => {
+                            // Prefer pages rendered inside our off-screen container to avoid picking up pages from other components
+                            for (let i = 0; i < 20; i++) {
+                              const container = pdfPagesRef.current;
+                              const printableNow = container ? container.querySelectorAll('.pdf-print-page') : document.querySelectorAll('.pdf-print-page');
+                              if (printableNow && printableNow.length > 0 && (modalPaginatePageCount === null || printableNow.length === modalPaginatePageCount)) {
+                                return printableNow;
                               }
-                            }}
-                        disabled={isDownloading}
-                        className="flex-1 min-w-[120px] px-3 py-2 text-sm font-medium text-white bg-orange-500 rounded-lg hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1"
+                              // small pause
+                              // eslint-disable-next-line no-await-in-loop
+                              await new Promise((r) => setTimeout(r, 100));
+                            }
+                            const container = pdfPagesRef.current;
+                            return container ? container.querySelectorAll('.pdf-print-page') : document.querySelectorAll('.pdf-print-page');
+                          };
+
+                          const printable = await waitForPages();
+                          if (printable && printable.length > 0) {
+                            // Generate PDF from paginated DOM
+                            const pdfDoc = new jsPDF('p', 'pt', 'a4');
+                            const pdfWidth = pdfDoc.internal.pageSize.getWidth();
+                            const pdfHeight = pdfDoc.internal.pageSize.getHeight();
+
+                            for (let i = 0; i < printable.length; i++) {
+                              // html2canvas each page
+                              const canvas = await (html2canvas as any)(printable[i] as HTMLElement, { scale: 2, useCORS: true });
+                              const imgData = canvas.toDataURL('image/png');
+                              if (i > 0) pdfDoc.addPage();
+                              pdfDoc.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+                            }
+
+                            pdfDoc.save('resume.pdf');
+                          } else {
+                            // Fallback: use react-pdf generation
+                            const preparedData = await embedProfilePhoto(resumeData);
+                            const doc = <PDFComponent data={preparedData} />;
+                            const asPdf = pdf(doc);
+                            const blob: Blob = await asPdf.toBlob();
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = 'resume.pdf';
+                            document.body.appendChild(a);
+                            a.click();
+                            a.remove();
+                            URL.revokeObjectURL(url);
+                          }
+                        } catch (err) {
+                          console.error('PDF generation error:', err);
+                          alert('Failed to generate PDF. See console for details.');
+                        } finally {
+                          setIsDownloading(false);
+                        }
+                      }}
+                      disabled={isDownloading}
+                      className="flex-1 min-w-[120px] px-3 py-2 text-sm font-medium text-white bg-orange-500 rounded-lg hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1"
+                    >
+                      {isDownloading ? (<><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Processing</>) : (<><Download className="w-4 h-4" /> Download</>)}
+                    </button>
+                  )}
+
+                  {/* Fallback if PDFComponent is not defined */}
+                  {!PDFComponent && (
+                    <>
+                      <button
+                        disabled
+                        className="flex-1 min-w-[120px] px-3 py-2 text-sm font-medium text-white bg-gray-400 rounded-lg disabled:opacity-50 flex items-center justify-center gap-1"
                       >
-                        {isDownloading ? (<><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Processing</>) : (<><Download className="w-4 h-4" /> Download</>)}
+                        Preview
                       </button>
-                    )}
-                    
-                    {/* Fallback if PDFComponent is not defined */}
-                    {!PDFComponent && (
-                      <>
-                        <button
-                          disabled
-                          className="flex-1 min-w-[120px] px-3 py-2 text-sm font-medium text-white bg-gray-400 rounded-lg disabled:opacity-50 flex items-center justify-center gap-1"
-                        >
-                          Preview
-                        </button>
-                        <button
-                          disabled
-                          className="flex-1 min-w-[120px] px-3 py-2 text-sm font-medium text-white bg-gray-400 rounded-lg disabled:opacity-50 flex items-center justify-center gap-1"
-                        >
-                          Download
-                        </button>
-                      </>
-                    )}
-                  </div>
+                      <button
+                        disabled
+                        className="flex-1 min-w-[120px] px-3 py-2 text-sm font-medium text-white bg-gray-400 rounded-lg disabled:opacity-50 flex items-center justify-center gap-1"
+                      >
+                        Download
+                      </button>
+                    </>
+                  )}
+                </div>
               ) : (
                 // PDF Preview Section
                 <div className="flex flex-col flex-1">
@@ -862,25 +862,25 @@ const ResumePreviewModal: React.FC<ResumePreviewModalProps> = ({
 
                   {/* PDF Viewer */}
                   <div className="flex-1 overflow-auto bg-gray-100 rounded-lg mb-4">
-                      {/* Show Lock icon and label above PDF preview for template12-20 */}
-                      {(() => {
-                        const match = templateId && templateId.match(/^template(\d+)$/);
-                        const num = match ? parseInt(match[1], 10) : null;
-                        if (num && num >= 12 && num <= 20) {
-                          return (
-                            <div className="flex flex-col items-center justify-center mb-4">
-                              <Lock className="w-8 h-8 text-gray-500 mb-2" />
-                              <span className="text-sm font-semibold text-gray-700">Premium Resume</span>
-                            </div>
-                          );
-                        }
-                        return null;
-                      })()}
-                      <iframe
-                        src={pdfUrl ? `${pdfUrl}#toolbar=0` : ''}
-                        className="w-full h-full border-none"
-                        title="Resume PDF Preview"
-                      />
+                    {/* Show Lock icon and label above PDF preview for template12-20 */}
+                    {(() => {
+                      const match = templateId && templateId.match(/^template(\d+)$/);
+                      const num = match ? parseInt(match[1], 10) : null;
+                      if (num && num >= 12 && num <= 20) {
+                        return (
+                          <div className="flex flex-col items-center justify-center mb-4">
+                            <Lock className="w-8 h-8 text-gray-500 mb-2" />
+                            <span className="text-sm font-semibold text-gray-700">Premium Resume</span>
+                          </div>
+                        );
+                      }
+                      return null;
+                    })()}
+                    <iframe
+                      src={pdfUrl ? `${pdfUrl}#toolbar=0` : ''}
+                      className="w-full h-full border-none"
+                      title="Resume PDF Preview"
+                    />
                   </div>
 
                   {/* Footer Buttons */}
@@ -904,7 +904,7 @@ const ResumePreviewModal: React.FC<ResumePreviewModalProps> = ({
                           <span className="text-gray-700 font-medium mt-2">Payment required to download this resume</span>
                           {showPayMsg && (
                             <div className="mt-4 p-4 bg-orange-100 border border-orange-400 rounded-lg text-orange-700 text-center font-semibold z-50">
-                              Resume is locked. You need to pay <span className="text-orange-600 font-bold">₹{RESUME_AMOUNT}</span> to unlock.<br/>
+                              Resume is locked. You need to pay <span className="text-orange-600 font-bold">₹{RESUME_AMOUNT}</span> to unlock.<br />
                               <button
                                 className="mt-3 px-6 py-2 rounded-full bg-orange-500 hover:bg-orange-600 text-white font-semibold shadow-md transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                                 disabled={payLoading}
@@ -941,7 +941,7 @@ const ResumePreviewModal: React.FC<ResumePreviewModalProps> = ({
                                           orderAmount = Math.round(amount * 100);
                                         }
                                       }
-                                    } catch (e) {}
+                                    } catch (e) { }
                                     const options = {
                                       key: razorKey,
                                       amount: orderAmount,
@@ -956,7 +956,7 @@ const ResumePreviewModal: React.FC<ResumePreviewModalProps> = ({
                                       },
                                       handler: async function (response) {
                                         setPayLoading(false);
-                                        setShowPayMsg(false);                                                                                                                                                         
+                                        setShowPayMsg(false);
                                         setResumeUnlocked(true);
                                         alert('Payment successful! Resume unlocked.');
                                         // TODO: Call backend to unlock resume for user
@@ -974,7 +974,7 @@ const ResumePreviewModal: React.FC<ResumePreviewModalProps> = ({
                                       rzp.on('payment.failed', (resp) => {
                                         setPayLoading(false);
                                         alert('Payment failed or was cancelled.');
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              });
+                                      });
                                     }
                                     rzp.open();
                                   } catch (err) {

@@ -44,7 +44,7 @@ const Template11Display: React.FC<Template11DisplayProps> = ({
       return bKey - aKey;
     });
   }, [education.higherEducation]);
-
+  console.log('skill links', skillsLinks)
   const getYear = (s?: string) => (s ? s.split('-')[0] : '');
 
   const degreeMap: Record<string, string> = {
@@ -126,9 +126,10 @@ const Template11Display: React.FC<Template11DisplayProps> = ({
 
     // links live under skillsLinks.links
     const links = skillsLinks?.links || {} as any;
-    if (links.linkedinProfile) items.push(links.linkedinProfile);
-    if (links.githubProfile) items.push(links.githubProfile);
-    if (links.portfolioUrl) items.push(links.portfolioUrl);
+    if (links.linkedinProfile && links.linkedinEnabled) items.push(links.linkedinProfile);
+    if (links.githubProfile && links.githubEnabled) items.push(links.githubProfile);
+    if (links.portfolioUrl && links.portfolioEnabled) items.push(links.portfolioUrl);
+    if (links.publicationUrl && links.publicationEnabled) items.push(links.publicationUrl);
 
     return items;
   }, [personal, skillsLinks]);
@@ -208,7 +209,7 @@ const Template11Display: React.FC<Template11DisplayProps> = ({
         {/* Education Section */}
         {(education.higherEducationEnabled && education.higherEducation.length > 0) && (
           <section style={{ marginBottom: 22 }}>
-            <h2 style={{ fontSize: 13, fontWeight: 700, color:primaryColor, letterSpacing: 1.2, marginBottom: 8 }}>EDUCATION</h2>
+            <h2 style={{ fontSize: 13, fontWeight: 700, color: primaryColor, letterSpacing: 1.2, marginBottom: 8 }}>EDUCATION</h2>
             <div style={{ height: 1, background: '#333', width: '100%', marginBottom: 12 }} />
             {sortedHigherEducation.map((edu, idx) => (
               <div key={idx} style={{ marginBottom: 10 }}>
@@ -254,6 +255,100 @@ const Template11Display: React.FC<Template11DisplayProps> = ({
           </section>
         )}
 
+        {/* Projects Section */}
+        {projects && projects.length > 0 && (
+          <section style={{ marginBottom: 22 }}>
+            <h2
+              style={{
+                fontSize: 13,
+                fontWeight: 700,
+                color: primaryColor,
+                letterSpacing: 1.2,
+                marginBottom: 8,
+              }}
+            >
+              PROJECTS
+            </h2>
+            <div style={{ height: 1, background: '#333', width: '100%', marginBottom: 12 }} />
+
+            {projects
+              .filter((proj) => proj.enabled)
+              .map((proj, idx) => (
+                <div key={idx} style={{ marginBottom: 14 }}>
+                  {/* Title row with dates */}
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'flex-start',
+                      marginBottom: 3,
+                    }}
+                  >
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>
+                      {proj.projectTitle}
+                    </div>
+                    <div style={{ fontSize: 11, color: '#111827', fontWeight: 700, whiteSpace: 'nowrap' }}>
+                      {formatMonthYear(proj.startDate)}
+                      {' – '}
+                      {proj.currentlyWorking ? 'Present' : formatMonthYear(proj.endDate)}
+                    </div>
+                  </div>
+
+                  {/* Project type badge */}
+                  {proj.projectType && (
+                    <div
+                      style={{
+                        fontSize: 10,
+                        color: '#555',
+                        fontStyle: 'italic',
+                        marginBottom: 5,
+                      }}
+                    >
+                      {proj.projectType}
+                    </div>
+                  )}
+
+                  {/* Description */}
+                  {proj.description && (
+                    <div
+                      style={{
+                        fontSize: 11,
+                        color: '#000000',
+                        fontWeight: 'normal',
+                        lineHeight: 1.6,
+                      }}
+                      dangerouslySetInnerHTML={{
+                        __html: DOMPurify.sanitize(proj.description),
+                      }}
+                    />
+                  )}
+
+                  {/* Roles & Responsibilities */}
+                  {proj.rolesResponsibilities &&
+                    proj.rolesResponsibilities.replace(/<[^>]*>/g, '').trim() && (
+                      <div style={{ marginTop: 5 }}>
+                        <span
+                          style={{ fontSize: 11, fontWeight: 700, color: '#000000' }}
+                        >
+                          Role:{' '}
+                        </span>
+                        <span
+                          style={{
+                            fontSize: 11,
+                            color: '#000000',
+                            fontWeight: 'normal',
+                          }}
+                          dangerouslySetInnerHTML={{
+                            __html: DOMPurify.sanitize(proj.rolesResponsibilities),
+                          }}
+                        />
+                      </div>
+                    )}
+                </div>
+              ))}
+          </section>
+        )}
+
         {/* Certifications Section */}
         {certifications.length > 0 && (
           <section style={{ marginBottom: 22 }}>
@@ -273,25 +368,77 @@ const Template11Display: React.FC<Template11DisplayProps> = ({
           </section>
         )}
 
-        {/* Other Section - Skills Only */}
-        <section>
-          <h2 style={{ fontSize: 13, fontWeight: 700, color: primaryColor, letterSpacing: 1.2, marginBottom: 8 }}>OTHER</h2>
-          <div style={{ height: 1, background: '#333', width: '100%', marginBottom: 12 }} />
-
-          {/* Skills */}
-          {skillsLinks.skills.length > 0 && (
-            <div style={{ marginBottom: 10 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: '#000000', marginBottom: 4 }}>Technical Skills:</div>
-              <div style={{ fontSize: 11, color: '#000000', fontWeight: 'normal' }}>{skillsLinks.skills.filter(s => s.enabled && s.skillName).map(s => s.skillName).join(', ')}</div>
-            </div>
+        {/* Technical Summary Section */}
+        {skillsLinks.technicalSummaryEnabled &&
+          skillsLinks.technicalSummary &&
+          skillsLinks.technicalSummary.replace(/<[^>]*>/g, '').trim() !== '' && (
+            <section style={{ marginBottom: 22 }}>
+              <h2 style={{ fontSize: 13, fontWeight: 700, color: primaryColor, letterSpacing: 1.2, marginBottom: 8 }}>
+                TECHNICAL SUMMARY
+              </h2>
+              <div style={{ height: 1, background: '#333', width: '100%', marginBottom: 12 }} />
+              <div
+                style={{ fontSize: 11, color: '#000000', fontWeight: 'normal', lineHeight: 1.6 }}
+                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(skillsLinks.technicalSummary) }}
+              />
+            </section>
           )}
 
-          {/* Languages */}
-          {/* <div style={{ marginBottom: 0 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#000000', marginBottom: 4 }}>Languages:</div>
-            <div style={{ fontSize: 11, color: '#000000', fontWeight: 'normal' }}>{personal.languagesKnown && personal.languagesKnown.length > 0 ? personal.languagesKnown.join(', ') : ''}</div>
-          </div> */}
-        </section>
+        {/* Skills Section */}
+        {skillsLinks.skills.filter(s => s.enabled && s.skillName).length > 0 && (
+          <section style={{ marginBottom: 22 }}>
+            <h2 style={{ fontSize: 13, fontWeight: 700, color: primaryColor, letterSpacing: 1.2, marginBottom: 8 }}>
+              SKILLS
+            </h2>
+            <div style={{ height: 1, background: '#333', width: '100%', marginBottom: 12 }} />
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 0' }}>
+              {skillsLinks.skills
+                .filter(s => s.enabled && s.skillName)
+                .map((s, idx, arr) => (
+                  <div key={idx} style={{ display: 'flex', alignItems: 'center', marginRight: 16, marginBottom: 4 }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: '#000000' }}>{s.skillName}</span>
+                    {s.skillLevel && (
+                      <span style={{ fontSize: 10, color: '#555555', marginLeft: 4 }}>({s.skillLevel})</span>
+                    )}
+                  </div>
+                ))}
+            </div>
+          </section>
+        )}
+        {/* Links Section */}
+        {skillsLinks.linksEnabled && (
+          () => {
+            const links = skillsLinks.links;
+            const activeLinks = [
+              links.linkedinEnabled && links.linkedinProfile ? { label: 'LinkedIn', url: links.linkedinProfile } : null,
+              links.githubEnabled && links.githubProfile ? { label: 'GitHub', url: links.githubProfile } : null,
+              links.portfolioEnabled && links.portfolioUrl ? { label: 'Portfolio', url: links.portfolioUrl } : null,
+              links.publicationEnabled && links.publicationUrl ? { label: 'Publication', url: links.publicationUrl } : null,
+            ].filter(Boolean) as { label: string; url: string }[];
+
+            return activeLinks.length > 0 ? (
+              <section style={{ marginBottom: 22 }}>
+                <h2 style={{ fontSize: 13, fontWeight: 700, color: primaryColor, letterSpacing: 1.2, marginBottom: 8 }}>
+                  LINKS
+                </h2>
+                <div style={{ height: 1, background: '#333', width: '100%', marginBottom: 12 }} />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {activeLinks.map((link, idx) => (
+                    <div key={idx} style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: '#000000', minWidth: 80 }}>
+                        {link.label}:
+                      </span>
+                      <span style={{ fontSize: 11, color: '#1a56db', fontWeight: 'normal', wordBreak: 'break-all' }}>
+                        {link.url}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            ) : null;
+          }
+        )()
+        }
       </div>
     </div>
   );

@@ -1,23 +1,46 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import DashNav from "@/components/dashnav/dashnav";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { getResumeTemplates } from "@/services/resumeServices";
 
 const VideoPractice = () => {
     const [selectedResume, setSelectedResume] = useState<number>(0);
     const [level, setLevel] = useState<string>("");
+    const [resumes, setResumes] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
 
     const sliderRef = useRef<HTMLDivElement | null>(null);
     const fileInputRef = useRef<HTMLInputElement | null>(null);
 
     const navigate = useNavigate();
 
-    const resumes = [
-        { id: 1, title: "Aarav-Mehta-Python-Developer-1" },
-        { id: 2, title: "Aarav-Mehta-Python-Developer-2" },
-        { id: 3, title: "Aarav-Mehta-Python-Developer-3" },
-        { id: 4, title: "Aarav-Mehta-Python-Developer-4" },
-    ];
+    // Fetch resumes on component mount
+    useEffect(() => {
+        const fetchResumes = async () => {
+            try {
+                const user = JSON.parse(localStorage.getItem("user") || "{}");
+                const userId = user?.user_id;
+                const token = user?.token;
+                if (!userId || !token) {
+                    console.warn("User ID or token not found in localStorage");
+                    setLoading(false);
+                    return;
+                }
+
+                console.log("Calling getResumeTemplates API");
+                const response = await getResumeTemplates(userId, token);
+                console.log("Resume templates response:", response);
+                setResumes(response || []);
+            } catch (error) {
+                console.error("Error fetching resumes:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchResumes();
+    }, []);
 
     const scrollLeft = () => {
         sliderRef.current?.scrollBy({ left: -220, behavior: "smooth" });
@@ -103,33 +126,51 @@ const VideoPractice = () => {
                                         {`div::-webkit-scrollbar { display:none; }`}
                                     </style>
 
-                                    {resumes.map((res, index) => (
-                                        <div
-                                            key={res.id}
-                                            className={`relative min-w-[180px] max-w-[180px] bg-white border rounded-md p-3 flex flex-col snap-center cursor-pointer transition
-                                                ${selectedResume === index
-                                                    ? "border-[#FF8251] shadow-md"
-                                                    : "border-gray-300"
-                                                }`}
-                                            onClick={() => setSelectedResume(index)}
-                                        >
+                                    {loading ? (
+                                        <div className="flex items-center justify-center w-full py-8">
+                                            <p className="text-gray-500">Loading resumes...</p>
+                                        </div>
+                                    ) : resumes.length > 0 ? (
+                                        resumes.map((res, index) => (
                                             <div
-                                                className={`absolute top-2 right-2 h-4 w-4 rounded-full border bg-white
+                                                key={res.resume_template_id}
+                                                className={`relative min-w-[180px] max-w-[180px] bg-white border rounded-md p-3 flex flex-col snap-center cursor-pointer transition
                                                     ${selectedResume === index
-                                                        ? "border-[#FF8251] bg-[#FF8251]"
+                                                        ? "border-[#FF8251] shadow-md"
                                                         : "border-gray-300"
                                                     }`}
-                                            />
+                                                onClick={() => setSelectedResume(index)}
+                                            >
+                                                <div
+                                                    className={`absolute top-2 right-2 h-4 w-4 rounded-full border bg-white
+                                                        ${selectedResume === index
+                                                            ? "border-[#FF8251] bg-[#FF8251]"
+                                                            : "border-gray-300"
+                                                        }`}
+                                                />
 
-                                            <div className="h-40 bg-gray-100 rounded mb-2 relative overflow-hidden">
-                                                <div className="absolute w-full h-full backdrop-blur-sm bg-white/40"></div>
+                                                <div className="h-40 bg-gray-100 rounded mb-2 relative overflow-hidden">
+                                                    {res.thumbnail_url ? (
+                                                        <img
+                                                            src={res.thumbnail_url}
+                                                            alt={res.template_name}
+                                                            className="w-full h-full object-cover"
+                                                        />
+                                                    ) : (
+                                                        <div className="absolute w-full h-full backdrop-blur-sm bg-white/40"></div>
+                                                    )}
+                                                </div>
+
+                                                <p className="text-xs font-medium text-[#3A3A3A] line-clamp-2 text-center">
+                                                    {res.template_name}
+                                                </p>
                                             </div>
-
-                                            <p className="text-xs font-medium text-[#3A3A3A] blur-[2px] text-center">
-                                                {res.title}
-                                            </p>
+                                        ))
+                                    ) : (
+                                        <div className="flex items-center justify-center w-full py-8">
+                                            <p className="text-gray-500">No resumes available</p>
                                         </div>
-                                    ))}
+                                    )}
                                 </div>
 
                                 {/* RIGHT ARROW */}

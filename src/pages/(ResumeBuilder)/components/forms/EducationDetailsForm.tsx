@@ -1303,7 +1303,7 @@ export const EducationDetailsForm: React.FC<EducationDetailsFormProps> = ({
             options={boardTypes}
           />
           <div className="relative">
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            <label className="block text-xs font-medium text-gray-700 mb-1.5">
               Year of Passing
             </label>
             <input
@@ -1442,7 +1442,7 @@ export const EducationDetailsForm: React.FC<EducationDetailsFormProps> = ({
       </FormSection>
 
       <FormSection
-        title={"Education"}
+        title={"Degree"}
         required={true}
         enabled={data.higherEducationEnabled}
         onToggle={(enabled) =>

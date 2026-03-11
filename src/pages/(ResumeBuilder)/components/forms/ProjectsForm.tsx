@@ -8,12 +8,13 @@ import {
   AddButton,
 } from "@/pages/(ResumeBuilder)/components/ui";
 import RichTextEditor from "@/pages/(ResumeBuilder)/components/ui/RichTextEditor";
-import { Save, RotateCcw } from "lucide-react";
+import { Save, RotateCcw, Sparkles, Loader2, X } from "lucide-react";
 import {
   saveProjectsDetails,
   updateProjectDetails,
   deleteProject,
 } from "@/services/projectService";
+import { enhanceRolesResponsibilities } from "@/utils/enhanceRolesResponsibilities";
 
 interface ProjectsFormProps {
   data: Project[];
@@ -46,9 +47,14 @@ export const ProjectsForm: React.FC<ProjectsFormProps> = ({
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   // State for tracking feedback
+  // State for tracking feedback
   const [projectFeedback, setProjectFeedback] = useState<
     Record<string, string>
   >({});
+
+  const [enhancingProjectId, setEnhancingProjectId] = useState<string | null>(null);
+  const [enhanceRolesError, setEnhanceRolesError] = useState<Record<string, string>>({});
+  const [enhancedRolesVersions, setEnhancedRolesVersions] = useState<Record<string, { precise: string; technical: string }>>({});
 
   // Refs for tracking initial data
   const initialProjectsRef = useRef<Record<string, Project>>({});
@@ -469,6 +475,51 @@ export const ProjectsForm: React.FC<ProjectsFormProps> = ({
     });
   };
 
+  const getPlainText = (html: string) => {
+    if (!html) return "";
+    return html.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").trim();
+  };
+
+  const handleEnhanceRoles = async (project: Project) => {
+    const hasInput = getPlainText(project.rolesResponsibilities ?? "").length > 0;
+    if (!hasInput) return;
+    setEnhancingProjectId(project.id);
+    setEnhanceRolesError((prev) => ({ ...prev, [project.id]: "" }));
+    setEnhancedRolesVersions((prev) => { const u = { ...prev }; delete u[project.id]; return u; });
+    try {
+      const result = await enhanceRolesResponsibilities(
+        project.rolesResponsibilities,
+        project.projectTitle,
+        project.projectType,
+        project.description
+      );
+      setEnhancedRolesVersions((prev) => ({ ...prev, [project.id]: result }));
+    } catch (err: any) {
+      setEnhanceRolesError((prev) => ({ ...prev, [project.id]: err.message || "Failed to enhance. Please try again." }));
+    } finally {
+      setEnhancingProjectId(null);
+    }
+  };
+
+  const handleApplyRolesVersion = (projectId: string, type: "precise" | "technical") => {
+    const versions = enhancedRolesVersions[projectId];
+    if (!versions) return;
+    // Convert bullet plain text to HTML list items
+    const html = versions[type]
+      .split("\n")
+      .filter((line) => line.trim())
+      .map((line) => `<div>${line.trim()}</div>`)
+      .join("");
+    updateProject(projectId, "rolesResponsibilities", html);
+    setEnhancedRolesVersions((prev) => { const u = { ...prev }; delete u[projectId]; return u; });
+    setEnhanceRolesError((prev) => ({ ...prev, [projectId]: "" }));
+  };
+
+  const handleDismissRolesVersions = (projectId: string) => {
+    setEnhancedRolesVersions((prev) => { const u = { ...prev }; delete u[projectId]; return u; });
+    setEnhanceRolesError((prev) => ({ ...prev, [projectId]: "" }));
+  };
+
   const toggleProject = (id: string, enabled: boolean) => {
     onChange(
       data.map((proj) => (proj.id === id ? { ...proj, enabled } : proj))
@@ -606,15 +657,105 @@ export const ProjectsForm: React.FC<ProjectsFormProps> = ({
 
             <div className="mt-4">
               <div className="flex flex-col gap-1">
-                <label className="font-medium">Roles & Responsibilities</label>
+                <div className="flex items-center justify-between mb-1 flex-wrap gap-2">
+                  <label className="font-medium">Roles & Responsibilities</label>
+                  <button
+                    type="button"
+                    onClick={() => handleEnhanceRoles(project)}
+                    disabled={!getPlainText(project.rolesResponsibilities ?? "").length || enhancingProjectId === project.id}
+                    title={!getPlainText(project.rolesResponsibilities ?? "").length ? "Add some text to enable AI enhancement" : "Enhance with AI"}
+                    className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all
+                      ${getPlainText(project.rolesResponsibilities ?? "").length && enhancingProjectId !== project.id
+                        ? "bg-gradient-to-r from-violet-500 to-purple-600 text-white shadow-sm hover:from-violet-600 hover:to-purple-700 cursor-pointer"
+                        : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                      }`}
+                  >
+                    {enhancingProjectId === project.id
+                      ? <Loader2 className="w-4 h-4 animate-spin" strokeWidth={2} />
+                      : <Sparkles className="w-4 h-4" strokeWidth={2} />
+                    }
+                    {enhancingProjectId === project.id ? "Enhancing..." : "Enhance with AI"}
+                  </button>
+                </div>
                 <RichTextEditor
                   value={project.rolesResponsibilities}
-                  onChange={(v) =>
-                    updateProject(project.id, "rolesResponsibilities", v)
-                  }
+                  onChange={(v) => {
+                    updateProject(project.id, "rolesResponsibilities", v);
+                    if (enhancedRolesVersions[project.id]) {
+                      setEnhancedRolesVersions((prev) => { const u = { ...prev }; delete u[project.id]; return u; });
+                    }
+                  }}
                   placeholder="Provide your roles & responsibilities..."
                   rows={4}
                 />
+
+                {/* Error */}
+                {enhanceRolesError[project.id] && (
+                  <div className="mt-3 flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+                    <span className="text-red-500 text-xs mt-0.5">⚠</span>
+                    <p className="text-xs text-red-600 flex-1">{enhanceRolesError[project.id]}</p>
+                    <button type="button" onClick={() => setEnhanceRolesError((prev) => ({ ...prev, [project.id]: "" }))} className="text-red-400 hover:text-red-600">
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
+
+                {/* AI Results Panel */}
+                {enhancedRolesVersions[project.id] && (
+                  <div className="mt-4 border border-purple-200 rounded-xl overflow-hidden">
+                    <div className="flex items-center justify-between px-4 py-2.5 bg-gradient-to-r from-violet-50 to-purple-50 border-b border-purple-200">
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-purple-500" strokeWidth={2} />
+                        <span className="text-sm font-semibold text-purple-800">AI Enhanced Versions</span>
+                      </div>
+                      <button type="button" onClick={() => handleDismissRolesVersions(project.id)} className="text-purple-400 hover:text-purple-700 transition-colors">
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    <div className="p-4 flex flex-col gap-4 bg-white">
+                      {/* Precise */}
+                      <div className="border border-gray-200 rounded-lg overflow-hidden">
+                        <div className="flex items-center justify-between px-3 py-2 bg-gray-50 border-b border-gray-200">
+                          <div className="flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-blue-500 inline-block"></span>
+                            <span className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Precise</span>
+                            <span className="text-xs text-gray-400">— Concise action bullets</span>
+                          </div>
+                          <button type="button" onClick={() => handleApplyRolesVersion(project.id, "precise")} className="text-xs px-3 py-1 bg-blue-500 text-white rounded-md font-medium hover:bg-blue-600 transition-colors cursor-pointer">
+                            Use This
+                          </button>
+                        </div>
+                        <div className="p-3">
+                          {enhancedRolesVersions[project.id].precise.split("\n").filter(l => l.trim()).map((line, i) => (
+                            <p key={i} className="text-sm text-gray-700 leading-relaxed">{line}</p>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Technical */}
+                      <div className="border border-gray-200 rounded-lg overflow-hidden">
+                        <div className="flex items-center justify-between px-3 py-2 bg-gray-50 border-b border-gray-200">
+                          <div className="flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>
+                            <span className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Technical</span>
+                            <span className="text-xs text-gray-400">— Detailed tech breakdown</span>
+                          </div>
+                          <button type="button" onClick={() => handleApplyRolesVersion(project.id, "technical")} className="text-xs px-3 py-1 bg-emerald-500 text-white rounded-md font-medium hover:bg-emerald-600 transition-colors cursor-pointer">
+                            Use This
+                          </button>
+                        </div>
+                        <div className="p-3">
+                          {enhancedRolesVersions[project.id].technical.split("\n").filter(l => l.trim()).map((line, i) => (
+                            <p key={i} className="text-sm text-gray-700 leading-relaxed">{line}</p>
+                          ))}
+                        </div>
+                      </div>
+
+                      <p className="text-xs text-gray-400 text-center">Click "Use This" to apply a version, or dismiss to keep your current text.</p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </FormSection>

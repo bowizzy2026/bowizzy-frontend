@@ -5,7 +5,7 @@ import type { ResumeData } from "@/types/resume";
 
 const styles = StyleSheet.create({
   page: {
-    paddingTop: 0,
+    paddingTop: 20,
     paddingBottom: 12,
     paddingLeft: 0,
     paddingRight: 0,
@@ -69,7 +69,6 @@ const styles = StyleSheet.create({
     marginTop: 6,
     marginRight: 10,
   },
-
   sectionTitle: {
     fontSize: 11,
     color: "#111827",
@@ -117,14 +116,12 @@ const Template11PDF: React.FC<Template11PDFProps> = ({ data, primaryColor = '#11
   const getPdfFontFamily = (cssFont?: string): string => {
     if (!cssFont) return 'Times-Roman';
     const fontLower = cssFont.toLowerCase();
-    
     if (fontLower.includes('arial')) return 'Helvetica';
     if (fontLower.includes('times')) return 'Times-Roman';
     if (fontLower.includes('georgia')) return 'Times-Roman';
     if (fontLower.includes('calibri')) return 'Helvetica';
     if (fontLower.includes('roboto')) return 'Helvetica';
     if (fontLower.includes('inter')) return 'Helvetica';
-    
     return 'Times-Roman';
   };
 
@@ -132,25 +129,17 @@ const Template11PDF: React.FC<Template11PDFProps> = ({ data, primaryColor = '#11
   const getPdfFontFamilyBold = (cssFont?: string): string => {
     if (!cssFont) return 'Times-Bold';
     const fontLower = cssFont.toLowerCase();
-    
     if (fontLower.includes('arial')) return 'Helvetica-Bold';
     if (fontLower.includes('times')) return 'Times-Bold';
     if (fontLower.includes('georgia')) return 'Times-Bold';
     if (fontLower.includes('calibri')) return 'Helvetica-Bold';
     if (fontLower.includes('roboto')) return 'Helvetica-Bold';
     if (fontLower.includes('inter')) return 'Helvetica-Bold';
-    
     return 'Times-Bold';
   };
 
   const pdfFontFamily = getPdfFontFamily(fontFamily);
   const pdfFontFamilyBold = getPdfFontFamilyBold(fontFamily);
-
-  const ICON_PATHS: Record<string, string> = {
-    phone: 'M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24c1.12.37 2.33.57 3.57.57a1 1 0 011 1v3.5a1 1 0 01-1 1C10.07 22 2 13.93 2 3.5A1 1 0 013 2.5H6.5a1 1 0 011 1c0 1.24.2 2.45.57 3.57a1 1 0 01-.24 1.01l-2.2 2.2z',
-    mail: 'M20 4H4a2 2 0 00-2 2v12a2 2 0 002 2h16a2 2 0 002-2V6a2 2 0 00-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z',
-    location: 'M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5A2.5 2.5 0 1112 6.5a2.5 2.5 0 010 5z',
-  };
 
   const htmlToPlainText = (html?: string) => {
     if (!html) return '';
@@ -168,16 +157,17 @@ const Template11PDF: React.FC<Template11PDFProps> = ({ data, primaryColor = '#11
     return withBreaks.replace(/<[^>]+>/g, '').trim();
   };
 
-  // Build contact parts including optional links
+  // Build contact parts including optional links — respects enabled flags
   const contactParts = (() => {
     const parts: string[] = [];
     if (personal.email) parts.push(personal.email);
     if (personal.mobileNumber) parts.push(personal.mobileNumber);
     if (personal.address) parts.push(personal.address);
     const links = skillsLinks?.links || {} as any;
-    if (links.linkedinProfile) parts.push(links.linkedinProfile);
-    if (links.githubProfile) parts.push(links.githubProfile);
-    if (links.portfolioUrl) parts.push(links.portfolioUrl);
+    if (links.linkedinEnabled && links.linkedinProfile) parts.push(links.linkedinProfile);
+    if (links.githubEnabled && links.githubProfile) parts.push(links.githubProfile);
+    if (links.portfolioEnabled && links.portfolioUrl) parts.push(links.portfolioUrl);
+    if (links.publicationEnabled && links.publicationUrl) parts.push(links.publicationUrl);
     return parts.filter(Boolean);
   })();
 
@@ -218,11 +208,11 @@ const Template11PDF: React.FC<Template11PDFProps> = ({ data, primaryColor = '#11
       .replace(/&amp;/g, '&')
       .trim();
 
-    const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+    const lines = text.split('\n').map((l: string) => l.trim()).filter(Boolean);
 
     return (
       <View style={{ marginTop: 6 }}>
-        {lines.map((line, idx) => (
+        {lines.map((line: string, idx: number) => (
           <View key={idx} style={{ marginTop: idx > 0 ? 6 : 0 }}>
             <Text style={{ color: '#000000', fontSize: 10, lineHeight: 1.35 }}>{line}</Text>
           </View>
@@ -230,8 +220,6 @@ const Template11PDF: React.FC<Template11PDFProps> = ({ data, primaryColor = '#11
       </View>
     );
   };
-
-  const getYear = (s?: string) => (s ? s.split('-')[0] : '');
 
   const degreeMap: Record<string, string> = {
     'B.E': 'Bachelor of Technology',
@@ -251,28 +239,11 @@ const Template11PDF: React.FC<Template11PDFProps> = ({ data, primaryColor = '#11
     'PhD': 'Doctor of Philosophy',
   };
 
-  const getFullDegreeName = (degree: string) => {
-    return degreeMap[degree] || degree;
-  };
-
-  const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  const formatDate = (s?: string) => {
-    if (!s) return '';
-    const val = String(s).trim();
-    const parts = val.split('-');
-    const year = parts[0];
-    const monthPart = parts.length > 1 ? parts[1] : undefined;
-    if (!monthPart) return year;
-    const monthNum = parseInt(monthPart, 10);
-    if (!isNaN(monthNum) && monthNum >= 1 && monthNum <= 12) {
-      return `${year} ${monthNames[monthNum - 1]}`;
-    }
-    return val;
-  };
+  const getFullDegreeName = (degree: string) => degreeMap[degree] || degree;
 
   const formatMonthYear = (s?: string) => {
     if (!s) return '';
-    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     try {
       const str = String(s).trim();
       const ymdMatch = str.match(/^(\d{4})-(\d{2})(?:-\d{2})?$/);
@@ -302,8 +273,8 @@ const Template11PDF: React.FC<Template11PDFProps> = ({ data, primaryColor = '#11
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        {/* Header */}
-        {/* Header Section - Classic Serif look */}
+
+        {/* ── Header ── */}
         <View style={{ paddingTop: 18, paddingBottom: 6, paddingLeft: 36, paddingRight: 36 }}>
           <Text style={{ fontSize: 36, fontFamily: pdfFontFamilyBold, color: primaryColor, marginBottom: 0, lineHeight: 1, textAlign: 'left' }}>
             {personal.firstName}{personal.middleName ? ' ' + personal.middleName : ''}{personal.lastName ? ' ' + personal.lastName : ''}
@@ -313,162 +284,243 @@ const Template11PDF: React.FC<Template11PDFProps> = ({ data, primaryColor = '#11
           </Text>
         </View>
 
-        {/* Content - Single column like image */}
+        {/* ── Content ── */}
         <View style={{ paddingLeft: 36, paddingRight: 36, paddingBottom: 36 }}>
-          {/* About / Career Objective Section */}
+
+          {/* Career Objective */}
           {personal.aboutCareerObjective && personal.aboutCareerObjective.trim() !== '' && (
-            <View style={{ marginBottom: 6 }}>
-              <Text style={{ fontSize: 11, fontFamily: pdfFontFamilyBold, color: primaryColor, marginBottom: 2 }}>CAREER OBJECTIVE</Text>
-              <View style={{ height: 1, backgroundColor: primaryColor, width: '100%', marginBottom: 6 }} />
-              <Text style={styles.objective}>{htmlToPlainText(personal.aboutCareerObjective)}</Text>
+            <View style={{ marginBottom: 12 }}>
+              <Text style={{ fontSize: 13, fontFamily: pdfFontFamilyBold, color: primaryColor, letterSpacing: 1.2, marginBottom: 4 }}>CAREER OBJECTIVE</Text>
+              <View style={{ height: 1, backgroundColor: '#333333', width: '100%', marginBottom: 6 }} />
+              <Text style={{ fontSize: 11, color: '#000000', fontFamily: pdfFontFamily, lineHeight: 1.6 }}>
+                {htmlToPlainText(personal.aboutCareerObjective)}
+              </Text>
             </View>
           )}
 
-          {/* Experience Section */}
+          {/* Experience */}
           {experience.workExperiences.length > 0 && (
             <View style={{ marginBottom: 12 }}>
-              <Text style={{ fontSize: 13, fontFamily: pdfFontFamilyBold, color: primaryColor, letterSpacing: 1.2, marginBottom: 8 }}>EXPERIENCE</Text>
-              <View style={{ height: 1, backgroundColor: primaryColor, width: '100%', marginBottom: 8 }} />
+              <Text style={{ fontSize: 13, fontFamily: pdfFontFamilyBold, color: primaryColor, letterSpacing: 1.2, marginBottom: 4 }}>EXPERIENCE</Text>
+              <View style={{ height: 1, backgroundColor: '#333333', width: '100%', marginBottom: 8 }} />
               {experience.workExperiences.filter((w: any) => w.enabled).map((w: any, i: number) => (
                 <View key={i} style={{ marginBottom: 12 }}>
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 }}>
-                      <Text style={{ fontSize: 12, fontFamily: pdfFontFamilyBold, color: primaryColor, flex: 1, marginRight: 8 }}>{w.companyName}</Text>
-                      <Text style={{ fontSize: 11, color: primaryColor, fontFamily: pdfFontFamilyBold, width: 120, textAlign: 'right' }}>{formatMonthYear(w.startDate)} - {w.currentlyWorking ? 'Present' : formatMonthYear(w.endDate)}</Text>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
+                    <Text style={{ fontSize: 12, fontFamily: pdfFontFamilyBold, color: '#111827', flex: 1, marginRight: 8 }}>{w.companyName}</Text>
+                    <Text style={{ fontSize: 11, color: '#111827', fontFamily: pdfFontFamilyBold, textAlign: 'right' }}>
+                      {formatMonthYear(w.startDate)} - {w.currentlyWorking ? 'Present' : formatMonthYear(w.endDate)}
+                    </Text>
+                  </View>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
+                    <Text style={{ fontSize: 11, color: '#000000', fontFamily: pdfFontFamilyBold, flex: 1, marginRight: 8 }}>{w.jobTitle}</Text>
+                    {w.location ? <Text style={{ fontSize: 11, color: '#000000', fontFamily: pdfFontFamilyBold, textAlign: 'right' }}>{w.location}</Text> : null}
+                  </View>
+                  {w.description ? (
+                    <View style={{ marginLeft: 12 }}>
+                      {renderBulletedParagraph(w.description, { fontSize: 11, color: '#000000' })}
                     </View>
-                    <View style={{ flexDirection: 'row', marginBottom: 6 }}>
-                      <View style={{ flex: 1, paddingRight: 8 }}>
-                        <Text style={{ fontSize: 11, color: '#000000', fontFamily: pdfFontFamilyBold }}>{w.jobTitle}</Text>
-                      </View>
-                      {w.location && <Text style={{ fontSize: 11, color: '#000000', fontFamily: pdfFontFamilyBold, width: 120, textAlign: 'right' }}>{w.location}</Text>}
-                    </View>
-                    {w.description && (
-                      <View style={{ marginLeft: 12 }}>
-                        {renderBulletedParagraph(w.description, { fontSize: 11, color: '#000000', fontWeight: 'normal', lineHeight: 1.6 })}
-                      </View>
-                    )}
+                  ) : null}
                 </View>
               ))}
             </View>
           )}
 
-          {/* Education Section */}
+          {/* Education */}
           {education.higherEducationEnabled && education.higherEducation.length > 0 && (
-            <View style={{ marginBottom: 8 }}>
-              <Text style={{ fontSize: 13, fontFamily: pdfFontFamilyBold, color: primaryColor, letterSpacing: 1.2, marginBottom: 8 }}>EDUCATION</Text>
-              <View style={{ height: 1, backgroundColor: primaryColor, width: '100%', marginBottom: 6 }} />
-              {education.higherEducation.map((edu, idx) => (
+            <View style={{ marginBottom: 12 }}>
+              <Text style={{ fontSize: 13, fontFamily: pdfFontFamilyBold, color: primaryColor, letterSpacing: 1.2, marginBottom: 4 }}>EDUCATION</Text>
+              <View style={{ height: 1, backgroundColor: '#333333', width: '100%', marginBottom: 8 }} />
+
+              {education.higherEducation.map((edu: any, idx: number) => (
                 <View key={idx} style={{ marginBottom: 8 }}>
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <Text style={{ fontSize: 11, fontFamily: pdfFontFamilyBold, color: '#000000', flex: 1, marginRight: 8 }}>{edu.instituteName}</Text>
-                    <Text style={{ fontSize: 10, color: '#000000', fontFamily: pdfFontFamilyBold }}>{formatMonthYear(edu.startYear)} - {edu.currentlyPursuing ? 'Present' : formatMonthYear(edu.endYear)}</Text>
+                    <Text style={{ fontSize: 10, color: '#000000', fontFamily: pdfFontFamilyBold }}>
+                      {formatMonthYear(edu.startYear)} - {edu.currentlyPursuing ? 'Present' : formatMonthYear(edu.endYear)}
+                    </Text>
                   </View>
-                  <Text style={{ fontSize: 11, color: '#000000', fontFamily: pdfFontFamily, fontWeight: 'normal', marginTop: 4 }}>
+                  <Text style={{ fontSize: 11, color: '#000000', fontFamily: pdfFontFamily, marginTop: 3 }}>
                     {getFullDegreeName(edu.degree)}{edu.fieldOfStudy ? ` in ${edu.fieldOfStudy}` : ''}
                   </Text>
                 </View>
               ))}
 
-              {/* Pre University (PUC/12th) */}
+              {/* Pre University */}
               {(education.preUniversityEnabled || education.preUniversity.instituteName || education.higherEducation.length > 0) && (
                 <View style={{ marginBottom: 8 }}>
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <Text style={{ fontSize: 11, fontFamily: pdfFontFamilyBold, color: '#000000', flex: 1, marginRight: 8 }}>{education.preUniversity.instituteName || 'Pre University'}</Text>
                     <Text style={{ fontSize: 10, color: '#000000', fontFamily: pdfFontFamilyBold }}>{formatMonthYear(education.preUniversity.yearOfPassing) || ''}</Text>
                   </View>
-                  <Text style={{ fontSize: 11, color: '#000000', fontFamily: pdfFontFamily, marginTop: 4 }}>
+                  <Text style={{ fontSize: 11, color: '#000000', fontFamily: pdfFontFamily, marginTop: 3 }}>
                     Pre University (12th Standard){education.preUniversity.subjectStream ? ` — ${education.preUniversity.subjectStream}` : ''}
                   </Text>
-                  {education.preUniversity.resultFormat && education.preUniversity.result && (
-                    <Text style={{ fontSize: 10, color: '#000000', fontFamily: pdfFontFamily, marginTop: 4 }}>{education.preUniversity.resultFormat}: {education.preUniversity.result}</Text>
-                  )}
+                  {education.preUniversity.resultFormat && education.preUniversity.result ? (
+                    <Text style={{ fontSize: 10, color: '#000000', fontFamily: pdfFontFamily, marginTop: 3 }}>
+                      {education.preUniversity.resultFormat}: {education.preUniversity.result}
+                    </Text>
+                  ) : null}
                 </View>
-              )} 
+              )}
 
-              {/* SSLC (10th) */}
+              {/* SSLC */}
               {(education.sslcEnabled || education.sslc.instituteName || education.higherEducation.length > 0) && (
                 <View style={{ marginBottom: 8 }}>
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <Text style={{ fontSize: 11, fontFamily: pdfFontFamilyBold, color: '#000000', flex: 1, marginRight: 8 }}>{education.sslc.instituteName || 'SSLC'}</Text>
                     <Text style={{ fontSize: 10, color: '#000000', fontFamily: pdfFontFamilyBold }}>{education.sslc.yearOfPassing || ''}</Text>
                   </View>
-                  <Text style={{ fontSize: 11, color: '#000000', fontFamily: pdfFontFamily, marginTop: 4 }}>
+                  <Text style={{ fontSize: 11, color: '#000000', fontFamily: pdfFontFamily, marginTop: 3 }}>
                     SSLC (10th Standard){education.sslc.boardType ? ` — ${education.sslc.boardType}` : ''}
                   </Text>
-                  {education.sslc.resultFormat && education.sslc.result && (
-                    <Text style={{ fontSize: 11, color: '#000000', fontFamily: pdfFontFamily, marginTop: 4 }}>{education.sslc.resultFormat}: {education.sslc.result}</Text>
-                  )}
+                  {education.sslc.resultFormat && education.sslc.result ? (
+                    <Text style={{ fontSize: 11, color: '#000000', fontFamily: pdfFontFamily, marginTop: 3 }}>
+                      {education.sslc.resultFormat}: {education.sslc.result}
+                    </Text>
+                  ) : null}
                 </View>
-              )} 
-
+              )}
             </View>
           )}
 
-          {/* Certifications Section */}
-          {certifications.length > 0 && (
+          {/* Projects */}
+          {projects && projects.filter((p: any) => p.enabled).length > 0 && (
             <View style={{ marginBottom: 12 }}>
-              <Text style={{ fontSize: 13, fontFamily: pdfFontFamilyBold, color: primaryColor, letterSpacing: 1.2, marginBottom: 8 }}>TECHNICAL CERTIFICATIONS</Text>
-              <View style={{ height: 1, backgroundColor: primaryColor, width: '100%', marginBottom: 8 }} />
-              {certifications.filter((c: any) => c.enabled).map((cert: any, idx: number) => (
-                <View key={idx} style={{ marginBottom: 8 }}>
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap' }}>
-                    <Text style={{ fontSize: 11, fontFamily: pdfFontFamilyBold, color: '#000000', flex: 1, marginRight: 8 }}>{cert.certificateTitle}</Text>
-                    <Text style={{ fontSize: 10, color: '#000000', fontFamily: pdfFontFamilyBold }}>{cert.date}</Text>
-                  </View>
-                  {cert.description && (
-                    <Text style={{ fontSize: 11, color: '#000000', fontFamily: pdfFontFamily, fontWeight: 'normal', marginTop: 4 }}>
-                      {DOMPurify.sanitize(cert.description).replace(/<[^>]+>/g, '')}
+              <Text style={{ fontSize: 13, fontFamily: pdfFontFamilyBold, color: primaryColor, letterSpacing: 1.2, marginBottom: 4 }}>PROJECTS</Text>
+              <View style={{ height: 1, backgroundColor: '#333333', width: '100%', marginBottom: 8 }} />
+              {projects.filter((p: any) => p.enabled).map((proj: any, idx: number) => (
+                <View key={idx} style={{ marginBottom: 12 }}>
+                  {/* Title + dates */}
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 3 }}>
+                    <Text style={{ fontSize: 12, fontFamily: pdfFontFamilyBold, color: '#111827', flex: 1, marginRight: 8 }}>{proj.projectTitle}</Text>
+                    <Text style={{ fontSize: 11, color: '#111827', fontFamily: pdfFontFamilyBold, textAlign: 'right' }}>
+                      {formatMonthYear(proj.startDate)}{' – '}{proj.currentlyWorking ? 'Present' : formatMonthYear(proj.endDate)}
                     </Text>
-                  )}
+                  </View>
+                  {/* Project type */}
+                  {proj.projectType ? (
+                    <Text style={{ fontSize: 10, color: '#555555', fontFamily: pdfFontFamily, marginBottom: 4 }}>{proj.projectType}</Text>
+                  ) : null}
+                  {/* Description */}
+                  {proj.description && proj.description.replace(/<[^>]*>/g, '').trim() ? (
+                    <View style={{ marginBottom: 4 }}>
+                      {renderBulletedParagraph(proj.description, { fontSize: 11, color: '#000000' })}
+                    </View>
+                  ) : null}
+                  {/* Roles & Responsibilities */}
+                  {proj.rolesResponsibilities && proj.rolesResponsibilities.replace(/<[^>]*>/g, '').trim() ? (
+                    <View style={{ marginTop: 3 }}>
+                      <Text style={{ fontSize: 11, fontFamily: pdfFontFamilyBold, color: '#000000', marginBottom: 2 }}>Role:</Text>
+                      <View style={{ marginLeft: 8 }}>
+                        {renderBulletedParagraph(proj.rolesResponsibilities, { fontSize: 11, color: '#000000' })}
+                      </View>
+                    </View>
+                  ) : null}
                 </View>
               ))}
             </View>
           )}
 
-          {/* Other Section - Skills Only (show only if there are enabled skills) */}
-          {skillsLinks.skills.filter((s: any) => s.enabled && s.skillName).length > 0 && (
-            <View>
-              <Text style={{ fontSize: 13, fontFamily: pdfFontFamilyBold, color: primaryColor, letterSpacing: 1.2, marginBottom: 8 }}>OTHER</Text>
-              <View style={{ height: 1, backgroundColor: primaryColor, width: '100%', marginBottom: 12 }} />
+          {/* Certifications */}
+          {certifications.length > 0 && (
+            <View style={{ marginBottom: 12 }}>
+              <Text style={{ fontSize: 13, fontFamily: pdfFontFamilyBold, color: primaryColor, letterSpacing: 1.2, marginBottom: 4 }}>TECHNICAL CERTIFICATIONS</Text>
+              <View style={{ height: 1, backgroundColor: '#333333', width: '100%', marginBottom: 8 }} />
+              {certifications.filter((c: any) => c.enabled).map((cert: any, idx: number) => (
+                <View key={idx} style={{ marginBottom: 8 }}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <Text style={{ fontSize: 11, fontFamily: pdfFontFamilyBold, color: '#000000', flex: 1, marginRight: 8 }}>{cert.certificateTitle}</Text>
+                    <Text style={{ fontSize: 10, color: '#000000', fontFamily: pdfFontFamilyBold }}>{cert.date}</Text>
+                  </View>
+                  {cert.description ? (
+                    <Text style={{ fontSize: 11, color: '#000000', fontFamily: pdfFontFamily, marginTop: 3 }}>
+                      {htmlToPlainText(cert.description)}
+                    </Text>
+                  ) : null}
+                </View>
+              ))}
+            </View>
+          )}
 
-              {/* Skills */}
-              <View style={{ marginBottom: 10 }}>
-                <Text style={{ fontSize: 11, fontFamily: pdfFontFamilyBold, color: '#000000', marginBottom: 4 }}>Technical Skills:</Text>
-                <Text style={{ fontSize: 11, color: '#000000', fontWeight: 'normal' }}>
-                  {skillsLinks.skills
-                    .filter((s: any) => s.enabled && s.skillName)
-                    .map((s: any) => s.skillName)
-                    .join(', ')}
+          {/* Technical Summary */}
+          {skillsLinks.technicalSummaryEnabled &&
+            skillsLinks.technicalSummary &&
+            skillsLinks.technicalSummary.replace(/<[^>]*>/g, '').trim() !== '' && (
+              <View style={{ marginBottom: 12 }}>
+                <Text style={{ fontSize: 13, fontFamily: pdfFontFamilyBold, color: primaryColor, letterSpacing: 1.2, marginBottom: 4 }}>TECHNICAL SUMMARY</Text>
+                <View style={{ height: 1, backgroundColor: '#333333', width: '100%', marginBottom: 8 }} />
+                <Text style={{ fontSize: 11, color: '#000000', fontFamily: pdfFontFamily, lineHeight: 1.6 }}>
+                  {htmlToPlainText(skillsLinks.technicalSummary)}
                 </Text>
               </View>
+            )}
 
-              {/* Languages (commented out for now) */}
-              {/* <View style={{ marginBottom: 0 }}>
-                <Text style={{ fontSize: 11, fontFamily: 'Times-Bold', color: '#000000', marginBottom: 4 }}>Languages:</Text>
-                <Text style={{ fontSize: 11, color: '#000000', fontWeight: 'normal' }}>{personal.languagesKnown && personal.languagesKnown.length > 0 ? personal.languagesKnown.join(', ') : ''}</Text>
-              </View> */}
+          {/* Skills */}
+          {skillsLinks.skills.filter((s: any) => s.enabled && s.skillName).length > 0 && (
+            <View style={{ marginBottom: 12 }}>
+              <Text style={{ fontSize: 13, fontFamily: pdfFontFamilyBold, color: primaryColor, letterSpacing: 1.2, marginBottom: 4 }}>SKILLS</Text>
+              <View style={{ height: 1, backgroundColor: '#333333', width: '100%', marginBottom: 8 }} />
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+                {skillsLinks.skills
+                  .filter((s: any) => s.enabled && s.skillName)
+                  .map((s: any, idx: number) => (
+                    <View key={idx} style={{ flexDirection: 'row', alignItems: 'center', marginRight: 16, marginBottom: 4 }}>
+                      <Text style={{ fontSize: 11, fontFamily: pdfFontFamilyBold, color: '#000000' }}>{s.skillName}</Text>
+                      {s.skillLevel ? (
+                        <Text style={{ fontSize: 10, color: '#555555', fontFamily: pdfFontFamily, marginLeft: 3 }}>({s.skillLevel})</Text>
+                      ) : null}
+                    </View>
+                  ))}
+              </View>
             </View>
-
           )}
+
+          {/* Links */}
+          {skillsLinks.linksEnabled && (() => {
+            const links = skillsLinks.links || {} as any;
+            const activeLinks = [
+              links.linkedinEnabled && links.linkedinProfile ? { label: 'LinkedIn', url: links.linkedinProfile } : null,
+              links.githubEnabled && links.githubProfile ? { label: 'GitHub', url: links.githubProfile } : null,
+              links.portfolioEnabled && links.portfolioUrl ? { label: 'Portfolio', url: links.portfolioUrl } : null,
+              links.publicationEnabled && links.publicationUrl ? { label: 'Publication', url: links.publicationUrl } : null,
+            ].filter(Boolean) as { label: string; url: string }[];
+
+            return activeLinks.length > 0 ? (
+              <View style={{ marginBottom: 12 }}>
+                <Text style={{ fontSize: 13, fontFamily: pdfFontFamilyBold, color: primaryColor, letterSpacing: 1.2, marginBottom: 4 }}>LINKS</Text>
+                <View style={{ height: 1, backgroundColor: '#333333', width: '100%', marginBottom: 8 }} />
+                {activeLinks.map((link, idx) => (
+                  <View key={idx} style={{ flexDirection: 'row', alignItems: 'flex-start', marginBottom: 4 }}>
+                    <Text style={{ fontSize: 11, fontFamily: pdfFontFamilyBold, color: '#000000', minWidth: 80 }}>{link.label}: </Text>
+                    <Text style={{ fontSize: 11, color: '#1a56db', fontFamily: pdfFontFamily, flex: 1 }}>{link.url}</Text>
+                  </View>
+                ))}
+              </View>
+            ) : null;
+          })()}
+
+        </View>
+
         {/* Footer */}
-      </View>
-      <View style={{
-        position: 'absolute',
-        left: 0,
-        right: 0,
-        bottom: 12,
-        paddingHorizontal: 36,
-        paddingVertical: 8,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        fontSize: 10,
-        color: '#d1d1d1',
-      }} fixed>
-        <Text style={{ color: 'rgb(216, 211, 211)', fontSize: 10, letterSpacing: 0.5 }}>www.bowizzy.com</Text>
-        <Text style={{ color: 'rgb(216, 211, 211)', fontSize: 10, letterSpacing: 0.5 }}>Powered by Wizzybox</Text>
-      </View>
-    </Page>
-  </Document>
+        <View style={{
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          bottom: 12,
+          paddingHorizontal: 36,
+          paddingVertical: 8,
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          fontSize: 10,
+          color: '#d1d1d1',
+        }} fixed>
+          <Text style={{ color: 'rgb(216, 211, 211)', fontSize: 10, letterSpacing: 0.5 }}>www.bowizzy.com</Text>
+          <Text style={{ color: 'rgb(216, 211, 211)', fontSize: 10, letterSpacing: 0.5 }}>Powered by Wizzybox</Text>
+        </View>
+
+      </Page>
+    </Document>
   );
 };
 

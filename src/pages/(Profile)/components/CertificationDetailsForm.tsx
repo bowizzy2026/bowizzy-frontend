@@ -16,7 +16,6 @@ import {
   updateCertificateDetails,
   saveCertificateDetails,
   deleteCertificate,
-  // saveCertificatesFromForm is imported in ProfileForm
 } from "@/services/certificateService";
 
 interface CertificateFormProps {
@@ -28,7 +27,7 @@ interface CertificateFormProps {
 }
 
 interface Certificate {
-  id: string; // Client-side ID
+  id: string;
   certificateType: string;
   certificateTitle: string;
   domain: string;
@@ -44,6 +43,9 @@ interface Certificate {
   cloudDeleteToken?: string;
 }
 
+// Normalize any value to a comparable string, treating null/undefined/"" as identical
+const norm = (v: any): string => (v == null ? "" : String(v));
+
 export default function CertificationDetailsForm({
   onNext,
   onBack,
@@ -51,84 +53,98 @@ export default function CertificationDetailsForm({
   userId,
   token,
 }: CertificateFormProps) {
-  // Handler for initializing certificates
   const initialCertificates: Certificate[] =
     initialData.certificates && initialData.certificates.length > 0
       ? initialData.certificates.map((c: any) => ({
-        ...c,
-        id: c.id || c.certificate_id?.toString() || Date.now().toString(),
-      }))
-      : [
-        {
-          id: "1",
-          certificateType: "",
-          certificateTitle: "",
-          domain: "",
-          certificateProvidedBy: "",
-          date: "",
-          description: "",
+          ...c,
+          id: c.id || c.certificate_id?.toString() || Date.now().toString(),
+          // Normalize all fields so the ref and state start identical
+          certificateType: c.certificateType || "",
+          certificateTitle: c.certificateTitle || "",
+          domain: c.domain || "",
+          certificateProvidedBy: c.certificateProvidedBy || "",
+          date: c.date || "",
+          description: c.description || "",
           uploadedFile: null,
-          uploadedFileName: "",
-          isExpanded: true,
-        },
-      ];
+          uploadedFileName: c.uploadedFileName || "",
+          uploadedFileUrl: c.uploadedFileUrl || "",
+          uploadedFileType: c.uploadedFileType || "",
+        }))
+      : [
+          {
+            id: "1",
+            certificateType: "",
+            certificateTitle: "",
+            domain: "",
+            certificateProvidedBy: "",
+            date: "",
+            description: "",
+            uploadedFile: null,
+            uploadedFileName: "",
+            uploadedFileUrl: "",
+            uploadedFileType: "",
+            isExpanded: true,
+          },
+        ];
 
   const [certificates, setCertificates] =
     useState<Certificate[]>(initialCertificates);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [submitError, setSubmitError] = useState("");
 
-  // --- Change Tracking / Feedback ---
   const [certChanges, setCertChanges] = useState<Record<string, string[]>>({});
   const [certFeedback, setCertFeedback] = useState<Record<string, string>>({});
   const initialCertsRef = useRef<Record<string, Certificate>>({});
   const deletedCertificateIds = useRef<number[]>([]);
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
-  // Handler for initializing refs on mount
+  // Initialize refs on mount with normalized copies of initial state
   useEffect(() => {
-    certificates.forEach((c) => {
+    initialCertificates.forEach((c) => {
       initialCertsRef.current[c.id] = { ...c };
     });
   }, []);
 
-  // Handler for checking Certificate changes
+  // Change detection — uses norm() so "" vs undefined vs null never triggers a false positive
   useEffect(() => {
     const changes: Record<string, string[]> = {};
+
     certificates.forEach((current) => {
       const initial = initialCertsRef.current[current.id];
+
+      // Brand-new card not yet in ref → skip (no changes to detect)
+      if (!initial) return;
+
       const changedFields: string[] = [];
 
-      if (current.certificateType !== (initial?.certificateType || ""))
+      if (norm(current.certificateType) !== norm(initial.certificateType))
         changedFields.push("certificateType");
-      if (current.certificateTitle !== (initial?.certificateTitle || ""))
+      if (norm(current.certificateTitle) !== norm(initial.certificateTitle))
         changedFields.push("certificateTitle");
-      if (current.domain !== (initial?.domain || ""))
+      if (norm(current.domain) !== norm(initial.domain))
         changedFields.push("domain");
-      if (
-        current.certificateProvidedBy !== (initial?.certificateProvidedBy || "")
-      )
+      if (norm(current.certificateProvidedBy) !== norm(initial.certificateProvidedBy))
         changedFields.push("certificateProvidedBy");
-      if (current.date !== (initial?.date || "")) changedFields.push("date");
-      if (current.description !== (initial?.description || ""))
+      if (norm(current.date) !== norm(initial.date))
+        changedFields.push("date");
+      if (norm(current.description) !== norm(initial.description))
         changedFields.push("description");
 
-      // Check file changes (file object existence or URL change)
-      if (current.uploadedFile !== initial?.uploadedFile)
+      // Only flag a file change if the user actually picked a new File object
+      if (current.uploadedFile !== null && current.uploadedFile !== initial.uploadedFile)
         changedFields.push("fileUpload");
-      else if (current.uploadedFileUrl !== (initial?.uploadedFileUrl || ""))
+      // Flag URL change only when it meaningfully differs (e.g. file was cleared)
+      else if (norm(current.uploadedFileUrl) !== norm(initial.uploadedFileUrl))
         changedFields.push("uploadedFileUrl");
 
       if (changedFields.length > 0) {
         changes[current.id] = changedFields;
-      } else if (!current.certificate_id && current.certificateTitle) {
-        changes[current.id] = ["new"];
       }
     });
+
     setCertChanges(changes);
   }, [certificates]);
 
-  // Validation functions
   const validateCertificateTitle = (value: string) => {
     if (!value) return "";
     if (!/[a-zA-Z]/.test(value)) {
@@ -141,7 +157,6 @@ export default function CertificationDetailsForm({
   };
 
   const validateDomain = (value: string) => {
-    // Domain should not contain digits; allow letters, spaces and common punctuation
     if (value && !/^[a-zA-Z\s.,&\/\-]+$/.test(value)) {
       return "Invalid characters in domain (no numbers allowed)";
     }
@@ -149,26 +164,22 @@ export default function CertificationDetailsForm({
   };
 
   const validateProvider = (value: string) => {
-    // Provider name should not contain digits; allow letters, spaces and common punctuation
     if (value && !/^[a-zA-Z\s.,&'\-]+$/.test(value)) {
       return "Invalid characters in provider name (no numbers allowed)";
     }
     return "";
   };
 
-  // Handler for validating file format and size
   const validateFile = (file: File) => {
     const validTypes = ["application/pdf", "image/jpeg", "image/jpg"];
-    const maxSize = 5 * 1024 * 1024; // 5MB
+    const maxSize = 5 * 1024 * 1024;
 
     if (!validTypes.includes(file.type)) {
       return "Only PDF, JPG, and JPEG files are allowed";
     }
-
     if (file.size > maxSize) {
       return "File size must be less than 5MB";
     }
-
     return "";
   };
 
@@ -193,7 +204,6 @@ export default function CertificationDetailsForm({
     return "";
   };
 
-  // Handler for field changes
   const handleCertificateChange = (
     index: number,
     field: string,
@@ -203,13 +213,9 @@ export default function CertificationDetailsForm({
     updated[index] = { ...updated[index], [field]: value };
     setCertificates(updated);
 
-    // Validate fields
     if (field === "certificateTitle" && typeof value === "string") {
       const error = validateCertificateTitle(value);
-      setErrors((prev) => ({
-        ...prev,
-        [`cert-${index}-certificateTitle`]: error,
-      }));
+      setErrors((prev) => ({ ...prev, [`cert-${index}-certificateTitle`]: error }));
     } else if (field === "domain" && typeof value === "string") {
       const error = validateDomain(value);
       setErrors((prev) => ({ ...prev, [`cert-${index}-domain`]: error }));
@@ -218,24 +224,16 @@ export default function CertificationDetailsForm({
       setErrors((prev) => ({ ...prev, [`cert-${index}-date`]: error }));
     } else if (field === "certificateProvidedBy" && typeof value === "string") {
       const error = validateProvider(value);
-      setErrors((prev) => ({
-        ...prev,
-        [`cert-${index}-certificateProvidedBy`]: error,
-      }));
+      setErrors((prev) => ({ ...prev, [`cert-${index}-certificateProvidedBy`]: error }));
     }
   };
 
-  // Handler for expanding/collapsing card
   const toggleExpand = (index: number) => {
     const updated = [...certificates];
-    updated[index] = {
-      ...updated[index],
-      isExpanded: !updated[index].isExpanded,
-    };
+    updated[index] = { ...updated[index], isExpanded: !updated[index].isExpanded };
     setCertificates(updated);
   };
 
-  // Handler for resetting a single certificate card
   const resetCertificate = (index: number) => {
     const initial = initialCertsRef.current[certificates[index].id];
     const updated = [...certificates];
@@ -251,15 +249,12 @@ export default function CertificationDetailsForm({
       uploadedFile: null,
       uploadedFileName:
         initial?.uploadedFileName ||
-        (initial?.uploadedFileUrl
-          ? initial.uploadedFileUrl.split("/").pop()
-          : ""),
+        (initial?.uploadedFileUrl ? initial.uploadedFileUrl.split("/").pop() : ""),
       uploadedFileUrl: initial?.uploadedFileUrl || "",
       uploadedFileType: initial?.uploadedFileType || "",
     };
     setCertificates(updated);
 
-    // Clear errors and mark as unchanged
     setCertChanges((prev) => {
       const newChanges = { ...prev };
       delete newChanges[updated[index].id];
@@ -279,28 +274,27 @@ export default function CertificationDetailsForm({
     });
   };
 
-  // Handler for adding a new empty certificate card
   const addCertificate = () => {
     const newId = Date.now().toString();
-    setCertificates([
-      ...certificates,
-      {
-        id: newId,
-        certificateType: "",
-        certificateTitle: "",
-        domain: "",
-        certificateProvidedBy: "",
-        date: "",
-        description: "",
-        uploadedFile: null,
-        uploadedFileName: "",
-        isExpanded: true,
-      },
-    ]);
-    setCertChanges((prev) => ({ ...prev, [newId]: ["new"] }));
+    const newCert: Certificate = {
+      id: newId,
+      certificateType: "",
+      certificateTitle: "",
+      domain: "",
+      certificateProvidedBy: "",
+      date: "",
+      description: "",
+      uploadedFile: null,
+      uploadedFileName: "",
+      uploadedFileUrl: "",
+      uploadedFileType: "",
+      isExpanded: true,
+    };
+    setCertificates([...certificates, newCert]);
+    // Register in ref immediately so change detection skips it until user edits
+    initialCertsRef.current[newId] = { ...newCert };
   };
 
-  // Handler for removing a certificate card and deletion API call
   const removeCertificate = async (index: number) => {
     const cert = certificates[index];
 
@@ -310,15 +304,9 @@ export default function CertificationDetailsForm({
       try {
         await deleteCertificate(userId, token, cert.certificate_id);
         deletedCertificateIds.current.push(cert.certificate_id);
-        setCertFeedback((prev) => ({
-          ...prev,
-          [cert.id]: "Deleted successfully!",
-        }));
+        setCertFeedback((prev) => ({ ...prev, [cert.id]: "Deleted successfully!" }));
       } catch (error) {
-        setCertFeedback((prev) => ({
-          ...prev,
-          [cert.id]: "Failed to delete.",
-        }));
+        setCertFeedback((prev) => ({ ...prev, [cert.id]: "Failed to delete." }));
         setTimeout(
           () =>
             setCertFeedback((prev) => {
@@ -342,7 +330,6 @@ export default function CertificationDetailsForm({
     });
   };
 
-  // Handler for uploading file (Manual upload)
   const handleFileUpload = async (
     index: number,
     e: React.ChangeEvent<HTMLInputElement>
@@ -370,7 +357,6 @@ export default function CertificationDetailsForm({
     }
 
     const updated = [...certificates];
-
     updated[index] = {
       ...updated[index],
       uploadedFile: null,
@@ -379,7 +365,6 @@ export default function CertificationDetailsForm({
       uploadedFileType: file.type,
       cloudDeleteToken: uploadRes.deleteToken,
     };
-
     setCertificates(updated);
 
     setErrors((prev) => {
@@ -389,17 +374,12 @@ export default function CertificationDetailsForm({
     });
   };
 
-  // Handler for dropping file (Drag and drop)
-  const handleFileDrop = (
-    index: number,
-    e: React.DragEvent<HTMLDivElement>
-  ) => {
+  const handleFileDrop = (index: number, e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     const file = e.dataTransfer.files?.[0];
     if (!file) return;
 
     const error = validateFile(file);
-
     if (error) {
       setErrors((prev) => ({ ...prev, [`cert-${index}-file`]: error }));
       return;
@@ -421,7 +401,6 @@ export default function CertificationDetailsForm({
     });
   };
 
-  // Handler for removing attached file
   const clearFile = async (index: number) => {
     const updated = [...certificates];
     updated[index] = {
@@ -431,8 +410,8 @@ export default function CertificationDetailsForm({
       uploadedFileUrl: "",
       uploadedFileType: "",
     };
-
     setCertificates(updated);
+
     setErrors((prev) => {
       const newErrors = { ...prev };
       delete newErrors[`cert-${index}-file`];
@@ -440,34 +419,21 @@ export default function CertificationDetailsForm({
     });
   };
 
-  // Handler for saving an individual certificate card (PUT/POST)
   const handleSaveCertificate = async (cert: Certificate, index: number) => {
     const isNew = !cert.certificate_id;
     const certId = cert.id;
     const changes = certChanges[certId];
 
-    const localErrors = [
-      errors[`cert-${index}-certificateTitle`],
-      errors[`cert-${index}-file`],
-      errors[`cert-${index}-domain`],
-      errors[`cert-${index}-certificateProvidedBy`],
-    ].filter(Boolean);
-
-    // Re-run domain/provider validation to ensure no numbers are present
     const domainError = validateDomain(cert.domain || "");
     const providerError = validateProvider(cert.certificateProvidedBy || "");
+    const dateError = validateDateValue(cert.date || "");
 
     if (domainError) {
       setErrors((prev) => ({ ...prev, [`cert-${index}-domain`]: domainError }));
     }
     if (providerError) {
-      setErrors((prev) => ({
-        ...prev,
-        [`cert-${index}-certificateProvidedBy`]: providerError,
-      }));
+      setErrors((prev) => ({ ...prev, [`cert-${index}-certificateProvidedBy`]: providerError }));
     }
-
-    const dateError = validateDateValue(cert.date || "");
     if (dateError) {
       setErrors((prev) => ({ ...prev, [`cert-${index}-date`]: dateError }));
     }
@@ -496,32 +462,19 @@ export default function CertificationDetailsForm({
       return;
     }
 
-    // --- 1. Construct FormData ---
     let formDataToSend = new FormData();
-
-    // Append all text fields
     formDataToSend.append("certificate_type", cert.certificateType || "");
     formDataToSend.append("certificate_title", cert.certificateTitle || "");
     formDataToSend.append("domain", cert.domain || "");
-    formDataToSend.append(
-      "certificate_provided_by",
-      cert.certificateProvidedBy || ""
-    );
+    formDataToSend.append("certificate_provided_by", cert.certificateProvidedBy || "");
     formDataToSend.append("date", cert.date || "");
     formDataToSend.append("description", cert.description || "");
 
-    // --- 2. Handle File Logic ---
-
-    // If a new local File object exists, append it
     if (cert.uploadedFile && changes.includes("fileUpload")) {
       try {
-        // Append the file object directly for the API to handle upload
         formDataToSend.append("file", cert.uploadedFile);
       } catch (error) {
-        setCertFeedback((prev) => ({
-          ...prev,
-          [certId]: "File processing failed.",
-        }));
+        setCertFeedback((prev) => ({ ...prev, [certId]: "File processing failed." }));
         setTimeout(
           () =>
             setCertFeedback((prev) => {
@@ -535,29 +488,18 @@ export default function CertificationDetailsForm({
       }
     }
 
-    // If URL changed (cleared or new value due to save) or if other fields changed, send file_url
-    if (
-      changes.includes("uploadedFileUrl") ||
-      (cert.uploadedFileUrl && !cert.uploadedFile)
-    ) {
+    if (changes.includes("uploadedFileUrl") || (cert.uploadedFileUrl && !cert.uploadedFile)) {
       formDataToSend.append("file_url", cert.uploadedFileUrl || "");
     }
 
-    // --- 3. API Call ---
     try {
       let response;
       if (isNew) {
         response = await saveCertificateDetails(userId, token, formDataToSend);
       } else {
-        response = await updateCertificateDetails(
-          userId,
-          token,
-          cert.certificate_id!,
-          formDataToSend
-        );
+        response = await updateCertificateDetails(userId, token, cert.certificate_id!, formDataToSend);
       }
 
-      // Check response for new ID/updated URL
       const finalCertData = Array.isArray(response) ? response[0] : response;
       let updatedCert: Certificate;
 
@@ -578,17 +520,14 @@ export default function CertificationDetailsForm({
         }));
       }
 
-      // Sync state - update both certificates AND initialCertsRef to mark changes as saved
       if (updatedCert) {
         setCertificates((prev) => {
           const updated = prev.map((c) => (c.id === cert.id ? updatedCert : c));
-          // Update ref immediately so change detection knows there are no changes
-          initialCertsRef.current[cert.id] = updatedCert;
+          initialCertsRef.current[cert.id] = { ...updatedCert };
           return updated;
         });
       }
 
-      // Clear changes for this certificate
       setCertChanges((prev) => {
         const updated = { ...prev };
         delete updated[certId];
@@ -619,27 +558,24 @@ export default function CertificationDetailsForm({
     }
   };
 
-  // Check if there are any unsaved changes in any section
   const hasUnsavedChanges = Object.keys(certChanges).length > 0;
 
-  // Final submission handler
+  // Certificates are fully optional — always allow proceeding
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     if (hasUnsavedChanges) {
       let message = "Please save your changes before proceeding:\n\n";
-
       certificates.forEach((cert, index) => {
         if (certChanges[cert.id]) {
           message += `• Certificate ${index + 1} (unsaved changes)\n`;
         }
       });
-
       setSubmitError(message);
       return;
     }
 
-    // Filter out completely empty certificates before sending to next step
+    // Filter out completely empty certificates — optional, so empty ones are simply dropped
     const validCertificates = certificates.filter(
       (c) => c.certificateTitle || c.certificate_id
     );
@@ -665,7 +601,7 @@ export default function CertificationDetailsForm({
             Certificate - {index + 1}
           </h3>
           <div className="flex gap-2 items-center">
-            {/* SAVE BUTTON */}
+            {/* Save button only appears when there are actual changes */}
             {changed && (
               <button
                 type="button"
@@ -684,8 +620,9 @@ export default function CertificationDetailsForm({
               className="w-5 h-5 flex items-center justify-center rounded-full border-2 border-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
             >
               <ChevronDown
-                className={`w-3 h-3 text-gray-600 cursor-pointer transition-transform ${!certificate.isExpanded ? "rotate-180" : ""
-                  }`}
+                className={`w-3 h-3 text-gray-600 cursor-pointer transition-transform ${
+                  !certificate.isExpanded ? "rotate-180" : ""
+                }`}
                 strokeWidth={2.5}
               />
             </button>
@@ -694,10 +631,7 @@ export default function CertificationDetailsForm({
               onClick={() => resetCertificate(index)}
               className="w-5 h-5 flex items-center justify-center rounded-full border-2 border-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
             >
-              <RotateCcw
-                className="w-3 h-3 text-gray-600 cursor-pointer"
-                strokeWidth={2.5}
-              />
+              <RotateCcw className="w-3 h-3 text-gray-600 cursor-pointer" strokeWidth={2.5} />
             </button>
             {certificates.length > 1 && (
               <button
@@ -705,10 +639,7 @@ export default function CertificationDetailsForm({
                 onClick={() => removeCertificate(index)}
                 className="w-5 h-5 flex items-center justify-center rounded border-2 border-red-500 hover:bg-red-50 transition-colors cursor-pointer"
               >
-                <Trash2
-                  className="w-3 h-3 text-red-500 cursor-pointer"
-                  strokeWidth={2.5}
-                />
+                <Trash2 className="w-3 h-3 text-red-500 cursor-pointer" strokeWidth={2.5} />
               </button>
             )}
           </div>
@@ -717,10 +648,11 @@ export default function CertificationDetailsForm({
         {/* Feedback */}
         {feedback && (
           <div
-            className={`p-4 text-sm ${feedback.includes("successfully")
+            className={`p-4 text-sm ${
+              feedback.includes("successfully")
                 ? "bg-green-50 text-green-700 border border-green-200"
                 : "bg-red-50 text-red-700 border border-red-200"
-              }`}
+            }`}
           >
             {feedback}
           </div>
@@ -741,21 +673,13 @@ export default function CertificationDetailsForm({
                     <select
                       value={certificate.certificateType}
                       onChange={(e) =>
-                        handleCertificateChange(
-                          index,
-                          "certificateType",
-                          e.target.value
-                        )
+                        handleCertificateChange(index, "certificateType", e.target.value)
                       }
                       className="w-full px-3 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent text-xs sm:text-sm appearance-none bg-white pr-8"
                     >
                       <option value="">Select Certificate Type</option>
-                      <option value="Course Completion">
-                        Course Completion
-                      </option>
-                      <option value="Professional Certification">
-                        Professional Certification
-                      </option>
+                      <option value="Course Completion">Course Completion</option>
+                      <option value="Professional Certification">Professional Certification</option>
                       <option value="Achievement">Achievement</option>
                       <option value="Training">Training</option>
                       <option value="Workshop">Workshop</option>
@@ -774,17 +698,14 @@ export default function CertificationDetailsForm({
                     type="text"
                     value={certificate.certificateTitle}
                     onChange={(e) =>
-                      handleCertificateChange(
-                        index,
-                        "certificateTitle",
-                        e.target.value
-                      )
+                      handleCertificateChange(index, "certificateTitle", e.target.value)
                     }
                     placeholder="Enter Certificate Title"
-                    className={`w-full px-3 py-2 sm:py-2.5 border rounded-lg focus:outline-none focus:ring-2 text-xs sm:text-sm ${errors[`cert-${index}-certificateTitle`]
+                    className={`w-full px-3 py-2 sm:py-2.5 border rounded-lg focus:outline-none focus:ring-2 text-xs sm:text-sm ${
+                      errors[`cert-${index}-certificateTitle`]
                         ? "border-red-500 focus:ring-red-400"
                         : "border-gray-300 focus:ring-orange-400 focus:border-transparent"
-                      }`}
+                    }`}
                   />
                   {errors[`cert-${index}-certificateTitle`] && (
                     <p className="mt-1 text-xs text-red-500">
@@ -808,10 +729,11 @@ export default function CertificationDetailsForm({
                       handleCertificateChange(index, "domain", e.target.value)
                     }
                     placeholder="Enter Domain"
-                    className={`w-full px-3 py-2 sm:py-2.5 border rounded-lg focus:outline-none focus:ring-2 text-xs sm:text-sm ${errors[`cert-${index}-domain`]
+                    className={`w-full px-3 py-2 sm:py-2.5 border rounded-lg focus:outline-none focus:ring-2 text-xs sm:text-sm ${
+                      errors[`cert-${index}-domain`]
                         ? "border-red-500 focus:ring-red-400"
                         : "border-gray-300 focus:ring-orange-400 focus:border-transparent"
-                      }`}
+                    }`}
                   />
                   {errors[`cert-${index}-domain`] && (
                     <p className="mt-1 text-xs text-red-500">
@@ -829,17 +751,14 @@ export default function CertificationDetailsForm({
                     type="text"
                     value={certificate.certificateProvidedBy}
                     onChange={(e) =>
-                      handleCertificateChange(
-                        index,
-                        "certificateProvidedBy",
-                        e.target.value
-                      )
+                      handleCertificateChange(index, "certificateProvidedBy", e.target.value)
                     }
                     placeholder="Certificate Provided By"
-                    className={`w-full px-3 py-2 sm:py-2.5 border rounded-lg focus:outline-none focus:ring-2 text-xs sm:text-sm ${errors[`cert-${index}-certificateProvidedBy`]
+                    className={`w-full px-3 py-2 sm:py-2.5 border rounded-lg focus:outline-none focus:ring-2 text-xs sm:text-sm ${
+                      errors[`cert-${index}-certificateProvidedBy`]
                         ? "border-red-500 focus:ring-red-400"
                         : "border-gray-300 focus:ring-orange-400 focus:border-transparent"
-                      }`}
+                    }`}
                   />
                   {errors[`cert-${index}-certificateProvidedBy`] && (
                     <p className="mt-1 text-xs text-red-500">
@@ -909,18 +828,14 @@ export default function CertificationDetailsForm({
                     <div
                       onDrop={(e) => handleFileDrop(index, e)}
                       onDragOver={(e) => e.preventDefault()}
-                      className={`border-2 border-dashed rounded-lg p-6 sm:p-8 text-center hover:border-orange-400 transition-colors cursor-pointer ${errors[`cert-${index}-file`]
-                          ? "border-red-500"
-                          : "border-gray-300"
-                        }`}
-                      onClick={() =>
-                        fileInputRefs.current[certificate.id]?.click()
-                      }
+                      className={`border-2 border-dashed rounded-lg p-6 sm:p-8 text-center hover:border-orange-400 transition-colors cursor-pointer ${
+                        errors[`cert-${index}-file`] ? "border-red-500" : "border-gray-300"
+                      }`}
+                      onClick={() => fileInputRefs.current[certificate.id]?.click()}
                     >
                       <Upload className="w-6 h-6 text-gray-400 mx-auto mb-2 cursor-pointer" />
                       <p className="text-xs sm:text-sm text-gray-600">
-                        Drag and drop or upload certificate... (pdf, jpg, jpeg
-                        format only)
+                        Drag and drop or upload certificate... (pdf, jpg, jpeg format only)
                       </p>
                     </div>
                     {errors[`cert-${index}-file`] && (
@@ -955,7 +870,6 @@ export default function CertificationDetailsForm({
   };
 
   useEffect(() => {
-    // Try to scroll the nearest scrollable parent, fallback to window
     setTimeout(() => {
       let scrolled = false;
       let el = document.getElementById("certification-details-form-root");
@@ -986,16 +900,9 @@ export default function CertificationDetailsForm({
               className="absolute inset-0 backdrop-blur-md bg-white/10"
               onClick={() => setSubmitError("")}
             ></div>
-
             <div className="relative bg-white rounded-xl shadow-2xl p-6 w-[90%] max-w-md z-50">
-              <h3 className="text-lg font-semibold text-red-600 mb-2">
-                Error
-              </h3>
-
-              <p className="text-sm text-gray-700 mb-4 whitespace-pre-line">
-                {submitError}
-              </p>
-
+              <h3 className="text-lg font-semibold text-red-600 mb-2">Error</h3>
+              <p className="text-sm text-gray-700 mb-4 whitespace-pre-line">{submitError}</p>
               <div className="flex justify-end">
                 <button
                   type="button"
@@ -1008,6 +915,7 @@ export default function CertificationDetailsForm({
             </div>
           </div>
         )}
+
         <div className="max-w-6xl mx-auto">
           {/* Step Header */}
           <div className="mb-4 md:mb-6">
@@ -1034,28 +942,24 @@ export default function CertificationDetailsForm({
             Add Certificate
           </button>
 
-          {/* Validation Feedback & Action Buttons */}
-          <div className="flex flex-col gap-4">
-
-            <div className="flex justify-end gap-3">
-              <button
-                type="button"
-                onClick={onBack}
-                className="px-6 sm:px-8 py-2.5 sm:py-3 border-2 border-orange-300 hover:border-orange-400 text-orange-400 rounded-xl font-medium text-xs sm:text-sm transition-colors cursor-pointer"
-              >
-                Previous
-              </button>
-              <button
-                type="submit"
-                disabled={false}
-                style={{
-                  background: "linear-gradient(180deg, #FF9D48 0%, #FF8251 100%)",
-                }}
-                className="px-6 sm:px-8 py-2.5 sm:py-3 text-white rounded-xl font-medium text-xs sm:text-sm transition-colors shadow-sm cursor-pointer disabled:cursor-not-allowed"
-              >
-                Go to DashBoard
-              </button>
-            </div>
+          {/* Action Buttons */}
+          <div className="flex justify-end gap-3">
+            <button
+              type="button"
+              onClick={onBack}
+              className="px-6 sm:px-8 py-2.5 sm:py-3 border-2 border-orange-300 hover:border-orange-400 text-orange-400 rounded-xl font-medium text-xs sm:text-sm transition-colors cursor-pointer"
+            >
+              Previous
+            </button>
+            <button
+              type="submit"
+              style={{
+                background: "linear-gradient(180deg, #FF9D48 0%, #FF8251 100%)",
+              }}
+              className="px-6 sm:px-8 py-2.5 sm:py-3 text-white rounded-xl font-medium text-xs sm:text-sm transition-colors shadow-sm cursor-pointer"
+            >
+              Go to Dashboard
+            </button>
           </div>
         </div>
       </form>

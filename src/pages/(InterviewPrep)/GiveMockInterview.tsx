@@ -12,9 +12,9 @@ import { getResumeTemplates, getResumeTemplateById } from '@/services/resumeServ
 import { getSkillsByUserId } from "@/services/skillsLinksService";
 import { getExperienceByUserId } from "@/services/experienceService";
 import { uploadToCloudinary } from "@/utils/uploadToCloudinary";
-import {deleteFromCloudinary } from "@/utils/deleteFromCloudinary";
+import { deleteFromCloudinary } from "@/utils/deleteFromCloudinary";
 import api from "@/api";
-
+import { getPdfThumbnail } from "@/utils/getPdfThumbnail";
 const GiveMockInterview = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
@@ -165,7 +165,7 @@ const GiveMockInterview = () => {
     const isTimeSlotDisabled = (selectedDateObj, timeStr) => {
         const now = new Date();
         const selectedDate = new Date(selectedDateObj.fullDate);
-        
+
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
@@ -177,7 +177,7 @@ const GiveMockInterview = () => {
 
         const [time, period] = timeStr.split(' ');
         let [hour, minute] = time.split(':').map(Number);
-        
+
         if (period === 'PM' && hour < 12) {
             hour += 12;
         } else if (period === 'AM' && hour === 12) {
@@ -198,7 +198,7 @@ const GiveMockInterview = () => {
         }
         return [...array, item];
     };
-    
+
     const calculateExperienceString = (yearsArray, monthsArray) => {
         const totalYears = yearsArray.length > 0 ? yearsArray[yearsArray.length - 1] : 0;
         const totalMonths = monthsArray.length > 0 ? monthsArray[monthsArray.length - 1] : 0;
@@ -251,9 +251,9 @@ const GiveMockInterview = () => {
                     newMonthsExp = Array.from({ length: month }, (_, i) => i + 1);
                 }
             }
-            
+
             const experienceString = calculateExperienceString(prev.yearsExp, newMonthsExp);
-            
+
             return {
                 ...prev,
                 monthsExp: newMonthsExp,
@@ -392,31 +392,31 @@ const GiveMockInterview = () => {
         };
 
         try {
-            const data = await getAndProcess('/admin/pricing', token);
+            // const data = await getAndProcess('/admin/pricing', token);
+            setPlanAmount(import.meta.env.VITE_RESUME_AMOUNT ? Number(import.meta.env.VITE_RESUME_AMOUNT) : 19);
+            // if (Array.isArray(data)) {
+            //     const found = data.find(item => String(item?.bowizzy_plan_type || '').toLowerCase() === 'interview');
+            //     const amt = tryExtractAmount(found);
+            //     if (amt !== null && !Number.isNaN(amt)) {
+            //         setPlanAmount(amt);
+            //         return;
+            //     }
+            // } else {
+            //     const candidate = data?.data ?? data; // handle some API wrappers
+            //     const byType = (candidate && String(candidate?.bowizzy_plan_type || '').toLowerCase() === 'interview') ? candidate : null;
+            //     const amt = tryExtractAmount(byType ?? candidate);
+            //     if (amt !== null && !Number.isNaN(amt)) {
+            //         setPlanAmount(amt);
+            //         return;
+            //     }
+            // }
 
-            if (Array.isArray(data)) {
-                const found = data.find(item => String(item?.bowizzy_plan_type || '').toLowerCase() === 'interview');
-                const amt = tryExtractAmount(found);
-                if (amt !== null && !Number.isNaN(amt)) {
-                    setPlanAmount(amt);
-                    return;
-                }
-            } else {
-                const candidate = data?.data ?? data; // handle some API wrappers
-                const byType = (candidate && String(candidate?.bowizzy_plan_type || '').toLowerCase() === 'interview') ? candidate : null;
-                const amt = tryExtractAmount(byType ?? candidate);
-                if (amt !== null && !Number.isNaN(amt)) {
-                    setPlanAmount(amt);
-                    return;
-                }
-            }
-
-            // fallback try explicit id endpoint
-            const d2 = await getAndProcess('/admin/pricing/1', token);
-            const amt2 = tryExtractAmount(d2?.data ?? d2);
-            if (amt2 !== null && !Number.isNaN(amt2)) {
-                setPlanAmount(amt2);
-            }
+            // // fallback try explicit id endpoint
+            // const d2 = await getAndProcess('/admin/pricing/1', token);
+            // const amt2 = tryExtractAmount(d2?.data ?? d2);
+            // if (amt2 !== null && !Number.isNaN(amt2)) {
+            //     setPlanAmount(amt2);
+            // }
         } catch (err) {
             console.warn('fetchPricing failed', err);
         }
@@ -446,7 +446,7 @@ const GiveMockInterview = () => {
 
         return () => {
             if (objUrl) {
-                try { URL.revokeObjectURL(objUrl); } catch (e) {}
+                try { URL.revokeObjectURL(objUrl); } catch (e) { }
             }
         };
     }, [bookingData.uploadedResumeFile, cloudinaryData.url]);
@@ -552,8 +552,8 @@ const GiveMockInterview = () => {
             console.error('Booking API Error:', error);
             const serverMsg = error?.response?.data?.message || error?.response?.data?.error || error?.response?.data?.detail;
             const displayMsg = serverMsg || error?.message || 'Server error';
-                const friendlyMsg = mapBookingErrorMessage(displayMsg);
-                setBookingError(friendlyMsg);
+            const friendlyMsg = mapBookingErrorMessage(displayMsg);
+            setBookingError(friendlyMsg);
         } finally {
             setLoading(false);
         }
@@ -671,6 +671,7 @@ const GiveMockInterview = () => {
                 });
             }
             rzp.open();
+
 
         } catch (error) {
             console.error('Payment Error:', error);
@@ -800,8 +801,8 @@ const GiveMockInterview = () => {
     );
 
 
-    
-      const notes = [
+
+    const notes = [
         "The job role and experience for your interview will be based on your profile. To schedule an interview for a different role, please create a new role in your profile section.",
         "Once your payment is complete, your interview request will be forwarded to our professionals, who will conduct the interview according to the available time slots.",
         "You will receive a notification 2 hours before your interview and a reminder 30 minutes prior.",
@@ -867,7 +868,7 @@ const GiveMockInterview = () => {
             </div>
         );
     }
-    
+
     const Separator = () => <div className="bg-[#E8E8E8] h-[1px] my-5"></div>;
 
     const FormScreen = () => (
@@ -876,7 +877,7 @@ const GiveMockInterview = () => {
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-2">
 
                 <div className="lg:col-span-3 space-y-5">
-                    
+
                     <div className="bg-white rounded-[20px] pt-5 px-5 pb-0">
 
                         <div className="flex items-center justify-between">
@@ -889,14 +890,12 @@ const GiveMockInterview = () => {
                         <div className="mb-4">
                             <span className="text-[#3A3A3A] text-base font-medium block mb-3">INTERVIEW MODE</span>
                             <div className="flex gap-4 max-w-sm mx-auto">
-                                <button disabled={true} className={`flex-1 text-center px-4 py-2 rounded-lg border text-sm font-semibold cursor-default ${
-                                    bookingData.mode === 'ONLINE' ? 'bg-[#FFF0E3] border-[#F26D3A] text-[#F26D3A]' : 'bg-[#EDEDED] border-[#CACACA] text-[#A0A0A0]'
-                                }`}>
+                                <button disabled={true} className={`flex-1 text-center px-4 py-2 rounded-lg border text-sm font-semibold cursor-default ${bookingData.mode === 'ONLINE' ? 'bg-[#FFF0E3] border-[#F26D3A] text-[#F26D3A]' : 'bg-[#EDEDED] border-[#CACACA] text-[#A0A0A0]'
+                                    }`}>
                                     ONLINE
                                 </button>
-                                <button disabled={true} className={`flex-1 text-center px-4 py-2 rounded-lg border text-sm font-semibold cursor-default ${
-                                    bookingData.mode === 'OFFLINE' ? 'bg-[#FFF0E3] border-[#F26D3A] text-[#F26D3A]' : 'bg-[#EDEDED] border-[#CACACA] text-[#A0A0A0]'
-                                }`}>
+                                <button disabled={true} className={`flex-1 text-center px-4 py-2 rounded-lg border text-sm font-semibold cursor-default ${bookingData.mode === 'OFFLINE' ? 'bg-[#FFF0E3] border-[#F26D3A] text-[#F26D3A]' : 'bg-[#EDEDED] border-[#CACACA] text-[#A0A0A0]'
+                                    }`}>
                                     OFFLINE
                                 </button>
                             </div>
@@ -914,16 +913,14 @@ const GiveMockInterview = () => {
                                     <button
                                         key={`${item.date}-${item.day}`}
                                         onClick={() => setBookingData({ ...bookingData, selectedDate: item, selectedTime: flatTimeSlots.find(time => !isTimeSlotDisabled(item, time)) || flatTimeSlots[0] })}
-                                        className={`flex flex-col flex-1 py-3 gap-2 rounded-xl border ${
-                                            bookingData.selectedDate?.date === item.date && bookingData.selectedDate?.day === item.day
-                                                ? 'bg-[#FFF0E3] border-[#F26D3A]'
-                                                : 'bg-white border-[#CACACA]'
-                                        }`}
+                                        className={`flex flex-col flex-1 py-3 gap-2 rounded-xl border ${bookingData.selectedDate?.date === item.date && bookingData.selectedDate?.day === item.day
+                                            ? 'bg-[#FFF0E3] border-[#F26D3A]'
+                                            : 'bg-white border-[#CACACA]'
+                                            }`}
                                         disabled={loading}
                                     >
-                                        <span className={`text-[10px] font-bold text-center ${
-                                            bookingData.selectedDate?.date === item.date && bookingData.selectedDate?.day === item.day ? 'text-[#3A3A3A]' : 'text-[#7F7F7F]'
-                                        }`}>
+                                        <span className={`text-[10px] font-bold text-center ${bookingData.selectedDate?.date === item.date && bookingData.selectedDate?.day === item.day ? 'text-[#3A3A3A]' : 'text-[#7F7F7F]'
+                                            }`}>
                                             {item.day}
                                         </span>
                                         <span className="text-black text-xl font-bold text-center">{item.date}</span>
@@ -948,13 +945,12 @@ const GiveMockInterview = () => {
                                         <button
                                             key={time}
                                             onClick={() => setBookingData({ ...bookingData, selectedTime: time })}
-                                            className={`py-2 px-4 rounded-xl border text-sm ${
-                                                isDisabled
-                                                    ? 'bg-[#E0E0E0] border-[#C0C0C0] text-[#A0A0A0] cursor-not-allowed'
-                                                    : bookingData.selectedTime === time
-                                                        ? 'bg-[#FFF0E3] border-[#F26D3A] text-[#3A3A3A]'
-                                                        : 'bg-[#EDEDED] border-[#CACACA] text-[#3A3A3A]'
-                                            }`}
+                                            className={`py-2 px-4 rounded-xl border text-sm ${isDisabled
+                                                ? 'bg-[#E0E0E0] border-[#C0C0C0] text-[#A0A0A0] cursor-not-allowed'
+                                                : bookingData.selectedTime === time
+                                                    ? 'bg-[#FFF0E3] border-[#F26D3A] text-[#3A3A3A]'
+                                                    : 'bg-[#EDEDED] border-[#CACACA] text-[#3A3A3A]'
+                                                }`}
                                             disabled={loading || isDisabled}
                                         >
                                             {time}
@@ -963,7 +959,7 @@ const GiveMockInterview = () => {
                                 })}
                             </div>
                         </div>
-                        
+
                         <Separator />
 
                         <div>
@@ -984,11 +980,10 @@ const GiveMockInterview = () => {
                                                 ...bookingData,
                                                 selectedSkills: toggleArrayItem(bookingData.selectedSkills, skill)
                                             })}
-                                            className={`py-2 px-3 rounded-lg text-sm border ${
-                                                bookingData.selectedSkills.includes(skill)
-                                                    ? 'bg-[#FFF0E3] border-[#F26D3A] text-[#3A3A3A]'
-                                                    : 'bg-white border-[#CACACA] text-[#3A3A3A]'
-                                            }`}
+                                            className={`py-2 px-3 rounded-lg text-sm border ${bookingData.selectedSkills.includes(skill)
+                                                ? 'bg-[#FFF0E3] border-[#F26D3A] text-[#3A3A3A]'
+                                                : 'bg-white border-[#CACACA] text-[#3A3A3A]'
+                                                }`}
                                             disabled={loading}
                                         >
                                             {skill}
@@ -1000,7 +995,7 @@ const GiveMockInterview = () => {
                                 </div>
                             </div>
                         </div>
-                        
+
                         <Separator />
 
                         <div>
@@ -1013,13 +1008,12 @@ const GiveMockInterview = () => {
                                         <button
                                             key={year}
                                             onClick={() => handleYearSelection(year)}
-                                            className={`w-8 h-8 text-xs rounded flex items-center justify-center ${
-                                                bookingData.yearsExp.includes(year)
-                                                    ? 'bg-[#FF9D48] text-white'
-                                                    : bookingData.yearsExp.length > 0 && year < bookingData.yearsExp[bookingData.yearsExp.length - 1]
-                                                        ? 'bg-[#FFE5D1] text-[#3A3A3A]'
-                                                        : 'bg-[#EDEDED] text-[#3A3A3A]'
-                                            }`}
+                                            className={`w-8 h-8 text-xs rounded flex items-center justify-center ${bookingData.yearsExp.includes(year)
+                                                ? 'bg-[#FF9D48] text-white'
+                                                : bookingData.yearsExp.length > 0 && year < bookingData.yearsExp[bookingData.yearsExp.length - 1]
+                                                    ? 'bg-[#FFE5D1] text-[#3A3A3A]'
+                                                    : 'bg-[#EDEDED] text-[#3A3A3A]'
+                                                }`}
                                             disabled={loading}
                                         >
                                             {year}
@@ -1038,13 +1032,12 @@ const GiveMockInterview = () => {
                                         <button
                                             key={month}
                                             onClick={() => handleMonthSelection(month)}
-                                            className={`w-8 h-8 text-xs rounded flex items-center justify-center ${
-                                                bookingData.monthsExp.includes(month)
-                                                    ? 'bg-[#FF9D48] text-white'
-                                                    : bookingData.monthsExp.length > 0 && month < bookingData.monthsExp[bookingData.monthsExp.length - 1]
-                                                        ? 'bg-[#FFE5D1] text-[#3A3A3A]'
-                                                        : 'bg-[#EDEDED] text-[#3A3A3A]'
-                                            }`}
+                                            className={`w-8 h-8 text-xs rounded flex items-center justify-center ${bookingData.monthsExp.includes(month)
+                                                ? 'bg-[#FF9D48] text-white'
+                                                : bookingData.monthsExp.length > 0 && month < bookingData.monthsExp[bookingData.monthsExp.length - 1]
+                                                    ? 'bg-[#FFE5D1] text-[#3A3A3A]'
+                                                    : 'bg-[#EDEDED] text-[#3A3A3A]'
+                                                }`}
                                             disabled={loading}
                                         >
                                             {month}
@@ -1056,121 +1049,95 @@ const GiveMockInterview = () => {
                                 </div>
                             </div>
                         </div>
-                        
+
                         <Separator />
 
-                      <div>
-                        {/* HEADER */}
-                        <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-[#3A3A3A] text-xl font-semibold tracking-wide">
-                                RESUME
-                            </h2>
-                            <span className="text-[10px] text-[#3A3A3A]">
-                                Your resumes are taken from the "My Resumes" section.
-                            </span>
-                        </div>
+                        <div>
+                            {/* HEADER */}
+                            <div className="flex items-center justify-between mb-6">
+                                <h2 className="text-[#3A3A3A] text-xl font-semibold tracking-wide">
+                                    RESUME
+                                </h2>
+                                <span className="text-[10px] text-[#3A3A3A]">
+                                    Your resumes are taken from the "My Resumes" section.
+                                </span>
+                            </div>
 
-                        <div className="flex flex-col md:flex-row gap-6">
+                            <div className="flex flex-col md:flex-row gap-6">
 
-                            {/* LEFT SIDE – Resume Cards */}
-                            <div className="flex-1 mb-0">
-                                <div className="overflow-x-auto snap-x snap-mandatory" style={{ maxWidth: '512px' }}>
-                                    <div className="flex items-center gap-4 w-max">
-                                        {loadingResumes ? (
-                                            <div className="text-sm text-gray-500">Loading resumes...</div>
-                                        ) : resumeTemplates.length > 0 ? (
-                                            resumeTemplates.map((t, idx) => {
-                                                const tid = resolveTemplateId(t) ?? idx;
-                                                const title = t?.template_name ?? t?.title ?? t?.name ?? `Resume ${idx + 1}`;
-                                                return (
-                                                    <div
-                                                        key={tid}
-                                                        onClick={() => handleSelectTemplate(t)}
-                                                        className={`w-40 h-56 rounded-xl bg-white shadow-sm border cursor-pointer relative overflow-hidden transition flex-shrink-0 snap-start ${
-                                                            bookingData.selectedResume === tid && !bookingData.uploadedResumeFile
+                                {/* LEFT SIDE – Resume Cards */}
+                                <div className="flex-1 mb-0">
+                                    <div className="overflow-x-auto snap-x snap-mandatory" style={{ maxWidth: '512px' }}>
+                                        <div className="flex items-center gap-4 w-max">
+                                            {loadingResumes ? (
+                                                <div className="text-sm text-gray-500">Loading resumes...</div>
+                                            ) : resumeTemplates.length > 0 && (
+                                                resumeTemplates.map((t, idx) => {
+                                                    const tid = resolveTemplateId(t) ?? idx;
+                                                    const title = t?.template_name ?? t?.title ?? t?.name ?? `Resume ${idx + 1}`;
+                                                    return (
+                                                        <div
+                                                            key={tid}
+                                                            onClick={() => handleSelectTemplate(t)}
+                                                            className={`w-40 h-56 rounded-xl bg-white shadow-sm border cursor-pointer relative overflow-hidden transition flex-shrink-0 snap-start ${bookingData.selectedResume === tid && !bookingData.uploadedResumeFile
                                                                 ? 'border-[#F26D3A]'
                                                                 : 'border-gray-200'
-                                                        }`}
-                                                        style={{ scrollSnapAlign: 'start' }}
-                                                    >
-                                                        <img src="/resume-placeholder.png" className="w-full h-full object-cover opacity-90" />
+                                                                }`}
+                                                            style={{ scrollSnapAlign: 'start' }}
+                                                        >
+                                                            <img src={getPdfThumbnail(t.template_file_url)} className="w-full h-full object-cover opacity-90" />
 
-                                                        <div className="absolute top-2 right-2 w-5 h-5 rounded-full border border-gray-400 bg-white flex items-center justify-center">
-                                                            {bookingData.selectedResume === tid && !bookingData.uploadedResumeFile ? (
-                                                                <div className="w-3 h-3 rounded-full bg-[#F26D3A]" />
-                                                            ) : null}
-                                                        </div>
+                                                            <div className="absolute top-2 right-2 w-5 h-5 rounded-full border border-gray-400 bg-white flex items-center justify-center">
+                                                                {bookingData.selectedResume === tid && !bookingData.uploadedResumeFile ? (
+                                                                    <div className="w-3 h-3 rounded-full bg-[#F26D3A]" />
+                                                                ) : null}
+                                                            </div>
 
-                                                        <div className="absolute bottom-2 left-2 right-2 text-[11px] leading-tight text-[#3A3A3A] font-medium">
-                                                            {title}
+                                                            <div className="absolute bottom-2 left-2 right-2 text-[11px] leading-tight text-[#3A3A3A] font-medium">
+                                                                {title}
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                );
-                                            })
-                                        ) : (
-                                            [0, 1].map((idx) => (
+                                                    );
+                                                })
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* DOTS */}
+                                    <div className="flex justify-center gap-2 mt-2">
+                                        {resumeTemplates.length > 0 ? (
+                                            resumeTemplates.map((t, i) => (
                                                 <div
-                                                    key={idx}
-                                                    onClick={() => handleSelectDefaultResume(idx)}
-                                                    className={`w-40 h-56 rounded-xl bg-white shadow-sm border cursor-pointer relative overflow-hidden transition flex-shrink-0 snap-start ${
-                                                        bookingData.selectedResume === idx && !bookingData.uploadedResumeFile
-                                                            ? 'border-[#F26D3A]'
-                                                            : 'border-gray-200'
-                                                    }`}
-                                                    style={{ scrollSnapAlign: 'start' }}
-                                                >
-                                                    <img src="/resume-placeholder.png" className="w-full h-full object-cover opacity-90" />
-                                                    <div className="absolute top-2 right-2 w-5 h-5 rounded-full border border-gray-400 bg-white flex items-center justify-center">
-                                                        {bookingData.selectedResume === idx && !bookingData.uploadedResumeFile ? (
-                                                            <div className="w-3 h-3 rounded-full bg-[#F26D3A]" />
-                                                        ) : null}
-                                                    </div>
-                                                    <div className="absolute bottom-2 left-2 right-2 text-[11px] leading-tight text-[#3A3A3A] font-medium">
-                                                        Aarav-Mehta-Python-Developer-{idx + 1}
-                                                    </div>
-                                                </div>
+                                                    key={i}
+                                                    className={`w-2 h-2 rounded-full ${bookingData.selectedResume === (resolveTemplateId(t) ?? i) && !bookingData.uploadedResumeFile
+                                                        ? 'bg-[#F26D3A]'
+                                                        : 'bg-gray-300'
+                                                        }`}
+                                                />
+                                            ))
+                                        ) : (
+                                            [0, 1].map((i) => (
+                                                <div
+                                                    key={i}
+                                                    className={`w-2 h-2 rounded-full ${bookingData.selectedResume === i && !bookingData.uploadedResumeFile
+                                                        ? 'bg-[#F26D3A]'
+                                                        : 'bg-gray-300'
+                                                        }`}
+                                                />
                                             ))
                                         )}
                                     </div>
                                 </div>
 
-                                {/* DOTS */}
-                                <div className="flex justify-center gap-2 mt-2">
-                                    {resumeTemplates.length > 0 ? (
-                                        resumeTemplates.map((t, i) => (
-                                            <div
-                                                key={i}
-                                                className={`w-2 h-2 rounded-full ${
-                                                    bookingData.selectedResume === (resolveTemplateId(t) ?? i) && !bookingData.uploadedResumeFile
-                                                        ? 'bg-[#F26D3A]'
-                                                        : 'bg-gray-300'
-                                                }`}
-                                            />
-                                        ))
-                                    ) : (
-                                        [0, 1].map((i) => (
-                                            <div
-                                                key={i}
-                                                className={`w-2 h-2 rounded-full ${
-                                                    bookingData.selectedResume === i && !bookingData.uploadedResumeFile
-                                                        ? 'bg-[#F26D3A]'
-                                                        : 'bg-gray-300'
-                                                }`}
-                                            />
-                                        ))
-                                    )}
+                                {/* OR DIVIDER */}
+                                <div className="hidden md:flex flex-col items-center justify-center px-4">
+                                    <div className="w-px h-30 bg-gray-200" />
+                                    <p className="text-xs my-2 text-gray-400">OR</p>
+                                    <div className="w-px h-30 bg-gray-200" />
                                 </div>
-                            </div>
 
-                            {/* OR DIVIDER */}
-                            <div className="hidden md:flex flex-col items-center justify-center px-4">
-                                <div className="w-px h-30 bg-gray-200" />
-                                <p className="text-xs my-2 text-gray-400">OR</p>
-                                <div className="w-px h-30 bg-gray-200" />
-                            </div>
-
-                            {/* RIGHT SIDE – Buttons */}
-                                <div className="w-full md:w-1/3 flex flex-col gap-4">  
+                                {/* RIGHT SIDE – Buttons */}
+                                <div className="w-full md:w-1/3 flex flex-col gap-4">
                                     {/* UPLOAD RESUME BUTTON */}
                                     {!bookingData.uploadedResumeFile && (
                                         <>
@@ -1261,15 +1228,15 @@ const GiveMockInterview = () => {
                                         onClick={() => navigate('/ResumeBuilder')}
                                     >
                                         <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                            <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"/>
+                                            <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" />
                                         </svg>
 
                                         <span className="text-sm font-medium">Create Resume in BoWizzy</span>
                                     </button>
                                 </div>
 
+                            </div>
                         </div>
-                    </div>
 
                     </div>
 
@@ -1283,9 +1250,8 @@ const GiveMockInterview = () => {
                         </button>
                         <button
                             onClick={handleBookInterview}
-                            className={`flex-1 py-3 rounded-lg text-sm font-semibold text-white ${
-                                (loading || !(bookingData.uploadedResumeFile || cloudinaryData.url || selectedTemplateDetail || getSelectedTemplate())) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
-                            }`}
+                            className={`flex-1 py-3 rounded-lg text-sm font-semibold text-white ${(loading || !(bookingData.uploadedResumeFile || cloudinaryData.url || selectedTemplateDetail || getSelectedTemplate())) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+                                }`}
                             style={{
                                 background: "linear-gradient(180deg, #FF9D48 0%, #FF8251 100%)",
                             }}
@@ -1297,124 +1263,124 @@ const GiveMockInterview = () => {
                     </div>
                 </div>
                 <div className="w-full lg:w-[320px] flex-shrink-0">
-                        <NoteSidebar notes={notes} />
-                    </div>
+                    <NoteSidebar notes={notes} />
+                </div>
 
             </div>
         </div>
     );
-        const PaymentScreen = () => (
+    const PaymentScreen = () => (
         <div className="max-w-[1400px] mx-auto">
             <IntroBanner />
 
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            <div className="lg:col-span-3">
-                <div className="bg-white rounded-[24px] px-8 py-6">
-                <h2 className="text-[#F26D3A] text-xl font-semibold mb-6">
-                    Details
-                </h2>
-                <div className="flex flex-col lg:flex-row gap-6 mb-8">
-                    <div className="flex gap-4">
-                    <div>
-                        <p className="text-xs font-semibold text-[#3A3A3A] mb-2">
-                        Date
-                        </p>
-                        <div className="w-[90px] border border-[#FFE5D1] rounded-xl p-3 text-center">
-                        <p className="text-[11px] text-gray-500">
-                            {bookingData.selectedDate?.day || "SAT"}
-                        </p>
-                        <p className="text-xl font-bold text-[#3A3A3A]">
-                            {bookingData.selectedDate?.date || "23"}
-                        </p>
-                        </div>
-                    </div>
-                    <div>
-                        <p className="text-xs font-semibold text-[#3A3A3A] mb-2">
-                        Time
-                        </p>
-                        <div className="w-[110px] border border-[#FFE5D1] rounded-xl p-4 text-center">
-                        <p className="text-sm font-semibold text-[#3A3A3A]">
-                            {bookingData.selectedTime || "10:00 AM"}
-                        </p>
-                        </div>
-                    </div>
-                    <div>
-                        <p className="text-xs font-semibold text-[#3A3A3A] mb-2">
-                        Mode
-                        </p>
-                        <div className="w-[110px] border border-[#FFE5D1] rounded-xl p-4 text-center">
-                        <p className="text-sm font-semibold text-[#3A3A3A]">
-                            Online
-                        </p>
-                        </div>
-                    </div>
-                    </div>
+                <div className="lg:col-span-3">
+                    <div className="bg-white rounded-[24px] px-8 py-6">
+                        <h2 className="text-[#F26D3A] text-xl font-semibold mb-6">
+                            Details
+                        </h2>
+                        <div className="flex flex-col lg:flex-row gap-6 mb-8">
+                            <div className="flex gap-4">
+                                <div>
+                                    <p className="text-xs font-semibold text-[#3A3A3A] mb-2">
+                                        Date
+                                    </p>
+                                    <div className="w-[90px] border border-[#FFE5D1] rounded-xl p-3 text-center">
+                                        <p className="text-[11px] text-gray-500">
+                                            {bookingData.selectedDate?.day || "SAT"}
+                                        </p>
+                                        <p className="text-xl font-bold text-[#3A3A3A]">
+                                            {bookingData.selectedDate?.date || "23"}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div>
+                                    <p className="text-xs font-semibold text-[#3A3A3A] mb-2">
+                                        Time
+                                    </p>
+                                    <div className="w-[110px] border border-[#FFE5D1] rounded-xl p-4 text-center">
+                                        <p className="text-sm font-semibold text-[#3A3A3A]">
+                                            {bookingData.selectedTime || "10:00 AM"}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div>
+                                    <p className="text-xs font-semibold text-[#3A3A3A] mb-2">
+                                        Mode
+                                    </p>
+                                    <div className="w-[110px] border border-[#FFE5D1] rounded-xl p-4 text-center">
+                                        <p className="text-sm font-semibold text-[#3A3A3A]">
+                                            Online
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
 
-                    <div className="hidden lg:block w-[1px] bg-[#E5E5E5]" />
-                    <div>
-                    <p className="text-[#F26D3A] text-xl font-bold mb-1">
-                        Job Role : {bookingData.role}
-                    </p>
+                            <div className="hidden lg:block w-[1px] bg-[#E5E5E5]" />
+                            <div>
+                                <p className="text-[#F26D3A] text-xl font-bold mb-1">
+                                    Job Role : {bookingData.role}
+                                </p>
 
-                    <p className="text-xl text-[#3A3A3A]">
-                        Experience : {bookingData.experience}
-                    </p>
-                    </div>
-                </div>
-                <div className="mb-8">
-                    <p className="text-sm font-semibold text-[#3A3A3A] mb-4">
-                    SKILL(S) SELECTED FOR MOCK INTERVIEW
-                    </p>
+                                <p className="text-xl text-[#3A3A3A]">
+                                    Experience : {bookingData.experience}
+                                </p>
+                            </div>
+                        </div>
+                        <div className="mb-8">
+                            <p className="text-sm font-semibold text-[#3A3A3A] mb-4">
+                                SKILL(S) SELECTED FOR MOCK INTERVIEW
+                            </p>
 
-                    <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3">
-                    {bookingData.selectedSkills.slice(0, 7).map((skill, idx) => (
-                        <div
-                        key={idx}
-                        className="border border-[#E5E5E5] rounded-lg py-2 px-3 text-center text-sm text-[#3A3A3A]"
+                            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3">
+                                {bookingData.selectedSkills.slice(0, 7).map((skill, idx) => (
+                                    <div
+                                        key={idx}
+                                        className="border border-[#E5E5E5] rounded-lg py-2 px-3 text-center text-sm text-[#3A3A3A]"
+                                    >
+                                        {skill}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* DIVIDER */}
+                        <div className="h-[1px] bg-[#E5E5E5] mb-6" />
+
+                        {/* AMOUNT */}
+                        <div className="flex justify-between items-center mb-6">
+                            <span className="text-base font-semibold text-[#3A3A3A]">
+                                Amount :
+                            </span>
+                            <span className="text-xl font-bold text-[#3A3A3A]">
+                                {planAmount != null ? `₹ ${planAmount.toFixed(2)} /-` : '—'}
+                            </span>
+                        </div>
+
+                        {/* PAY BUTTON */}
+                        <button
+                            onClick={handlePayAndConfirm}
+                            disabled={loading}
+                            className="w-full h-[52px] rounded-xl text-white font-semibold text-base"
+                            style={{
+                                background:
+                                    "linear-gradient(180deg, #FF9D48 0%, #FF8251 100%)",
+                            }}
                         >
-                        {skill}
-                        </div>
-                    ))}
+                            {loading ? "Initiating Payment..." : "Pay and Confirm"}
+                        </button>
                     </div>
                 </div>
 
-                {/* DIVIDER */}
-                <div className="h-[1px] bg-[#E5E5E5] mb-6" />
-
-                {/* AMOUNT */}
-                <div className="flex justify-between items-center mb-6">
-                    <span className="text-base font-semibold text-[#3A3A3A]">
-                    Amount :
-                    </span>
-                    <span className="text-xl font-bold text-[#3A3A3A]">
-                    {planAmount != null ? `₹ ${planAmount.toFixed(2)} /-` : '—'}
-                    </span>
+                {/* SIDEBAR */}
+                <div className="lg:col-span-1">
+                    <div className="hidden lg:block w-[320px]">
+                        <NoteSidebar notes={notes} />
+                    </div>
                 </div>
-
-                {/* PAY BUTTON */}
-                <button
-                    onClick={handlePayAndConfirm}
-                    disabled={loading}
-                    className="w-full h-[52px] rounded-xl text-white font-semibold text-base"
-                    style={{
-                    background:
-                        "linear-gradient(180deg, #FF9D48 0%, #FF8251 100%)",
-                    }}
-                >
-                    {loading ? "Initiating Payment..." : "Pay and Confirm"}
-                </button>
-                </div>
-            </div>
-
-            {/* SIDEBAR */}
-            <div className="lg:col-span-1">
-                <div className="hidden lg:block w-[320px]">
-                <NoteSidebar notes={notes} />
-                </div>
-            </div>
             </div>
         </div>
-        );
+    );
 
 
     const SuccessScreen = () => (

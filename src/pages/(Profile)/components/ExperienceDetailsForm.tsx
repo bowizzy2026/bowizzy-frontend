@@ -46,6 +46,7 @@ export default function ExperienceDetailsForm({
   // State for Job Role (single value)
   const [jobRole, setJobRole] = useState(initialData.jobRole || "");
   const [jobRoleExpanded, setJobRoleExpanded] = useState(true);
+  const [experienceLevel, setExperienceLevel] = useState(initialData.experienceLevel || "experienced");
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [submitError, setSubmitError] = useState("");
 
@@ -661,9 +662,15 @@ export default function ExperienceDetailsForm({
   // Final submission handler
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
+    console.log("Submitting with data:", {
+      jobRole,
+      experienceLevel,
+      workExperiences: workExperiences.filter((exp) => exp.companyName || exp.experience_id),
+      deletedExperienceIds: deletedExperienceIds.current,
+    });
     // 1️⃣ Mandatory Job Role check
     if (!hideJobRole && !jobRole.trim()) {
+      console.log("Validation failed: Job Role is required.");
       setSubmitError("Job Role is required before proceeding.");
       setJobRoleExpanded(true);
       return;
@@ -671,12 +678,13 @@ export default function ExperienceDetailsForm({
 
     // 2️⃣ Validation errors check
     if (Object.values(errors).some((err) => err.length > 0)) {
+      console.log("Validation failed: Fix errors before submitting.", errors);
       setSubmitError("Please fix validation errors before proceeding.");
       return;
     }
 
-    // 3️⃣ Unsaved changes check
-    if (hasUnsavedChanges) {
+    // 3️⃣ Unsaved changes check - only validate work experience changes if not a fresher
+    if (hasUnsavedChanges && (experienceLevel === "intern" || experienceLevel === "experienced")) {
       let message = "Please save your changes before proceeding:\n\n";
 
       if (jobRoleChanged) {
@@ -689,18 +697,29 @@ export default function ExperienceDetailsForm({
         }
       });
 
-      setSubmitError(message);
+      if (message !== "Please save your changes before proceeding:\n\n") {
+        setSubmitError(message);
+        return;
+      }
+    } else if (jobRoleChanged) {
+      setSubmitError("Please save your Job Role changes before proceeding.");
       return;
     }
 
-    const validExperiences = workExperiences.filter(
-      (exp) => exp.companyName || exp.experience_id
-    );
+    let validExperiences: WorkExperience[] = [];
+    
+    // Only filter experiences if not a fresher
+    if (experienceLevel === "intern" || experienceLevel === "experienced") {
+      validExperiences = workExperiences.filter(
+        (exp) => exp.companyName || exp.experience_id
+      );
+    }
 
     setSubmitError("");
 
     onNext({
       jobRole,
+      experienceLevel,
       workExperiences: validExperiences,
       deletedExperienceIds: deletedExperienceIds.current,
     });
@@ -1144,7 +1163,6 @@ export default function ExperienceDetailsForm({
                     <select
                       value={jobRole}
                       onChange={handleJobRoleChange}
-                      required
                       aria-required="true"
                       aria-invalid={!!errors.jobRole}
                       className={`w-full px-3 py-2 sm:py-2.5 border rounded-lg focus:outline-none ${errors.jobRole ? 'border-red-300 ring-2 ring-red-100' : 'border-gray-300 focus:ring-2 focus:ring-orange-400 focus:border-transparent'} text-xs sm:text-sm appearance-none bg-white pr-8`}
@@ -1190,20 +1208,76 @@ export default function ExperienceDetailsForm({
           </div>
         )}
 
-        {/* Work Experience Cards */}
-        {workExperiences.map((exp, index) =>
-          renderExperienceCard(exp, index, workExperiences.length > 1)
-        )}
+        {/* Experience Level Section */}
+        <div className="bg-white border border-gray-200 rounded-xl mb-4 md:mb-5 overflow-hidden">
+          {/* Header */}
+          <div className="px-4 sm:px-5 md:px-6 py-3 md:py-4 border-b border-gray-200">
+            <h3 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900">
+              Experience Level
+            </h3>
+          </div>
 
-        {/* Add Work Experience Button */}
-        <button
-          type="button"
-          onClick={addWorkExperience}
-          className="flex items-center gap-2 px-4 py-2.5 text-orange-400 hover:text-orange-500 font-medium text-sm transition-colors mb-4 md:mb-5 cursor-pointer"
-        >
-          <Plus className="w-4 h-4 cursor-pointer" />
-          Add Work Experience
-        </button>
+          {/* Content */}
+          <div className="p-4 sm:p-5 md:p-6">
+            <p className="text-xs sm:text-sm text-gray-600 mb-4">
+              Select your experience level to determine whether work experience details are needed.
+            </p>
+            <div className="flex flex-col gap-3">
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="radio"
+                  name="experienceLevel"
+                  value="fresher"
+                  checked={experienceLevel === "fresher"}
+                  onChange={(e) => setExperienceLevel(e.target.value)}
+                  className="w-4 h-4 text-orange-400 border-gray-300 focus:ring-orange-400"
+                />
+                <span className="text-xs sm:text-sm text-gray-700">Fresher</span>
+              </label>
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="radio"
+                  name="experienceLevel"
+                  value="intern"
+                  checked={experienceLevel === "intern"}
+                  onChange={(e) => setExperienceLevel(e.target.value)}
+                  className="w-4 h-4 text-orange-400 border-gray-300 focus:ring-orange-400"
+                />
+                <span className="text-xs sm:text-sm text-gray-700">Intern</span>
+              </label>
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="radio"
+                  name="experienceLevel"
+                  value="experienced"
+                  checked={experienceLevel === "experienced"}
+                  onChange={(e) => setExperienceLevel(e.target.value)}
+                  className="w-4 h-4 text-orange-400 border-gray-300 focus:ring-orange-400"
+                />
+                <span className="text-xs sm:text-sm text-gray-700">Experienced</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        {/* Work Experience Cards - Only show for Intern and Experienced */}
+        {(experienceLevel === "intern" || experienceLevel === "experienced") && (
+          <>
+            {workExperiences.map((exp, index) =>
+              renderExperienceCard(exp, index, workExperiences.length > 1)
+            )}
+
+            {/* Add Work Experience Button */}
+            <button
+              type="button"
+              onClick={addWorkExperience}
+              className="flex items-center gap-2 px-4 py-2.5 text-orange-400 hover:text-orange-500 font-medium text-sm transition-colors mb-4 md:mb-5 cursor-pointer"
+            >
+              <Plus className="w-4 h-4 cursor-pointer" />
+              Add Work Experience
+            </button>
+          </>
+        )}
 
         {/* Validation Feedback & Action Buttons */}
         <div className="flex flex-col gap-4">

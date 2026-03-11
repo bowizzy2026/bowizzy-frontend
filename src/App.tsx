@@ -79,11 +79,11 @@ const careerMap = [
     icon: <FileArchive color="#3B3B3B" size={16} />,
     label: "My resumes",
   },
-  // {
-  //   href: "/interview-prep",
-  //   icon: <Video color="#3B3B3B" size={16} />,
-  //   label: "Interview Prep",
-  // },
+  {
+    href: "/interview-prep",
+    icon: <Video color="#3B3B3B" size={16} />,
+    label: "Interview Prep",
+  },
   // {
   //   href: "/profile",
   //   icon: <Phone color="#3B3B3B" size={16} />,

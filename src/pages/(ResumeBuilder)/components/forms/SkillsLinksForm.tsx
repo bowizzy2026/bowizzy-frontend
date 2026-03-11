@@ -7,7 +7,7 @@ import {
   FormSection,
   ToggleSwitch,
 } from "@/pages/(ResumeBuilder)/components/ui";
-import { X, Save, RotateCcw } from "lucide-react";
+import { X, Save, RotateCcw, Sparkles, Loader2 } from "lucide-react";
 import RichTextEditor from "@/pages/(ResumeBuilder)/components/ui/RichTextEditor";
 import {
   updateSkillDetails,
@@ -20,6 +20,7 @@ import {
   saveTechnicalSummary,
   updateTechnicalSummary,
 } from "@/services/skillsLinksService";
+import enhanceTechnicalSummary from "@/utils/enhanceTechnicalSummary";
 
 interface SkillsLinksFormProps {
   data: SkillsLinksDetails;
@@ -62,6 +63,10 @@ export const SkillsLinksForm: React.FC<SkillsLinksFormProps> = ({
   const [linkFeedback, setLinkFeedback] = useState<string>("");
   const [technicalSummaryFeedback, setTechnicalSummaryFeedback] =
     useState<string>("");
+
+const [isEnhancingSummary, setIsEnhancingSummary] = useState(false);
+const [enhanceSummaryError, setEnhanceSummaryError] = useState("");
+const [enhancedSummaryVersions, setEnhancedSummaryVersions] = useState<{ atsFriendly: string; informative: string } | null>(null);
 
   // Refs for tracking initial data
   const initialSkillsRef = useRef<Record<string, Skill>>({});
@@ -585,7 +590,46 @@ export const SkillsLinksForm: React.FC<SkillsLinksFormProps> = ({
     }
   };
 
-  const hasSkillChanges = Object.keys(skillChanges).length > 0;
+  const getPlainText = (html: string) => {
+  if (!html) return "";
+  return html.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").trim();
+};
+
+const hasTechnicalSummaryInput = getPlainText(data.technicalSummary ?? "").length > 0;
+
+const handleEnhanceTechnicalSummary = async () => {
+  if (!hasTechnicalSummaryInput) return;
+  setIsEnhancingSummary(true);
+  setEnhanceSummaryError("");
+  setEnhancedSummaryVersions(null);
+  try {
+    const skillNames = data.skills
+      .filter((s) => s.enabled && s.skillName)
+      .map((s) => s.skillName);
+    const result = await enhanceTechnicalSummary(data.technicalSummary, skillNames);
+    setEnhancedSummaryVersions(result);
+  } catch (err: any) {
+    setEnhanceSummaryError(err.message || "Failed to enhance. Please try again.");
+  } finally {
+    setIsEnhancingSummary(false);
+  }
+};
+
+const handleApplySummaryVersion = (type: "atsFriendly" | "informative") => {
+  if (!enhancedSummaryVersions) return;
+  const html = `<p>${enhancedSummaryVersions[type]}</p>`;
+  onChange({ ...data, technicalSummary: html });
+  setTechnicalSummaryChanges(true);
+  setEnhancedSummaryVersions(null);
+  setEnhanceSummaryError("");
+};
+
+const handleDismissEnhancedSummary = () => {
+  setEnhancedSummaryVersions(null);
+  setEnhanceSummaryError("");
+};
+
+const hasSkillChanges = Object.keys(skillChanges).length > 0;
 
   return (
     <div className="flex flex-col gap-5">
@@ -858,51 +902,132 @@ export const SkillsLinksForm: React.FC<SkillsLinksFormProps> = ({
           setTechnicalSummaryCollapsed(!technicalSummaryCollapsed)
         }
       >
-        <div className="flex items-center justify-end gap-2 mb-4">
-          {technicalSummaryFeedback && (
-            <span
-              className={`text-xs px-2 py-1 rounded-full ${
-                technicalSummaryFeedback.includes("successfully")
-                  ? "bg-green-100 text-green-700"
-                  : "bg-red-100 text-red-700"
-              }`}
-            >
-              {technicalSummaryFeedback}
-            </span>
-          )}
-          {technicalSummaryChanges && (
-            <button
-              type="button"
-              onClick={handleSaveTechnicalSummary}
-              className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-md text-sm font-medium shadow-sm hover:from-orange-500 hover:to-orange-600 transition cursor-pointer"
-              title="Save technical summary"
-            >
-              <Save className="w-4 h-4" strokeWidth={2} />
-              Save
-            </button>
-          )}
+        <div className="flex items-center justify-between gap-2 mb-4 flex-wrap">
+          {/* AI Enhance button */}
           <button
             type="button"
-            onClick={handleResetTechnicalSummary}
-            className="w-6 h-6 flex items-center justify-center rounded-full border-2 border-gray-600 hover:bg-gray-100 transition-colors"
-            title="Reset to saved value"
+            onClick={handleEnhanceTechnicalSummary}
+            disabled={!hasTechnicalSummaryInput || isEnhancingSummary}
+            title={!hasTechnicalSummaryInput ? "Add some text to enable AI enhancement" : "Enhance with AI"}
+            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all
+              ${hasTechnicalSummaryInput && !isEnhancingSummary
+                ? "bg-gradient-to-r from-violet-500 to-purple-600 text-white shadow-sm hover:from-violet-600 hover:to-purple-700 cursor-pointer"
+                : "bg-gray-100 text-gray-400 cursor-not-allowed"
+              }`}
           >
-            <RotateCcw
-              className="w-3 h-3 text-gray-600 cursor-pointer"
-              strokeWidth={2.5}
-            />
+            {isEnhancingSummary
+              ? <Loader2 className="w-4 h-4 animate-spin" strokeWidth={2} />
+              : <Sparkles className="w-4 h-4" strokeWidth={2} />
+            }
+            {isEnhancingSummary ? "Enhancing..." : "Enhance with AI"}
           </button>
+
+          {/* Save / Reset */}
+          <div className="flex items-center gap-2">
+            {technicalSummaryFeedback && (
+              <span className={`text-xs px-2 py-1 rounded-full ${technicalSummaryFeedback.includes("successfully") ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+                {technicalSummaryFeedback}
+              </span>
+            )}
+            {technicalSummaryChanges && (
+              <button
+                type="button"
+                onClick={handleSaveTechnicalSummary}
+                className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-md text-sm font-medium shadow-sm hover:from-orange-500 hover:to-orange-600 transition cursor-pointer"
+                title="Save technical summary"
+              >
+                <Save className="w-4 h-4" strokeWidth={2} />
+                Save
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={handleResetTechnicalSummary}
+              className="w-6 h-6 flex items-center justify-center rounded-full border-2 border-gray-600 hover:bg-gray-100 transition-colors"
+              title="Reset to saved value"
+            >
+              <RotateCcw className="w-3 h-3 text-gray-600 cursor-pointer" strokeWidth={2.5} />
+            </button>
+          </div>
         </div>
 
         <div className="flex flex-col gap-1 mt-4">
           <label className="font-medium">Technical Summary</label>
           <RichTextEditor
-            placeholder="Provide Career Objective"
+            placeholder="Provide Technical Summary"
             value={data.technicalSummary}
-            onChange={(v) => onChange({ ...data, technicalSummary: v })}
+            onChange={(v) => {
+              onChange({ ...data, technicalSummary: v });
+              if (enhancedSummaryVersions) setEnhancedSummaryVersions(null);
+              if (enhanceSummaryError) setEnhanceSummaryError("");
+            }}
             rows={5}
           />
         </div>
+
+        {/* Error */}
+        {enhanceSummaryError && (
+          <div className="mt-3 flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+            <span className="text-red-500 text-xs mt-0.5">⚠</span>
+            <p className="text-xs text-red-600 flex-1">{enhanceSummaryError}</p>
+            <button type="button" onClick={() => setEnhanceSummaryError("")} className="text-red-400 hover:text-red-600">
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
+
+        {/* AI Results Panel */}
+        {enhancedSummaryVersions && (
+          <div className="mt-4 border border-purple-200 rounded-xl overflow-hidden">
+            <div className="flex items-center justify-between px-4 py-2.5 bg-gradient-to-r from-violet-50 to-purple-50 border-b border-purple-200">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-purple-500" strokeWidth={2} />
+                <span className="text-sm font-semibold text-purple-800">AI Enhanced Versions</span>
+              </div>
+              <button type="button" onClick={handleDismissEnhancedSummary} className="text-purple-400 hover:text-purple-700 transition-colors">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-4 flex flex-col gap-4 bg-white">
+              {/* ATS Friendly */}
+              <div className="border border-gray-200 rounded-lg overflow-hidden">
+                <div className="flex items-center justify-between px-3 py-2 bg-gray-50 border-b border-gray-200">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-blue-500 inline-block"></span>
+                    <span className="text-xs font-semibold text-gray-700 uppercase tracking-wide">ATS Friendly</span>
+                    <span className="text-xs text-gray-400">— Keyword optimized</span>
+                  </div>
+                  <button type="button" onClick={() => handleApplySummaryVersion("atsFriendly")} className="text-xs px-3 py-1 bg-blue-500 text-white rounded-md font-medium hover:bg-blue-600 transition-colors cursor-pointer">
+                    Use This
+                  </button>
+                </div>
+                <div className="p-3">
+                  <p className="text-sm text-gray-700 leading-relaxed">{enhancedSummaryVersions.atsFriendly}</p>
+                </div>
+              </div>
+
+              {/* Informative */}
+              <div className="border border-gray-200 rounded-lg overflow-hidden">
+                <div className="flex items-center justify-between px-3 py-2 bg-gray-50 border-b border-gray-200">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>
+                    <span className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Informative</span>
+                    <span className="text-xs text-gray-400">— Detailed narrative</span>
+                  </div>
+                  <button type="button" onClick={() => handleApplySummaryVersion("informative")} className="text-xs px-3 py-1 bg-emerald-500 text-white rounded-md font-medium hover:bg-emerald-600 transition-colors cursor-pointer">
+                    Use This
+                  </button>
+                </div>
+                <div className="p-3">
+                  <p className="text-sm text-gray-700 leading-relaxed">{enhancedSummaryVersions.informative}</p>
+                </div>
+              </div>
+
+              <p className="text-xs text-gray-400 text-center">Click "Use This" to apply a version, or dismiss to keep your current text.</p>
+            </div>
+          </div>
+        )}
       </FormSection>
     </div>
   );

@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { ArrowRight } from 'lucide-react';
 import DashNav from "@/components/dashnav/dashnav";
+import { Navigate } from 'react-router';
 // Assuming you don't need `useNavigate` since you're using `window.location.href`
-
+// import {  } from "react-router-dom";
 const MockInterview = () => {
     const [selectedMode, setSelectedMode] = useState(null); // 'give' or 'take'
 
@@ -16,9 +17,10 @@ const MockInterview = () => {
 
     // Updated handleProceed to use navigation
     const handleProceed = (interviewType, sessionMode) => {
-        const url = interviewType === 'give' 
+        const url = interviewType === 'give'
             ? `/interview-prep/give-mock-interview?mode=${sessionMode}`
             : `/interview-prep/take-mock-interview?mode=${sessionMode}`;
+        // return <Navigate to={url} />;
         window.location.href = url;
     };
 

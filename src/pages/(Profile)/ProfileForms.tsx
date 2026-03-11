@@ -510,6 +510,11 @@ export default function ProfileForm() {
         if (!data.jobRole) {
           return false;
         }
+        // If fresher, work experiences are not required
+        if (data.experienceLevel === "fresher") {
+          return true;
+        }
+        // For intern and experienced, at least one work experience is required
         const hasValidExperience = data.workExperiences.some(
           (exp) => exp.companyName && exp.jobTitle
         );
@@ -547,14 +552,8 @@ export default function ProfileForm() {
         break;
 
       case 5: // Certification
-        // Must have at least one non-empty certificate
-        const hasValidCertificate = data.certificates.some(
-          (c) => c.certificateTitle
-        );
-        if (!hasValidCertificate) {
-          return false;
-        }
-        break;
+        // Certificates are optional - always return true
+        return true;
     }
 
     return true;

@@ -121,6 +121,7 @@ const InterviewPrep = () => {
     const displayedUpcoming = showAllUpcoming
         ? upcomingInterviews
         : upcomingInterviews.slice(0, 4);
+        
     const displayedPast = pastInterviews.slice().sort((a, b) => {
         const aDate = new Date(a.end_time_utc ?? a.start_time_utc ?? a.completedDate);
         const bDate = new Date(b.end_time_utc ?? b.start_time_utc ?? b.completedDate);

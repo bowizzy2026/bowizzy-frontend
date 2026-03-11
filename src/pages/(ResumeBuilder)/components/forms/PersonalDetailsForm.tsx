@@ -9,13 +9,15 @@ import {
   FormSection,
   RichTextEditor,
 } from "@/pages/(ResumeBuilder)/components/ui";
-import { Lock, X, Save, ChevronDown, ChevronUp, RotateCcw } from "lucide-react";
+import { Lock, X, Save, ChevronDown, ChevronUp, RotateCcw, Sparkles, Loader2 } from "lucide-react";
 import { uploadToCloudinary } from "@/utils/uploadToCloudinary";
 import { deleteFromCloudinary } from "@/utils/deleteFromCloudinary";
 import { updatePersonalDetails } from "@/services/personalService";
-
+import { filterResumeData, getEnabledSkills, getEnabledWorkExperiences,getEnabledProjects } from "@/utils/filterResumeData";
+import { enhanceCareerObjective } from "@/utils/enhanceCareerObjective";
 interface PersonalDetailsFormProps {
   data: PersonalDetails;
+  fullResumeData: any;
   onChange: (data: PersonalDetails) => void;
   userId: string;
   token: string;
@@ -49,26 +51,50 @@ const genders = [
 ];
 
 const ALL_LANGUAGES = [
-  "Kannada",
-  "English",
-  "Tamil",
-  "Hindi",
-  "Telugu",
-  "Malayalam",
+  // Indian Official Scheduled Languages
+  "Assamese",
   "Bengali",
-  "Marathi",
+  "Bodo",
+  "Dogri",
   "Gujarati",
+  "Hindi",
+  "Kannada",
+  "Kashmiri",
+  "Konkani",
+  "Maithili",
+  "Malayalam",
+  "Manipuri",
+  "Marathi",
+  "Nepali",
+  "Odia",
   "Punjabi",
+  "Sanskrit",
+  "Santali",
+  "Sindhi",
+  "Tamil",
+  "Telugu",
   "Urdu",
+  // Foreign Languages Commonly Used in India
+  "English",
   "French",
-  "Spanish",
   "German",
-  "Mandarin",
+  "Spanish",
+  "Portuguese",
+  "Russian",
+  "Chinese (Mandarin)",
   "Japanese",
+  "Korean",
+  "Arabic",
+  "Persian",
+  "Italian",
+  "Dutch",
+  "Thai",
+  "Hebrew",
 ];
 
 export const PersonalDetailsForm: React.FC<PersonalDetailsFormProps> = ({
   data,
+  fullResumeData,
   onChange,
   userId,
   token,
@@ -93,6 +119,10 @@ export const PersonalDetailsForm: React.FC<PersonalDetailsFormProps> = ({
   const [languagesFeedback, setLanguagesFeedback] = useState("");
   const [locationFeedback, setLocationFeedback] = useState("");
   const [careerObjectiveFeedback, setCareerObjectiveFeedback] = useState("");
+
+const [isEnhancing, setIsEnhancing] = useState(false);
+const [enhanceError, setEnhanceError] = useState("");
+const [enhancedVersions, setEnhancedVersions] = useState<{ professional: string; elaborate: string } | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -170,6 +200,63 @@ export const PersonalDetailsForm: React.FC<PersonalDetailsFormProps> = ({
       window.removeEventListener("scroll", updateRect, true);
     };
   }, [showLanguageSuggestions, newLanguage]);
+
+
+  // useEffect(() => {
+  //   // In your component:
+  //   // const filteredData = filterResumeData(fullResumeData);
+
+
+  //   console.log(skillNames, experiences);
+  // }, [])
+
+  const getPlainText = (html: string) => {
+  if (!html) return "";
+  return html.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").trim();
+};
+
+const hasCareerObjectiveInput = getPlainText(data.aboutCareerObjective ?? "").length > 0;
+
+const handleEnhanceCareerObjective = async () => {
+  if (!hasCareerObjectiveInput) return;
+  setIsEnhancing(true);
+  setEnhanceError("");
+  setEnhancedVersions(null);
+  try {
+    const result = await enhanceCareerObjective(
+      data.aboutCareerObjective,
+      skillNames,
+      experiences,
+      projects
+    );
+    setEnhancedVersions(result);
+  } catch (err: any) {
+    setEnhanceError(err.message || "Failed to enhance. Please try again.");
+  } finally {
+    setIsEnhancing(false);
+  }
+};
+
+const handleApplyVersion = (type: "professional" | "elaborate") => {
+  if (!enhancedVersions) return;
+  const html = `<p>${enhancedVersions[type]}</p>`;
+  onChange({ ...data, aboutCareerObjective: html });
+  setCareerObjectiveChanged(true);
+  setEnhancedVersions(null);
+  setEnhanceError("");
+};
+
+const handleDismissEnhanced = () => {
+  setEnhancedVersions(null);
+  setEnhanceError("");
+};
+
+  const skillNames = getEnabledSkills(fullResumeData);
+  const experiences = getEnabledWorkExperiences(fullResumeData);
+  const projects = getEnabledProjects(fullResumeData);
+  console.log("Enabled skills:", skillNames);
+  console.log("Enabled experiences:", experiences);
+  console.log("Enabled projects:", projects);
 
   const handleLanguageInputChange = (
     e: React.ChangeEvent<HTMLInputElement>
@@ -561,13 +648,15 @@ export const PersonalDetailsForm: React.FC<PersonalDetailsFormProps> = ({
   };
 
   const handleResetCareerObjective = () => {
-    onChange({
-      ...data,
-      aboutCareerObjective: initialCareerObjective.current ?? "",
-    });
-    setCareerObjectiveChanged(false);
-    setCareerObjectiveFeedback("");
-  };
+  onChange({
+    ...data,
+    aboutCareerObjective: initialCareerObjective.current ?? "",
+  });
+  setCareerObjectiveChanged(false);
+  setCareerObjectiveFeedback("");
+  setEnhancedVersions(null);
+  setEnhanceError("");
+};
 
   const CollapseButton = ({
     isCollapsed,
@@ -598,7 +687,7 @@ export const PersonalDetailsForm: React.FC<PersonalDetailsFormProps> = ({
         <div className="bg-white border border-gray-200 rounded-xl p-3 flex items-center gap-3">
           <div className="p-2 bg-gray-100 rounded-md">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
-              <path d="M12 1a4 4 0 0 0-4 4v3H7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2h-1V5a4 4 0 0 0-4-4z" stroke="#9CA3AF" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M12 1a4 4 0 0 0-4 4v3H7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2h-1V5a4 4 0 0 0-4-4z" stroke="#9CA3AF" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </div>
           <div>
@@ -619,15 +708,13 @@ export const PersonalDetailsForm: React.FC<PersonalDetailsFormProps> = ({
               onClick={() =>
                 !data.profilePhotoUrl && fileInputRef.current?.click()
               }
-              className={`relative w-32 h-32 bg-gray-100 rounded-lg border-2 ${
-                data.profilePhotoUrl
-                  ? "border-gray-300"
-                  : "border-dashed border-gray-300"
-              } flex items-center justify-center overflow-hidden ${
-                !data.profilePhotoUrl
+              className={`relative w-32 h-32 bg-gray-100 rounded-lg border-2 ${data.profilePhotoUrl
+                ? "border-gray-300"
+                : "border-dashed border-gray-300"
+                } flex items-center justify-center overflow-hidden ${!data.profilePhotoUrl
                   ? "cursor-pointer hover:border-orange-400 transition-colors group"
                   : ""
-              }`}
+                }`}
             >
               {data.profilePhotoUrl ? (
                 <>
@@ -747,7 +834,7 @@ export const PersonalDetailsForm: React.FC<PersonalDetailsFormProps> = ({
                   <FormSelect
                     label=""
                     value="+91"
-                    onChange={() => {}}
+                    onChange={() => { }}
                     options={[{ value: "+91", label: "+91" }]}
                     className="w-20"
                     disabled={true}
@@ -801,11 +888,10 @@ export const PersonalDetailsForm: React.FC<PersonalDetailsFormProps> = ({
             <div className="flex items-center justify-end gap-2 mb-4">
               {languagesFeedback && (
                 <span
-                  className={`text-xs px-2 py-1 rounded-full ${
-                    languagesFeedback.includes("success")
-                      ? "bg-green-100 text-green-700"
-                      : "bg-red-100 text-red-700"
-                  }`}
+                  className={`text-xs px-2 py-1 rounded-full ${languagesFeedback.includes("success")
+                    ? "bg-green-100 text-green-700"
+                    : "bg-red-100 text-red-700"
+                    }`}
                 >
                   {languagesFeedback}
                 </span>
@@ -912,11 +998,10 @@ export const PersonalDetailsForm: React.FC<PersonalDetailsFormProps> = ({
             <div className="flex items-center justify-end gap-2 mb-4">
               {locationFeedback && (
                 <span
-                  className={`text-xs px-2 py-1 rounded-full ${
-                    locationFeedback.includes("success")
-                      ? "bg-green-100 text-green-700"
-                      : "bg-red-100 text-red-700"
-                  }`}
+                  className={`text-xs px-2 py-1 rounded-full ${locationFeedback.includes("success")
+                    ? "bg-green-100 text-green-700"
+                    : "bg-red-100 text-red-700"
+                    }`}
                 >
                   {locationFeedback}
                 </span>
@@ -1013,68 +1098,146 @@ export const PersonalDetailsForm: React.FC<PersonalDetailsFormProps> = ({
       </div>
 
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-        <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-b border-gray-100">
-          <span className="text-sm font-semibold text-gray-800">
-            About / Career Objective{" "}
-            <span className="text-red-500 ml-1">*</span>
-          </span>
+  <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-b border-gray-100">
+    <span className="text-sm font-semibold text-gray-800">
+      About / Career Objective{" "}
+      <span className="text-red-500 ml-1">*</span>
+    </span>
+    <CollapseButton
+      isCollapsed={careerObjectiveCollapsed}
+      onClick={() => setCareerObjectiveCollapsed(!careerObjectiveCollapsed)}
+    />
+  </div>
 
-          <CollapseButton
-            isCollapsed={careerObjectiveCollapsed}
-            onClick={() =>
-              setCareerObjectiveCollapsed(!careerObjectiveCollapsed)
-            }
-          />
+  {!careerObjectiveCollapsed && (
+    <div className="p-4">
+      <div className="flex items-center justify-between gap-2 mb-4 flex-wrap">
+        {/* AI Enhance button */}
+        <button
+          type="button"
+          onClick={handleEnhanceCareerObjective}
+          disabled={!hasCareerObjectiveInput || isEnhancing}
+          title={!hasCareerObjectiveInput ? "Add some text to enable AI enhancement" : "Enhance with AI"}
+          className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all
+            ${hasCareerObjectiveInput && !isEnhancing
+              ? "bg-gradient-to-r from-violet-500 to-purple-600 text-white shadow-sm hover:from-violet-600 hover:to-purple-700 cursor-pointer"
+              : "bg-gray-100 text-gray-400 cursor-not-allowed"
+            }`}
+        >
+          {isEnhancing
+            ? <Loader2 className="w-4 h-4 animate-spin" strokeWidth={2} />
+            : <Sparkles className="w-4 h-4" strokeWidth={2} />
+          }
+          {isEnhancing ? "Enhancing..." : "Enhance with AI"}
+        </button>
+
+        {/* Save / Reset */}
+        <div className="flex items-center gap-2">
+          {careerObjectiveFeedback && (
+            <span className={`text-xs px-2 py-1 rounded-full ${careerObjectiveFeedback.includes("success") ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+              {careerObjectiveFeedback}
+            </span>
+          )}
+          {careerObjectiveChanged && (
+            <button
+              type="button"
+              onClick={handleUpdateCareerObjective}
+              className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-md text-sm font-medium shadow-sm hover:from-orange-500 hover:to-orange-600 transition cursor-pointer"
+              aria-pressed="false"
+              aria-label="Save career objective changes"
+            >
+              <Save className="w-4 h-4" strokeWidth={2} /> Save
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={handleResetCareerObjective}
+            className="w-6 h-6 flex items-center justify-center rounded-full border-2 border-gray-600 hover:bg-gray-100 transition-colors"
+            title="Reset to saved value"
+          >
+            <RotateCcw className="w-3 h-3 text-gray-600" strokeWidth={2.5} />
+          </button>
         </div>
+      </div>
 
-        {!careerObjectiveCollapsed && (
-          <div className="p-4">
-            <div className="flex items-center justify-end gap-2 mb-4">
-              {careerObjectiveFeedback && (
-                <span
-                  className={`text-xs px-2 py-1 rounded-full ${
-                    careerObjectiveFeedback.includes("success")
-                      ? "bg-green-100 text-green-700"
-                      : "bg-red-100 text-red-700"
-                  }`}
-                >
-                  {careerObjectiveFeedback}
-                </span>
-              )}
-              {careerObjectiveChanged && (
-                <button
-                  type="button"
-                  onClick={handleUpdateCareerObjective}
-                  className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-md text-sm font-medium shadow-sm hover:from-orange-500 hover:to-orange-600 transition cursor-pointer"
-                  aria-pressed="false"
-                  aria-label="Save career objective changes"
-                >
-                  <Save className="w-4 h-4" strokeWidth={2} />
-                  Save
+      <RichTextEditor
+        value={data.aboutCareerObjective}
+        onChange={(v) => {
+          updateField("aboutCareerObjective", v);
+          setCareerObjectiveChanged(true);
+          if (enhancedVersions) setEnhancedVersions(null);
+          if (enhanceError) setEnhanceError("");
+        }}
+        placeholder="Provide Career Objective"
+        rows={6}
+      />
+
+      {/* Error */}
+      {enhanceError && (
+        <div className="mt-3 flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+          <span className="text-red-500 text-xs mt-0.5">⚠</span>
+          <p className="text-xs text-red-600 flex-1">{enhanceError}</p>
+          <button type="button" onClick={() => setEnhanceError("")} className="text-red-400 hover:text-red-600">
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
+
+      {/* AI Results Panel */}
+      {enhancedVersions && (
+        <div className="mt-4 border border-purple-200 rounded-xl overflow-hidden">
+          <div className="flex items-center justify-between px-4 py-2.5 bg-gradient-to-r from-violet-50 to-purple-50 border-b border-purple-200">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-purple-500" strokeWidth={2} />
+              <span className="text-sm font-semibold text-purple-800">AI Enhanced Versions</span>
+            </div>
+            <button type="button" onClick={handleDismissEnhanced} className="text-purple-400 hover:text-purple-700 transition-colors">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          <div className="p-4 flex flex-col gap-4 bg-white">
+            {/* Professional */}
+            <div className="border border-gray-200 rounded-lg overflow-hidden">
+              <div className="flex items-center justify-between px-3 py-2 bg-gray-50 border-b border-gray-200">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-blue-500 inline-block"></span>
+                  <span className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Professional</span>
+                  <span className="text-xs text-gray-400">— Concise & ATS-friendly</span>
+                </div>
+                <button type="button" onClick={() => handleApplyVersion("professional")} className="text-xs px-3 py-1 bg-blue-500 text-white rounded-md font-medium hover:bg-blue-600 transition-colors cursor-pointer">
+                  Use This
                 </button>
-              )}
-              <button
-                type="button"
-                onClick={handleResetCareerObjective}
-                className="w-6 h-6 flex items-center justify-center rounded-full border-2 border-gray-600 hover:bg-gray-100 transition-colors"
-                title="Reset to saved value"
-              >
-                <RotateCcw className="w-3 h-3 text-gray-600" strokeWidth={2.5} />
-              </button>
+              </div>
+              <div className="p-3">
+                <p className="text-sm text-gray-700 leading-relaxed">{enhancedVersions.professional}</p>
+              </div>
             </div>
 
-            <RichTextEditor
-              value={data.aboutCareerObjective}
-              onChange={(v) => {
-                updateField("aboutCareerObjective", v);
-                setCareerObjectiveChanged(true);
-              }}
-              placeholder="Provide Career Objective"
-              rows={6}
-            />
+            {/* Elaborate */}
+            <div className="border border-gray-200 rounded-lg overflow-hidden">
+              <div className="flex items-center justify-between px-3 py-2 bg-gray-50 border-b border-gray-200">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>
+                  <span className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Elaborate</span>
+                  <span className="text-xs text-gray-400">— Rich narrative with full context</span>
+                </div>
+                <button type="button" onClick={() => handleApplyVersion("elaborate")} className="text-xs px-3 py-1 bg-emerald-500 text-white rounded-md font-medium hover:bg-emerald-600 transition-colors cursor-pointer">
+                  Use This
+                </button>
+              </div>
+              <div className="p-3">
+                <p className="text-sm text-gray-700 leading-relaxed">{enhancedVersions.elaborate}</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-gray-400 text-center">Click "Use This" to apply a version, or dismiss to keep your current text.</p>
           </div>
-        )}
-      </div>
+        </div>
+      )}
+    </div>
+  )}
+</div>
     </div>
   );
 };
