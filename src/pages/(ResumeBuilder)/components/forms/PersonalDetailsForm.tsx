@@ -14,7 +14,7 @@ import { uploadToCloudinary } from "@/utils/uploadToCloudinary";
 import { deleteFromCloudinary } from "@/utils/deleteFromCloudinary";
 import { updatePersonalDetails } from "@/services/personalService";
 import { filterResumeData, getEnabledSkills, getEnabledWorkExperiences,getEnabledProjects } from "@/utils/filterResumeData";
-import { enhanceCareerObjective } from "@/utils/enhanceCareerObjective";
+import { enhanceCareerObjective } from "@/utils/enhancecareerobjective";
 interface PersonalDetailsFormProps {
   data: PersonalDetails;
   fullResumeData: any;
