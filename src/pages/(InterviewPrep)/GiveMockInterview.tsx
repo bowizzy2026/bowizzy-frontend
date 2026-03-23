@@ -637,7 +637,7 @@ const GiveMockInterview = () => {
                         const ok = verifyData?.success || verifyData?.status === 'success' || String(verifyData?.message || '').toLowerCase().includes('success');
                         if (ok) {
                             try {
-                                await confirmInterviewSlotPayment(userId, token, bookingData.interviewId);
+                                await confirmInterviewSlotPayment(userId, token, bookingData.interviewId, orderAmount);
                             } catch (e) {
                                 console.warn('confirmInterviewSlotPayment failed, continuing to success screen', e);
                             }
@@ -827,7 +827,7 @@ const GiveMockInterview = () => {
 
     const IntroBanner = () => (
         <div className="w-full bg-white rounded-[20px] p-5 mb-6">
-            <p className="text-[#3A3A3A] text-sm text-base sm:text-lg leading-relaxed text-center">
+            <p className="text-[#3A3A3A] text-sm sm:text-lg leading-relaxed text-center">
                 Gain real interview practice with industry experts. Improve your confidence, sharpen your skills,
                 and receive valuable feedback.
             </p>

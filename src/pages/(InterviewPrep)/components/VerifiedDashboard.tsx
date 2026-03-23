@@ -1,10 +1,16 @@
 import { useState, useEffect } from "react";
-import api from '../../../api';
+import api from "../../../api";
 import InterviewCard from "./InterviewCard";
 import SavedInterviewCard from "./SavedInterviewCard";
 import InterviewDetailsView from "./InterviewDetailsView";
 import VerifiedDashboardHeader from "./VerifiedDashboardHeader";
-import { saveInterviewSlot, getSavedInterviewSlots, removeSavedInterviewSlot } from '@/services/interviewPrepService';
+import {
+  saveInterviewSlot,
+  getSavedInterviewSlots,
+  removeSavedInterviewSlot,
+} from "@/services/interviewPrepService";
+
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 interface Interview {
   id: string;
@@ -25,258 +31,419 @@ interface Interview {
   interview_mode?: string;
   candidate_id?: string | number;
   is_payment_done?: boolean;
+  saved_slot_id?: string | number;
 }
 
 interface VerifiedDashboardProps {
-  onViewDetails?: (interview: Interview, type: 'scheduled' | 'available' | 'saved') => void;
+  onViewDetails?: (
+    interview: Interview,
+    type: "scheduled" | "available" | "saved"
+  ) => void;
 }
 
-const VerifiedDashboard = ({ onViewDetails: externalOnViewDetails }: VerifiedDashboardProps) => {
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+/** Pull auth info from localStorage once */
+function getAuth() {
+  const parsed = JSON.parse(localStorage.getItem("user") || "{}");
+  return {
+    token: parsed?.token || localStorage.getItem("token") || "",
+    userId:
+      parsed?.user_id ||
+      parsed?.userId ||
+      parsed?.id ||
+      localStorage.getItem("user_id") ||
+      "",
+  };
+}
+
+/** Normalise a raw API slot object into our Interview shape */
+function normalizeSlot(raw: Record<string, unknown>): Interview {
+  const get = (k: string) => raw[k];
+
+  const startRaw =
+    get("start_time_utc") ?? get("start_time") ?? get("startTime") ?? null;
+  const endRaw =
+    get("end_time_utc") ?? get("end_time") ?? get("endTime") ?? null;
+
+  const fmtDate = (v: unknown) =>
+    v
+      ? new Date(v as string).toLocaleDateString(undefined, {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        })
+      : "";
+
+  const fmtTime = (v: unknown) =>
+    v
+      ? new Date(v as string).toLocaleTimeString(undefined, {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: true,
+        })
+      : "";
+
+  return {
+    id: String(
+      get("id") ??
+        get("_id") ??
+        get("interview_slot_id") ??
+        get("slotId") ??
+        Math.random()
+    ),
+    interview_slot_id: String(
+      get("interview_slot_id") ??
+        get("interviewSlotId") ??
+        get("slotId") ??
+        get("slot_id") ??
+        get("id") ??
+        ""
+    ),
+    interview_schedule_id: String(
+      get("interview_schedule_id") ??
+        get("interviewScheduleId") ??
+        get("scheduleId") ??
+        ""
+    ),
+    job_role: (get("job_role") ?? get("title") ?? get("role")) as
+      | string
+      | undefined,
+    title: String(
+      get("job_role") ?? get("title") ?? get("role") ?? "Interview"
+    ),
+    experience: String(get("experience") ?? get("experienceLevel") ?? ""),
+    date: startRaw ? fmtDate(startRaw) : String(get("date") ?? ""),
+    time: startRaw
+      ? `${fmtTime(startRaw)}${endRaw ? " - " + fmtTime(endRaw) : ""}`
+      : String(get("time") ?? ""),
+    start_time_utc: (startRaw ?? undefined) as string | undefined,
+    end_time_utc: (endRaw ?? undefined) as string | undefined,
+    skills: (get("skills") ?? []) as string[],
+    resume_url: (get("resume_url") ?? get("resumeUrl")) as string | undefined,
+    interview_code: (get("interview_code") ?? get("code")) as
+      | string
+      | undefined,
+    interview_mode: (get("interview_mode") ?? get("mode")) as
+      | string
+      | undefined,
+    candidate_id: (get("candidate_id") ?? get("candidateId")) as
+      | string
+      | number
+      | undefined,
+    is_payment_done: (get("is_payment_done") ?? get("isPaymentDone")) as
+      | boolean
+      | undefined,
+    credits: (get("credits") ?? get("credit")) as number | undefined,
+    priority: get("priority") as string | undefined,
+  };
+}
+
+/** Normalise a saved-slot API item (may be nested under interview_slot key) */
+function normalizeSavedItem(item: Record<string, unknown>): Interview {
+  const slot = (item.interview_slot as Record<string, unknown>) ?? item;
+  const base = normalizeSlot(slot);
+  return {
+    ...base,
+    saved_slot_id: (item.saved_slot_id ?? item.id ?? slot.saved_slot_id) as
+      | string
+      | number
+      | undefined,
+  };
+}
+
+/** Drop interviews whose end (or start) time is already in the past */
+function filterFuture(interviews: Interview[]): Interview[] {
+  const now = Date.now();
+  return interviews.filter((i) => {
+    const ref = i.end_time_utc ?? i.start_time_utc;
+    return ref ? new Date(ref).getTime() >= now : true;
+  });
+}
+
+/** Fetch a list from the API and map each item through a normaliser */
+async function fetchList(
+  path: string,
+  token: string,
+  extractArray: (data: unknown) => unknown[]
+): Promise<Interview[]> {
+  const res = await api.get(path, {
+    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+  });
+  const data = res?.data ?? [];
+  const arr = extractArray(data);
+  return filterFuture(
+    arr.map((item) => normalizeSlot(item as Record<string, unknown>))
+  );
+}
+
+// ─── Component ────────────────────────────────────────────────────────────────
+
+const VerifiedDashboard = ({
+  onViewDetails: externalOnViewDetails,
+}: VerifiedDashboardProps) => {
+  // ── UI state ──────────────────────────────────────────────────────────────
   const [showAllScheduled, setShowAllScheduled] = useState(false);
   const [showAllAvailable, setShowAllAvailable] = useState(true);
   const [showAllSaved, setShowAllSaved] = useState(false);
-  const [selectedInterview, setSelectedInterview] = useState<Interview | null>(null);
-  const [viewType, setViewType] = useState<'scheduled' | 'available' | 'saved' | null>(null);
-  
-  // Saved interviews state (loaded from API)
-  const [savedInterviews, setSavedInterviews] = useState<Interview[]>([]);
-  const [isSavedLoading, setIsSavedLoading] = useState<boolean>(false);
-  const [savedError, setSavedError] = useState<string | null>(null);
 
-  // Scheduled interviews - fetched from API
-  const [scheduledInterviews, setScheduledInterviews] = useState<Interview[]>([]);
+  // ── Detail view state ──────────────────────────────────────────────────────
+  const [selectedInterview, setSelectedInterview] =
+    useState<Interview | null>(null);
+  const [viewType, setViewType] = useState<
+    "scheduled" | "available" | "saved" | null
+  >(null);
+  const [isDetailsLoading, setIsDetailsLoading] = useState(false);
+  const [detailsError, setDetailsError] = useState<string | null>(null);
+
+  // ── Data state ──────────────────────────────────────────────────────────────
+  const [scheduledInterviews, setScheduledInterviews] = useState<Interview[]>(
+    []
+  );
   const [isScheduledLoading, setIsScheduledLoading] = useState(false);
   const [scheduledError, setScheduledError] = useState<string | null>(null);
 
-  useEffect(() => {
-    let mounted = true;
-    const fetchSaved = async () => {
-      setIsSavedLoading(true);
-      setSavedError(null);
-      try {
-        const parsed = JSON.parse(localStorage.getItem("user") || "{}");
-        const token = parsed?.token || localStorage.getItem("token");
-        const userId = parsed?.user_id || parsed?.userId || parsed?.id || localStorage.getItem("user_id");
-        if (!userId || !token) {
-          setSavedInterviews([]);
-        } else {
-          const data = await getSavedInterviewSlots(userId, token);
-          const items: any[] = Array.isArray(data) ? data : (data?.saved_interview_slots ? data.saved_interview_slots : (data || []));
-          const now = Date.now();
-          const normalize = (item: any): Interview => {
-            const slot = item.interview_slot || item;
-            const get = (k: string) => slot[k];
-            const start = get('start_time_utc') ?? get('start_time') ?? slot.date ?? null;
-            const end = get('end_time_utc') ?? get('end_time') ?? null;
-            return {
-              id: String(slot.interview_slot_id ?? slot.id ?? item.saved_slot_id ?? Math.random()),
-              interview_slot_id: String(slot.interview_slot_id ?? slot.id ?? ''),
-              interview_code: slot.interview_code ?? slot.code ?? undefined,
-              job_role: slot.job_role ?? slot.title ?? undefined,
-              title: slot.job_role ?? slot.title ?? 'Interview',
-              experience: slot.experience ?? slot.experienceLevel ?? '',
-              date: start ? new Date(start).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' }) : (slot.date ?? ''),
-              time: start ? `${new Date(start).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: true })}${end ? ' - ' + new Date(end).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: true }) : ''}` : (slot.time ?? ''),
-              start_time_utc: start ?? undefined,
-              end_time_utc: end ?? undefined,
-              skills: slot.skills ?? [],
-              resume_url: slot.resume_url ?? slot.resumeUrl ?? undefined,
-              interview_mode: slot.interview_mode ?? slot.mode ?? undefined,
-              candidate_id: slot.candidate_id ?? slot.candidateId ?? undefined,
-              is_payment_done: slot.is_payment_done ?? slot.isPaymentDone ?? undefined,
-              priority: slot.priority ?? undefined,
-            } as Interview;
-          };
-
-          const mapped = items
-            .map(normalize)
-            .filter(i => {
-              const end = i.end_time_utc ? new Date(i.end_time_utc) : (i.start_time_utc ? new Date(i.start_time_utc) : null);
-              return !(end && end.getTime() < now);
-            });
-
-          setSavedInterviews(mapped);
-        }
-      } catch (err: unknown) {
-        setSavedError((err as Error)?.message ?? 'Failed to load saved interviews');
-      } finally {
-        setIsSavedLoading(false);
-      }
-    };
-
-    fetchSaved();
-
-    const fetchScheduled = async () => {
-      setIsScheduledLoading(true);
-      setScheduledError(null);
-      try {
-        const parsed = JSON.parse(localStorage.getItem("user") || "{}");
-        const token = parsed?.token || localStorage.getItem("token");
-        const userId = parsed?.user_id || parsed?.userId || parsed?.id || localStorage.getItem("user_id");
-        const path = userId ? `/users/${userId}/mock-interview/interview-schedule` : `/users/mock-interview/interview-schedule`;
-        const res = await api.get(path, {
-          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-        });
-        const data = res?.data ?? [];
-
-        const mapSlot = (slot: unknown): Interview => {
-          const s = slot as Record<string, unknown>;
-          const get = (k: string) => s[k] as unknown;
-          return {
-            interview_slot_id: String(
-              get('interview_slot_id') ?? get('interviewSlotId') ?? get('slotId') ?? get('slot_id') ?? get('id') ?? get('_id') ?? Math.random()
-            ),
-            start_time_utc: (get('start_time_utc') ?? get('start_time') ?? get('startTime') ?? get('ts_range') ?? get('start')) as string | undefined,
-            end_time_utc: (get('end_time_utc') ?? get('end_time') ?? get('endTime')) as string | undefined,
-            skills: (get('skills') ?? get('skill') ?? []) as string[] | undefined,
-            resume_url: (get('resume_url') ?? get('resumeUrl') ?? get('resume') ?? get('resumeUrl')) as string | undefined,
-            interview_code: (get('interview_code') ?? get('code') ?? get('interviewCode')) as string | undefined,
-            interview_mode: (get('interview_mode') ?? get('mode') ?? get('interviewMode')) as string | undefined,
-            candidate_id: (get('candidate_id') ?? get('candidateId') ?? get('candidate')) as string | number | undefined,
-            is_payment_done: (get('is_payment_done') ?? get('isPaymentDone') ?? get('payment_done')) as boolean | undefined,
-            interview_schedule_id: String(
-              get('interview_schedule_id') ?? get('interviewScheduleId') ?? get('scheduleId') ?? get('schedule_id') ?? ''
-            ),
-            id: String(get('id') ?? get('_id') ?? get('slotId') ?? get('slot_id') ?? Math.random()),
-            job_role: (get('job_role') ?? get('title') ?? get('role') ?? get('position') ?? get('jobTitle')) as string | undefined,
-            title: (get('job_role') ?? get('title') ?? get('role') ?? get('position') ?? get('jobTitle') ?? 'Interview') as string,
-            experience: (get('experience') ?? get('experienceLevel') ?? '') as string,
-            date: (get('date') ?? get('slotDate') ?? get('startDate') ?? get('day') ?? '') as string,
-            time: (get('time') ?? get('slotTime') ?? get('startTime') ?? '') as string,
-            credits: (get('credits') ?? get('credit')) as number | undefined,
-            priority: (get('priority') ?? get('priorityLevel')) as string | undefined,
-          };
-        };
-
-        if (mounted) {
-            if (Array.isArray(data)) {
-              const mapped = data.map(mapSlot).filter(slot => {
-                const end = slot.end_time_utc ? new Date(slot.end_time_utc) : (slot.start_time_utc ? new Date(slot.start_time_utc) : null);
-                return !(end && end.getTime() < Date.now());
-              });
-              setScheduledInterviews(mapped);
-            } else {
-              const arr = Array.isArray(data.schedules) ? data.schedules : (Array.isArray(data.slots) ? data.slots : []);
-              const mapped = arr.map(mapSlot).filter(slot => {
-                const end = slot.end_time_utc ? new Date(slot.end_time_utc) : (slot.start_time_utc ? new Date(slot.start_time_utc) : null);
-                return !(end && end.getTime() < Date.now());
-              });
-              setScheduledInterviews(mapped);
-            }
-        }
-          } catch (err: unknown) {
-        setScheduledError((err as Error)?.message ?? 'Failed to load scheduled interviews');
-      } finally {
-        if (mounted) setIsScheduledLoading(false);
-      }
-    };
-
-    fetchScheduled();
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  const [availableInterviews, setAvailableInterviews] = useState<Interview[]>([]);
+  const [availableInterviews, setAvailableInterviews] = useState<Interview[]>(
+    []
+  );
   const [isAvailableLoading, setIsAvailableLoading] = useState(false);
   const [availableError, setAvailableError] = useState<string | null>(null);
 
+  const [savedInterviews, setSavedInterviews] = useState<Interview[]>([]);
+  const [isSavedLoading, setIsSavedLoading] = useState(false);
+  const [savedError, setSavedError] = useState<string | null>(null);
+
+  // ── API 1: Available interview slots ──────────────────────────────────────
   useEffect(() => {
     let mounted = true;
-    const fetchSlots = async () => {
+    const load = async () => {
       setIsAvailableLoading(true);
       setAvailableError(null);
       try {
-        const parsed = JSON.parse(localStorage.getItem("user") || "{}");
-        const token = parsed?.token || localStorage.getItem("token");
-        const res = await api.get('/users/mock-interview/interview-slots', {
-          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-        });
-        const data = res?.data ?? [];
-
-        const mapSlot = (slot: unknown): Interview => {
-          const s = slot as Record<string, unknown>;
-          const get = (k: string) => s[k] as unknown;
-          return {
-            interview_slot_id: String(
-              get('interview_slot_id') ?? get('interviewSlotId') ?? get('slotId') ?? get('slot_id') ?? get('id') ?? get('_id') ?? Math.random()
-            ),
-            start_time_utc: (get('start_time_utc') ?? get('start_time') ?? get('startTime') ?? get('ts_range') ?? get('start')) as string | undefined,
-            end_time_utc: (get('end_time_utc') ?? get('end_time') ?? get('endTime')) as string | undefined,
-            skills: (get('skills') ?? get('skill') ?? []) as string[] | undefined,
-            resume_url: (get('resume_url') ?? get('resumeUrl') ?? get('resume') ?? get('resumeUrl')) as string | undefined,
-            interview_code: (get('interview_code') ?? get('code') ?? get('interviewCode')) as string | undefined,
-            interview_mode: (get('interview_mode') ?? get('mode') ?? get('interviewMode')) as string | undefined,
-            candidate_id: (get('candidate_id') ?? get('candidateId') ?? get('candidate')) as string | number | undefined,
-            is_payment_done: (get('is_payment_done') ?? get('isPaymentDone') ?? get('payment_done')) as boolean | undefined,
-            id: String(get('id') ?? get('_id') ?? get('slotId') ?? get('slot_id') ?? Math.random()),
-            job_role: (get('job_role') ?? get('title') ?? get('role') ?? get('position') ?? get('jobTitle')) as string | undefined,
-            title: (get('title') ?? get('role') ?? get('position') ?? get('jobTitle') ?? 'Interview') as string,
-            experience: (get('experience') ?? get('experienceLevel') ?? '') as string,
-            date: (get('date') ?? get('slotDate') ?? get('startDate') ?? get('day') ?? '') as string,
-            time: (get('time') ?? get('slotTime') ?? get('startTime') ?? '') as string,
-            credits: (get('credits') ?? get('credit')) as number | undefined,
-            priority: (get('priority') ?? get('priorityLevel')) as string | undefined,
-          };
-        };
-
-        if (mounted) {
-            if (Array.isArray(data)) {
-            const mapped = data.map(mapSlot).filter(slot => {
-              const end = slot.end_time_utc ? new Date(slot.end_time_utc) : (slot.start_time_utc ? new Date(slot.start_time_utc) : null);
-              return !(end && end.getTime() < Date.now());
-            });
-            setAvailableInterviews(mapped);
-          } else {
-            const arr = Array.isArray(data.slots) ? data.slots : [];
-            const mapped = arr.map(mapSlot).filter(slot => {
-              const end = slot.end_time_utc ? new Date(slot.end_time_utc) : (slot.start_time_utc ? new Date(slot.start_time_utc) : null);
-              return !(end && end.getTime() < Date.now());
-            });
-            setAvailableInterviews(mapped);
-          }
-        }
-      } catch (err: unknown) {
-        setAvailableError((err as Error)?.message ?? 'Failed to load available interviews');
+        const { token } = getAuth();
+        const interviews = await fetchList(
+          "/users/mock-interview/interview-slots",
+          token,
+          (data) =>
+            Array.isArray(data)
+              ? data
+              : Array.isArray((data as any).slots)
+              ? (data as any).slots
+              : []
+        );
+        if (mounted) setAvailableInterviews(interviews);
+      } catch (err) {
+        if (mounted)
+          setAvailableError(
+            (err as Error)?.message ?? "Failed to load available interviews"
+          );
       } finally {
         if (mounted) setIsAvailableLoading(false);
       }
     };
-
-    fetchSlots();
+    load();
     return () => {
       mounted = false;
     };
   }, []);
 
-  const normalizeSavedItem = (item: any): Interview => {
-    const slot = item.interview_slot || item;
-    const get = (k: string) => slot[k];
-    const start = get('start_time_utc') ?? get('start_time') ?? slot.date ?? null;
-    const end = get('end_time_utc') ?? get('end_time') ?? null;
-    return {
-      id: String(slot.interview_slot_id ?? slot.id ?? item.saved_slot_id ?? Math.random()),
-      interview_slot_id: String(slot.interview_slot_id ?? slot.id ?? ''),
-      // attach saved_slot_id so callers can delete
-      // @ts-ignore - dynamic shape
-      saved_slot_id: item.saved_slot_id ?? item.id ?? slot.saved_slot_id ?? undefined,
-      interview_code: slot.interview_code ?? slot.code ?? undefined,
-      job_role: slot.job_role ?? slot.title ?? undefined,
-      title: slot.job_role ?? slot.title ?? 'Interview',
-      experience: slot.experience ?? slot.experienceLevel ?? '',
-      date: start ? new Date(start).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' }) : (slot.date ?? ''),
-      time: start ? `${new Date(start).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: true })}${end ? ' - ' + new Date(end).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: true }) : ''}` : (slot.time ?? ''),
-      start_time_utc: start ?? undefined,
-      end_time_utc: end ?? undefined,
-      skills: slot.skills ?? [],
-      resume_url: slot.resume_url ?? slot.resumeUrl ?? undefined,
-      interview_mode: slot.interview_mode ?? slot.mode ?? undefined,
-      candidate_id: slot.candidate_id ?? slot.candidateId ?? undefined,
-      is_payment_done: slot.is_payment_done ?? slot.isPaymentDone ?? undefined,
-      priority: slot.priority ?? undefined,
-    } as Interview;
+  // ── API 2: Saved interview slots ──────────────────────────────────────────
+  const loadSaved = async () => {
+    setIsSavedLoading(true);
+    setSavedError(null);
+    try {
+      const { token, userId } = getAuth();
+      if (!userId || !token) {
+        setSavedInterviews([]);
+        return;
+      }
+      const data = await getSavedInterviewSlots(userId, token);
+      const items: unknown[] = Array.isArray(data)
+        ? data
+        : Array.isArray(data?.saved_interview_slots)
+        ? data.saved_interview_slots
+        : [];
+      const mapped = filterFuture(
+        items.map((i) =>
+          normalizeSavedItem(i as Record<string, unknown>)
+        )
+      );
+      setSavedInterviews(mapped);
+    } catch (err) {
+      setSavedError(
+        (err as Error)?.message ?? "Failed to load saved interviews"
+      );
+    } finally {
+      setIsSavedLoading(false);
+    }
   };
 
+  useEffect(() => {
+    loadSaved();
+  }, []);
+
+  // ── API 3: Scheduled interviews ───────────────────────────────────────────
+  useEffect(() => {
+    let mounted = true;
+    const load = async () => {
+      setIsScheduledLoading(true);
+      setScheduledError(null);
+      try {
+        const { token, userId } = getAuth();
+        const path = userId
+          ? `/users/${userId}/mock-interview/interview-schedule`
+          : `/users/mock-interview/interview-schedule`;
+        const interviews = await fetchList(path, token, (data) =>
+          Array.isArray(data)
+            ? data
+            : Array.isArray((data as any).schedules)
+            ? (data as any).schedules
+            : Array.isArray((data as any).slots)
+            ? (data as any).slots
+            : []
+        );
+        if (mounted) setScheduledInterviews(interviews);
+      } catch (err) {
+        if (mounted)
+          setScheduledError(
+            (err as Error)?.message ?? "Failed to load scheduled interviews"
+          );
+      } finally {
+        if (mounted) setIsScheduledLoading(false);
+      }
+    };
+    load();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  // ── Handlers ──────────────────────────────────────────────────────────────
+
+  const handleViewDetails = async (
+    interview: Interview,
+    type: "scheduled" | "available" | "saved"
+  ) => {
+    // Saved items can be shown immediately without an extra fetch
+    if (type === "saved") {
+      setSelectedInterview(interview);
+      setViewType(type);
+      externalOnViewDetails?.(interview, type);
+      return;
+    }
+
+    setDetailsError(null);
+    setIsDetailsLoading(true);
+    setViewType(type); // Show loading screen immediately
+
+    try {
+      const { token, userId } = getAuth();
+      const slotId =
+        type === "scheduled"
+          ? interview.interview_schedule_id || interview.id
+          : interview.interview_slot_id || interview.id;
+
+      const path =
+        type === "scheduled"
+          ? userId
+            ? `/users/${userId}/mock-interview/interview-schedule/${slotId}`
+            : `/users/mock-interview/interview-schedule/${slotId}`
+          : `/mock-interview/interview-slot/${slotId}`;
+
+      const res = await api.get(path, {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      });
+      const raw = res?.data ?? res;
+      const slot = Array.isArray(raw) ? raw[0] : raw;
+      const detailed = normalizeSlot(slot as Record<string, unknown>);
+
+      setSelectedInterview(detailed);
+      externalOnViewDetails?.(detailed, type);
+    } catch (err) {
+      setDetailsError(
+        (err as Error)?.message ?? "Failed to load interview details"
+      );
+    } finally {
+      setIsDetailsLoading(false);
+    }
+  };
+
+  const handleBack = () => {
+    setSelectedInterview(null);
+    setViewType(null);
+    setDetailsError(null);
+  };
+
+  const handleBookInterview = () => {
+    setSelectedInterview(null);
+    setViewType(null);
+  };
+
+  const handleToggleSaveInterview = async (interview: Interview) => {
+    const alreadySaved = savedInterviews.some(
+      (s) =>
+        s.interview_slot_id === (interview.interview_slot_id ?? interview.id) ||
+        s.id === interview.id
+    );
+
+    if (alreadySaved) {
+      setSavedInterviews((prev) =>
+        prev.filter(
+          (s) =>
+            !(
+              s.interview_slot_id ===
+                (interview.interview_slot_id ?? interview.id) ||
+              s.id === interview.id
+            )
+        )
+      );
+      return;
+    }
+
+    const { token, userId } = getAuth();
+    const slotId = interview.interview_slot_id ?? interview.id;
+
+    if (userId && token) {
+      try {
+        await saveInterviewSlot(userId, token, {
+          interview_slot_id: Number(slotId),
+          interview_priority: interview.priority ?? "normal",
+        });
+        await loadSaved();
+      } catch (err) {
+        console.error("Failed to save interview slot:", err);
+        setSavedInterviews((prev) => [...prev, interview]);
+      }
+    } else {
+      setSavedInterviews((prev) => [...prev, interview]);
+    }
+  };
+
+  const handleRemoveSaved = async (
+    interview: Interview,
+    index: number
+  ) => {
+    const { token, userId } = getAuth();
+    const resolvedSavedSlotId =
+      (savedInterviews[index] as any)?.saved_slot_id ??
+      interview.saved_slot_id ??
+      interview.id;
+
+    try {
+      if (userId && token && resolvedSavedSlotId) {
+        await removeSavedInterviewSlot(userId, token, resolvedSavedSlotId);
+      }
+    } catch (err) {
+      console.error("Failed to remove saved slot:", err);
+    } finally {
+      await loadSaved();
+    }
+  };
+
+  const isInterviewSaved = (id: string) =>
+    savedInterviews.some((s) => s.id === id);
+
+  // ── Sliced lists for "show more" ───────────────────────────────────────────
   const displayedScheduled = showAllScheduled
     ? scheduledInterviews
     : scheduledInterviews.slice(0, 2);
@@ -287,189 +454,19 @@ const VerifiedDashboard = ({ onViewDetails: externalOnViewDetails }: VerifiedDas
     ? savedInterviews
     : savedInterviews.slice(0, 2);
 
-  const handleViewDetails = (interview: Interview, type: 'scheduled' | 'available' | 'saved') => {
-    // For scheduled/available, fetch full details from API before showing
-    const fetchAndShow = async () => {
-      setDetailsError(null);
-      setIsDetailsLoading(true);
-      try {
-        const parsed = JSON.parse(localStorage.getItem("user") || "{}");
-        const token = parsed?.token || localStorage.getItem("token");
-        const userId = parsed?.user_id || parsed?.userId || parsed?.id || localStorage.getItem("user_id");
-        // For scheduled items use interview_schedule_id; for available use interview_slot_id
-        // Pick identifier and endpoint based on type
-        const slotId = type === 'scheduled'
-          ? (interview.interview_schedule_id || interview.id)
-          : (interview.interview_slot_id || interview.id);
-        let path: string;
-        if (type === 'scheduled') {
-          path = userId
-            ? `/users/${userId}/mock-interview/interview-schedule/${slotId}`
-            : `/users/mock-interview/interview-schedule/${slotId}`;
-        } else if (type === 'available') {
-          // Use public slot endpoint (no /users prefix) per API requirement
-          path = `/mock-interview/interview-slot/${slotId}`;
-        } else {
-          path = userId
-            ? `/users/${userId}/mock-interview/interview-slot/${slotId}`
-            : `/users/mock-interview/interview-slot/${slotId}`;
-        }
-
-        const res = await api.get(path, {
-          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-        });
-        const data = res?.data ?? res;
-        const slot = Array.isArray(data) ? data[0] : data;
-
-        const detailed: Interview = {
-          interview_slot_id: String(
-            slot.interview_slot_id ?? slot.interviewSlotId ?? slot.slotId ?? slot.slot_id ?? slot.id ?? slot._id ?? interview.interview_slot_id ?? interview.id
-          ),
-          interview_schedule_id: String(
-            slot.interview_schedule_id ?? slot.interviewScheduleId ?? slot.scheduleId ?? slot.schedule_id ?? interview.interview_schedule_id ?? ''
-          ),
-          id: String(slot.id ?? slot._id ?? slot.slotId ?? slot.slot_id ?? interview.id),
-          job_role: slot.job_role ?? slot.jobRole ?? slot.role ?? slot.title ?? interview.job_role ?? interview.title,
-          title: slot.title ?? slot.role ?? interview.title,
-          experience: slot.experience ?? slot.experienceLevel ?? interview.experience,
-          date: slot.date ?? slot.slotDate ?? interview.date,
-          time: slot.time ?? slot.slotTime ?? interview.time,
-          start_time_utc: slot.start_time_utc ?? slot.start_time ?? slot.startTime ?? interview.start_time_utc,
-          end_time_utc: slot.end_time_utc ?? slot.end_time ?? slot.endTime ?? interview.end_time_utc,
-          skills: slot.skills ?? slot.skill ?? interview.skills,
-          resume_url: slot.resume_url ?? slot.resumeUrl ?? interview.resume_url,
-          interview_code: slot.interview_code ?? slot.code ?? interview.interview_code,
-          interview_mode: slot.interview_mode ?? slot.mode ?? interview.interview_mode,
-          candidate_id: slot.candidate_id ?? slot.candidateId ?? interview.candidate_id,
-          is_payment_done: slot.is_payment_done ?? slot.isPaymentDone ?? interview.is_payment_done,
-          credits: slot.credits ?? slot.credit ?? interview.credits,
-          priority: slot.priority ?? slot.priorityLevel ?? interview.priority,
-        };
-
-        setSelectedInterview(detailed);
-        setViewType(type);
-        if (externalOnViewDetails) externalOnViewDetails(detailed, type);
-      } catch (err: unknown) {
-        setDetailsError((err as Error)?.message ?? 'Failed to load interview details');
-      } finally {
-        setIsDetailsLoading(false);
-      }
-    };
-
-    if (type === 'scheduled' || type === 'available') {
-      fetchAndShow();
-    } else {
-      setSelectedInterview(interview);
-      setViewType(type);
-      if (externalOnViewDetails) {
-        externalOnViewDetails(interview, type);
-      }
-    }
-  };
-
-  const handleBack = () => {
-    setSelectedInterview(null);
-    setViewType(null);
-  };
-
-  const [isDetailsLoading, setIsDetailsLoading] = useState(false);
-  const [detailsError, setDetailsError] = useState<string | null>(null);
-
-  const handleBookInterview = () => {
-    // After booking, the interview moves to scheduled
-    // Return to dashboard
-    setSelectedInterview(null);
-    setViewType(null);
-  };
-
-  // Handle save/unsave interview
-  const handleToggleSaveInterview = async (interview: Interview) => {
-    const isAlreadySaved = savedInterviews.some(saved => saved.interview_slot_id === (interview.interview_slot_id ?? interview.id) || saved.id === interview.id);
-
-    if (isAlreadySaved) {
-      // Remove locally and (optionally) backend removal is handled elsewhere
-      setSavedInterviews(savedInterviews.filter(saved => !(saved.interview_slot_id === (interview.interview_slot_id ?? interview.id) || saved.id === interview.id)));
-      return;
-    }
-
-    // Call backend save API then refresh saved list
-    try {
-      const parsed = JSON.parse(localStorage.getItem("user") || "{}");
-      const token = parsed?.token || localStorage.getItem("token");
-      const userId = parsed?.user_id || parsed?.userId || parsed?.id || localStorage.getItem("user_id");
-      const slotId = interview.interview_slot_id ?? interview.id;
-      const payload = {
-        interview_slot_id: Number(slotId),
-        interview_priority: (interview.priority ?? 'normal')
-      };
-
-      if (userId && token) {
-        await saveInterviewSlot(userId, token, payload);
-        // refresh saved list from API
-        try {
-          const data = await getSavedInterviewSlots(userId, token);
-          const items: any[] = Array.isArray(data) ? data : (data?.saved_interview_slots ? data.saved_interview_slots : (data || []));
-          const normalize = (item: any): Interview => {
-            const slot = item.interview_slot || item;
-            const get = (k: string) => slot[k];
-            const start = get('start_time_utc') ?? get('start_time') ?? slot.date ?? null;
-            const end = get('end_time_utc') ?? get('end_time') ?? null;
-            return {
-              id: String(slot.interview_slot_id ?? slot.id ?? item.saved_slot_id ?? Math.random()),
-              interview_slot_id: String(slot.interview_slot_id ?? slot.id ?? ''),
-              interview_code: slot.interview_code ?? slot.code ?? undefined,
-              job_role: slot.job_role ?? slot.title ?? undefined,
-              title: slot.job_role ?? slot.title ?? 'Interview',
-              experience: slot.experience ?? slot.experienceLevel ?? '',
-              date: start ? new Date(start).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' }) : (slot.date ?? ''),
-              time: start ? `${new Date(start).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: true })}${end ? ' - ' + new Date(end).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: true }) : ''}` : (slot.time ?? ''),
-              start_time_utc: start ?? undefined,
-              end_time_utc: end ?? undefined,
-              skills: slot.skills ?? [],
-              resume_url: slot.resume_url ?? slot.resumeUrl ?? undefined,
-              interview_mode: slot.interview_mode ?? slot.mode ?? undefined,
-              candidate_id: slot.candidate_id ?? slot.candidateId ?? undefined,
-              is_payment_done: slot.is_payment_done ?? slot.isPaymentDone ?? undefined,
-              priority: slot.priority ?? undefined,
-            } as Interview;
-          };
-          const mapped = items.map(normalize).filter(i => {
-            const now = Date.now();
-            const end = i.end_time_utc ? new Date(i.end_time_utc) : (i.start_time_utc ? new Date(i.start_time_utc) : null);
-            return !(end && end.getTime() < now);
-          });
-          setSavedInterviews(mapped);
-        } catch (e) {
-          console.warn('Failed to refresh saved interviews after save', e);
-        }
-      } else {
-        console.warn('No user token available for saveInterviewSlot; saving locally');
-        setSavedInterviews(prev => [...prev, interview]);
-      }
-    } catch (err) {
-      console.error('Failed to save interview slot:', err);
-      setSavedInterviews(prev => [...prev, interview]);
-    }
-  };
-
-  // Check if interview is saved
-  const isInterviewSaved = (interviewId: string) => {
-    return savedInterviews.some(saved => saved.id === interviewId);
-  };
-
-  // If viewing details, show loading / error / InterviewDetailsView
+  // ── Render: loading / error / detail view ─────────────────────────────────
   if (isDetailsLoading && viewType) {
     return (
       <div className="space-y-6">
         <VerifiedDashboardHeader onBack={handleBack} title="Take Mock Interview" />
         <div className="p-6">
-          <p className="text-sm text-gray-500">Loading interview details...</p>
+          <p className="text-sm text-gray-500">Loading interview details…</p>
         </div>
       </div>
     );
   }
 
-  if (detailsError && viewType && !isDetailsLoading) {
+  if (detailsError && viewType) {
     return (
       <div className="space-y-6">
         <VerifiedDashboardHeader onBack={handleBack} title="Take Mock Interview" />
@@ -484,14 +481,13 @@ const VerifiedDashboard = ({ onViewDetails: externalOnViewDetails }: VerifiedDas
     return (
       <div className="space-y-6">
         <VerifiedDashboardHeader onBack={handleBack} title="Take Mock Interview" />
-
         <InterviewDetailsView
           interview={selectedInterview}
           viewType={viewType}
           onBack={handleBack}
           savedInterviews={savedInterviews}
           showAllSaved={showAllSaved}
-          onToggleSaved={() => setShowAllSaved(!showAllSaved)}
+          onToggleSaved={() => setShowAllSaved((v) => !v)}
           onViewDetails={handleViewDetails}
           onBook={handleBookInterview}
           onToggleSaveInterview={handleToggleSaveInterview}
@@ -501,8 +497,56 @@ const VerifiedDashboard = ({ onViewDetails: externalOnViewDetails }: VerifiedDas
     );
   }
 
+  // ── Render: main dashboard ─────────────────────────────────────────────────
+
+  const CollapseButton = ({
+    expanded,
+    onToggle,
+  }: {
+    expanded: boolean;
+    onToggle: () => void;
+  }) => (
+    <button
+      onClick={onToggle}
+      className="text-gray-400 hover:text-gray-600 transition-colors"
+    >
+      <svg
+        className={`w-5 h-5 transition-transform ${expanded ? "rotate-0" : "rotate-180"}`}
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M5 15l7-7 7 7"
+        />
+      </svg>
+    </button>
+  );
+
+  const SectionBody = ({
+    isLoading,
+    error,
+    empty,
+    children,
+  }: {
+    isLoading: boolean;
+    error: string | null;
+    empty: boolean;
+    children: React.ReactNode;
+  }) => {
+    if (isLoading) return <p className="text-sm text-gray-500">Loading…</p>;
+    if (error) return <p className="text-sm text-red-500">{error}</p>;
+    if (empty)
+      return <p className="text-sm text-gray-500">No interviews found</p>;
+    return <>{children}</>;
+  };
+
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <button
@@ -527,114 +571,81 @@ const VerifiedDashboard = ({ onViewDetails: externalOnViewDetails }: VerifiedDas
             Take Mock Interview
           </h1>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center justify-center gap-2 bg-white rounded-md w-80 h-13 text-sm text-gray-700 px-4 py-3">
-            <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-            <span className="font-medium">You are verified as Interviewer</span>
-          </div>
+        <div className="flex items-center gap-2 bg-white rounded-md px-4 py-3 text-sm text-gray-700">
+          <div className="w-3 h-3 bg-green-500 rounded-full" />
+          <span className="font-medium">You are verified as Interviewer</span>
         </div>
       </div>
 
       <div className="flex flex-col lg:flex-row gap-6">
+        {/* Main column */}
         <div className="flex-1 space-y-6">
-          {/* Scheduled Interviews Section */}
+          {/* Scheduled Interviews */}
           <div className="bg-white rounded-lg shadow-sm">
             <div className="p-5 border-b border-gray-200 flex items-center justify-between">
               <h2 className="text-lg font-medium text-[#FF8351]">
                 Scheduled Interview(s)
               </h2>
-              <button
-                onClick={() => setShowAllScheduled(!showAllScheduled)}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                <svg
-                  className={`w-5 h-5 transition-transform ${
-                    showAllScheduled ? "rotate-0" : "rotate-180"
-                  }`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M5 15l7-7 7 7"
-                  />
-                </svg>
-              </button>
+              <CollapseButton
+                expanded={showAllScheduled}
+                onToggle={() => setShowAllScheduled((v) => !v)}
+              />
             </div>
             <div className="p-5 space-y-4">
-              {isScheduledLoading ? (
-                <p className="text-sm text-gray-500">Loading scheduled interviews...</p>
-              ) : scheduledError ? (
-                <p className="text-sm text-red-500">{scheduledError}</p>
-              ) : displayedScheduled.length === 0 ? (
-                <p className="text-sm text-gray-500">No scheduled interviews</p>
-              ) : (
-                displayedScheduled.map((interview, index) => (
+              <SectionBody
+                isLoading={isScheduledLoading}
+                error={scheduledError}
+                empty={displayedScheduled.length === 0}
+              >
+                {displayedScheduled.map((interview, i) => (
                   <InterviewCard
-                    key={index}
+                    key={interview.id ?? i}
                     interview={interview}
-                    isScheduled={true}
-                    onViewDetails={() => handleViewDetails(interview, 'scheduled')}
+                    isScheduled
+                    onViewDetails={() =>
+                      handleViewDetails(interview, "scheduled")
+                    }
                   />
-                ))
-              )}
+                ))}
+              </SectionBody>
             </div>
           </div>
 
-          {/* Available Interviews Section */}
+          {/* Available Interviews */}
           <div className="bg-white rounded-lg shadow-sm">
             <div className="p-5 border-b border-gray-200 flex items-center justify-between">
               <h2 className="text-lg font-medium text-[#FF8351]">
                 Available Interview(s)
               </h2>
-              <button
-                onClick={() => setShowAllAvailable(!showAllAvailable)}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                <svg
-                  className={`w-5 h-5 transition-transform ${
-                    showAllAvailable ? "rotate-0" : "rotate-180"
-                  }`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M5 15l7-7 7 7"
-                  />
-                </svg>
-              </button>
+              <CollapseButton
+                expanded={showAllAvailable}
+                onToggle={() => setShowAllAvailable((v) => !v)}
+              />
             </div>
             <div className="p-5 space-y-4">
-              {isAvailableLoading ? (
-                <p className="text-sm text-gray-500">Loading available interviews...</p>
-              ) : availableError ? (
-                <p className="text-sm text-red-500">{availableError}</p>
-              ) : displayedAvailable.length === 0 ? (
-                <p className="text-sm text-gray-500">No available interviews</p>
-              ) : (
-                displayedAvailable.map((interview, index) => (
+              <SectionBody
+                isLoading={isAvailableLoading}
+                error={availableError}
+                empty={displayedAvailable.length === 0}
+              >
+                {displayedAvailable.map((interview, i) => (
                   <InterviewCard
-                    key={index}
+                    key={interview.id ?? i}
                     interview={interview}
                     isScheduled={false}
-                    onViewDetails={() => handleViewDetails(interview, 'available')}
+                    onViewDetails={() =>
+                      handleViewDetails(interview, "available")
+                    }
                   />
-                ))
-              )}
+                ))}
+              </SectionBody>
             </div>
           </div>
         </div>
 
         {/* Sidebar */}
         <div className="w-full lg:w-80 space-y-4">
-          {/* Credits Card */}
+          {/* Credits */}
           <div className="bg-[#FFF9F0] rounded-lg p-4 flex items-center gap-3">
             <div className="w-12 h-12 bg-gradient-to-br from-yellow-400 to-orange-400 rounded-full flex items-center justify-center text-white font-bold text-xl flex-shrink-0">
               W
@@ -649,90 +660,39 @@ const VerifiedDashboard = ({ onViewDetails: externalOnViewDetails }: VerifiedDas
             </div>
           </div>
 
-          {/* Saved Interviews Section */}
+          {/* Saved Interviews */}
           <div className="bg-white rounded-lg shadow-sm">
             <div className="p-4 border-b border-gray-200 flex items-center justify-between">
               <h2 className="text-base font-medium text-[#FF8351]">
                 Saved Interview(s)
               </h2>
-              <button
-                onClick={() => setShowAllSaved(!showAllSaved)}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                <svg
-                  className={`w-4 h-4 transition-transform ${
-                    showAllSaved ? "rotate-0" : "rotate-180"
-                  }`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M5 15l7-7 7 7"
-                  />
-                </svg>
-              </button>
+              <CollapseButton
+                expanded={showAllSaved}
+                onToggle={() => setShowAllSaved((v) => !v)}
+              />
             </div>
             <div className="p-4 space-y-3">
-              {displayedSaved.length > 0 ? (
-                displayedSaved.map((interview, index) => (
+              <SectionBody
+                isLoading={isSavedLoading}
+                error={savedError}
+                empty={displayedSaved.length === 0}
+              >
+                {displayedSaved.map((interview, i) => (
                   <SavedInterviewCard
-                    key={index}
+                    key={interview.id ?? i}
                     interview={interview}
                     onViewDetails={() =>
-                      handleViewDetails(
-                        {
-                          ...interview,
-                          credits: 15,
-                          priority: "HIGH",
-                        },
-                        'saved'
+                      handleViewDetails(interview, "saved")
+                    }
+                    onRemove={(payload) =>
+                      handleRemoveSaved(
+                        payload as unknown as Interview,
+                        i
                       )
                     }
-                    onRemove={async (payload) => {
-                      try {
-                        const parsed = JSON.parse(localStorage.getItem("user") || "{}");
-                        const token = parsed?.token || localStorage.getItem("token");
-                        const userId = parsed?.user_id || parsed?.userId || parsed?.id || localStorage.getItem("user_id");
-                        // Prefer saved_slot_id from the saved item when present, then payload.
-                        const resolvedSavedSlotId = (savedInterviews[index] && (savedInterviews[index] as any).saved_slot_id) ?? payload?.saved_slot_id ?? payload?.id ?? payload?.interview_slot_id;
-                        console.debug('VerifiedDashboard remove - payload:', payload, 'resolvedSavedSlotId:', resolvedSavedSlotId);
-                        if (userId && token && resolvedSavedSlotId) {
-                          await removeSavedInterviewSlot(userId, token, resolvedSavedSlotId);
-                        }
-                      } catch (err) {
-                        console.error('Failed to remove saved slot', err);
-                      } finally {
-                        try {
-                          const parsed = JSON.parse(localStorage.getItem("user") || "{}");
-                          const token = parsed?.token || localStorage.getItem("token");
-                          const userId = parsed?.user_id || parsed?.userId || parsed?.id || localStorage.getItem("user_id");
-                          if (userId && token) {
-                            const data = await getSavedInterviewSlots(userId, token);
-                            const items: any[] = Array.isArray(data) ? data : (data?.saved_interview_slots ? data.saved_interview_slots : (data || []));
-                            const mapped = items.map(normalizeSavedItem).filter(i => {
-                              const end = i.end_time_utc ? new Date(i.end_time_utc) : (i.start_time_utc ? new Date(i.start_time_utc) : null);
-                              return !(end && end.getTime() < Date.now());
-                            });
-                            setSavedInterviews(mapped);
-                          } else {
-                            setSavedInterviews([]);
-                          }
-                        } catch (e) {
-                          console.warn('Failed to refresh saved list after removal', e);
-                        }
-                      }
-                    }}
                   />
-                ))
-              ) : (
-                <p className="text-sm text-gray-500 text-center py-4">
-                  No saved interviews
-                </p>
-              )}
+                ))}
+              </SectionBody>
             </div>
           </div>
         </div>
