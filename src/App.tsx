@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   createBrowserRouter,
   RouterProvider,
   Navigate,
+  useNavigate,
 } from "react-router-dom";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
@@ -48,6 +49,7 @@ import TakeMockInterview from "./pages/(InterviewPrep)/TakeMockInterview";
 import ProfileForm from "./pages/(Profile)/ProfileForms";
 import ParsingSteps from "./pages/(Profile)/components/ParsingSteps";
 import VideoPractice from "./pages/(InterviewPrep)/VideoPractise/VideoPractice";
+import { getProfileProgress } from "./services/dashboardServices";
 import InterviewSteps from "./pages/(InterviewPrep)/VideoPractise/Components/InterviewSteps";
 import InterviewQuestion from "./pages/(InterviewPrep)/VideoPractise/Components/InterviewQuestion";
 import InterviewComplete from "./pages/(InterviewPrep)/VideoPractise/Components/InterviewComplete";
@@ -116,6 +118,25 @@ const bowizzy = [
 ];
 
 function LayoutWrapper({ children }: { children: React.ReactNode }) {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const userData = JSON.parse(localStorage.getItem("user"));
+    const userId = userData?.user_id;
+    const token = userData?.token;
+
+    if (userId && token) {
+      getProfileProgress(userId, token)
+        .catch((error) => {
+          if (error.response?.status === 401) {
+            // Clear user data and logout
+            localStorage.removeItem("user");
+            navigate("/login");
+          }
+        });
+    }
+  }, [navigate]);
+
   return (
     <SidebarProvider>
       <Sidebar className="overflow-y-auto">

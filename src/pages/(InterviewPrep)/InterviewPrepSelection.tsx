@@ -14,31 +14,31 @@ const InterviewPrepSelection = () => {
         "https://images.unsplash.com/photo-1521791136064-7986c2920216?w=400&h=300&fit=crop",
       route: "/interview-prep/mock-interview",
     },
-    {
-      title: "Video Practice",
-      description:
-        "Simulate a real video interview with timed questions. Record answers and get instant feedback.",
-      image:
-        "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&h=300&fit=crop",
-      route: "/interview-prep/video-practice",
-    },
-    {
-      title: "Transcript",
-      description:
-        "Practice common questions by speaking aloud in Mic. Improve clarity, tone, and confidence.",
-      image:
-        "https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400&h=300&fit=crop",
-      route: "/interview-prep/transcript",
-    },
+    // {
+    //   title: "Video Practice",
+    //   description:
+    //     "Simulate a real video interview with timed questions. Record answers and get instant feedback.",
+    //   image:
+    //     "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&h=300&fit=crop",
+    //   route: "/interview-prep/video-practice",
+    // },
+    // {
+    //   title: "Transcript",
+    //   description:
+    //     "Practice common questions by speaking aloud in Mic. Improve clarity, tone, and confidence.",
+    //   image:
+    //     "https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400&h=300&fit=crop",
+    //   route: "/interview-prep/transcript",
+    // },
     
-    {
-      title: "Job Role",
-      description:
-        "Get role-specific interview questions. Understand and exact focus your career path demands.",
-      image:
-        "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=400&h=300&fit=crop",
-      route: "/interview-prep/job-role",
-    },
+    // {
+    //   title: "Job Role",
+    //   description:
+    //     "Get role-specific interview questions. Understand and exact focus your career path demands.",
+    //   image:
+    //     "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=400&h=300&fit=crop",
+    //   route: "/interview-prep/job-role",
+    // },
   ];
 
   return (

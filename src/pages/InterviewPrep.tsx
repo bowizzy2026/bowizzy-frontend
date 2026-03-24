@@ -413,27 +413,27 @@ const InterviewPrep = () => {
                                         bg: "bg-[#EDE7F6]",
                                         iconBg: "bg-[#D1C4E9]",
                                     },
-                                    {
-                                        icon: "🎥",
-                                        count: "Video Practice",
-                                        label: "7 sessions",
-                                        bg: "bg-[#E3F2FD]",
-                                        iconBg: "bg-[#BBDEFB]",
-                                    },
-                                    {
-                                        icon: "📄",
-                                        count: "Transcript",
-                                        label: "3 sessions",
-                                        bg: "bg-[#FFEBEE]",
-                                        iconBg: "bg-[#FFCDD2]",
-                                    },
-                                    {
-                                        icon: "💼",
-                                        count: "Job Role",
-                                        label: "4 sessions",
-                                        bg: "bg-[#FFF9C4]",
-                                        iconBg: "bg-[#FFF59D]",
-                                    },
+                                    // {
+                                    //     icon: "🎥",
+                                    //     count: "Video Practice",
+                                    //     label: "7 sessions",
+                                    //     bg: "bg-[#E3F2FD]",
+                                    //     iconBg: "bg-[#BBDEFB]",
+                                    // },
+                                    // {
+                                    //     icon: "📄",
+                                    //     count: "Transcript",
+                                    //     label: "3 sessions",
+                                    //     bg: "bg-[#FFEBEE]",
+                                    //     iconBg: "bg-[#FFCDD2]",
+                                    // },
+                                    // {
+                                    //     icon: "💼",
+                                    //     count: "Job Role",
+                                    //     label: "4 sessions",
+                                    //     bg: "bg-[#FFF9C4]",
+                                    //     iconBg: "bg-[#FFF59D]",
+                                    // },
                                 ].map((stat, idx) => (
                                     <div
                                         key={idx}

@@ -39,12 +39,20 @@ export default function Dashboard() {
 
     // console.log("User ID:", userId);
     // console.log("Token:", token);
-    getProfileProgress(userId, token).then((res) => {
-      setProfileProgress({
-        percentage: res.percentage,
-        message: res.pendingSectionsList.join(", "),
+    getProfileProgress(userId, token)
+      .then((res) => {
+        setProfileProgress({
+          percentage: res.percentage,
+          message: res.pendingSectionsList.join(", "),
+        });
+      })
+      .catch((error) => {
+        if (error.response?.status === 401) {
+          // Clear user data and logout
+          localStorage.removeItem("user");
+          navigate("/login");
+        }
       });
-    });
 
     // fetch user's interview slots and pick the nearest upcoming (or most recent)
     const parseSlotDate = (slot) => {

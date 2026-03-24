@@ -1,4 +1,4 @@
-import  { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import DashNav from "@/components/dashnav/dashnav";
 import { useNavigate } from "react-router-dom";
 import { getAllTemplates, getTemplateById } from "@/templates/templateRegistry";
@@ -164,14 +164,14 @@ export default function ResumeBuilder() {
 
       <div className="flex-1 bg-gray-50 overflow-auto">
         <div className="bg-white rounded-lg m-3 md:m-5 w-full max-w-[1210px] mx-auto flex flex-col" style={{ minHeight: '0' }}>
-          
+
           <div className="flex flex-col mt-5 mb-10 gap-2 px-4 md:px-5">
             <span className="text-[#1A1A43] text-base font-semibold">
               Your Resume(s)
             </span>
 
             <div className="flex flex-col md:flex-row items-center md:items-start gap-6 bg-white">
-              
+
               <button
                 className="flex flex-col items-center w-[150px] py-4 px-5 rounded-lg border-0 gap-2 cursor-pointer"
                 style={{
@@ -180,17 +180,23 @@ export default function ResumeBuilder() {
                 onClick={handleNewResume}
               >
                 <svg className="w-[114px] h-[140px]" viewBox="0 0 140 140" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <line x1="70" y1="40" x2="70" y2="100" stroke="#3A3A3A" strokeWidth="6" strokeLinecap="round"/>
-                  <line x1="40" y1="70" x2="100" y2="70" stroke="#3A3A3A" strokeWidth="6" strokeLinecap="round"/>
+                  <line x1="70" y1="40" x2="70" y2="100" stroke="#3A3A3A" strokeWidth="6" strokeLinecap="round" />
+                  <line x1="40" y1="70" x2="100" y2="70" stroke="#3A3A3A" strokeWidth="6" strokeLinecap="round" />
                 </svg>
                 <span className="text-[#3A3A3A] text-sm">New Resume</span>
               </button>
 
               {userResumes.map((resume) => (
-                <div key={resume.id} className="relative">
+                <div key={resume.id} className="relative ">
                   <button
-                    className="flex flex-col items-center w-[150px] py-4 px-5 rounded-lg border border-gray-200 gap-2 hover:shadow-md transition-shadow bg-white"
-                    onClick={() => handleResumeClick(resume)}
+                    className="flex flex-col items-center w-[150px] py-4 px-5 rounded-lg border border-gray-200 gap-2 hover:cursor-pointer hover:shadow-md transition-shadow bg-white"
+                    onClick={() => {
+                      setMenuOpenId(null);
+                      // Simple Edit: navigate to editor with templateId and resumeTemplateId and pass resume object
+                      navigate(`/resume-editor?templateId=${resume.template_id || ''}&resumeTemplateId=${resume.id}`, {
+                        state: { resumeTemplate: resume },
+                      });
+                    }}
                   >
                     <img
                       src={resume.thumbnail}
@@ -211,7 +217,7 @@ export default function ResumeBuilder() {
                   </button>
 
                   {/* three-dots menu overlay */}
-                  <div className="absolute top-2 right-2">
+                  <div className="absolute top-2 right-2 z-10">
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -229,7 +235,7 @@ export default function ResumeBuilder() {
                     {menuOpenId === resume.id && (
                       <div
                         onClick={(e) => e.stopPropagation()}
-                        className="mt-2 w-36 bg-white rounded-md shadow-lg border border-gray-100 text-sm"
+                        className="absolute top-full right-0 mt-1 w-36 bg-white rounded-md shadow-lg border border-gray-100 text-sm z-20"
                       >
                         <button
                           onClick={() => {

@@ -1,97 +1,91 @@
-import { Search, Bell, Share2, Menu, User, Plus, Ticket, Copy } from 'lucide-react';
+import { Search, Bell, Menu, Plus, Ticket, Share2, CalendarDays, Coins, FileText, Copy, Check } from 'lucide-react';
 import { useSidebar } from '@/components/ui/sidebar';
 import { useEffect, useState, useRef } from 'react';
 import api from '@/api';
 import { getResumeTemplates } from '@/services/resumeServices';
 
-export default function DashNav({heading}: {heading: string}) {
-    const { toggleSidebar } = useSidebar()
+interface ProfileData {
+    name: {
+        first_name: string;
+        middle_name?: string;
+        last_name: string;
+    };
+    image?: string;
+}
+
+export default function DashNav({ heading }: { heading: string }) {
+    const { toggleSidebar } = useSidebar();
     const [credits, setCredits] = useState<number | null>(null);
     const [creditsLoading, setCreditsLoading] = useState(false);
     const [couponCode, setCouponCode] = useState<string | null>(null);
-    const [showCreditsPopup, setShowCreditsPopup] = useState(false);
-    const popupRef = useRef<HTMLDivElement | null>(null);
+    const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+    const [profileData, setProfileData] = useState<ProfileData | null>(null);
+    const [profileLoading, setProfileLoading] = useState(false);
+    const [imgError, setImgError] = useState(false);
+    const dropdownRef = useRef<HTMLDivElement | null>(null);
 
+    // ── fetch profile ──────────────────────────────────────────────────────────
+    useEffect(() => {
+        const loadProfile = async () => {
+            try {
+                const userData = JSON.parse(localStorage.getItem('user') || 'null');
+                const userId = userData?.user_id;
+                const token = userData?.token;
+                if (!userId || !token) return;
+
+                setProfileLoading(true);
+                const resp = await api.get(`/personal-details/profile-data`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                const data = resp?.data ?? resp;
+                if (data) setProfileData(data);
+            } catch (err) {
+                console.warn('Failed to load profile data', err);
+            } finally {
+                setProfileLoading(false);
+            }
+        };
+        loadProfile();
+    }, []);
+
+    // ── fetch credits ──────────────────────────────────────────────────────────
     useEffect(() => {
         const loadCredits = async () => {
             try {
                 const userData = JSON.parse(localStorage.getItem('user') || 'null');
                 const userId = userData?.user_id;
                 const token = userData?.token;
-
                 if (!userId || !token) return;
 
                 setCreditsLoading(true);
-                const resp = await api.get(`/credits/${userId}`, { headers: { Authorization: `Bearer ${token}` } });
+                const resp = await api.get(`/credits/${userId}`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
                 const data = resp?.data ?? resp;
 
                 let creditsVal = null;
                 let coupon = null;
 
                 if (data) {
-                    if (typeof data.credits === 'object') {
-                        creditsVal = data.credits?.credits ?? null;
-                    } else {
-                        creditsVal = data.credits ?? null;
-                    }
-
+                    creditsVal =
+                        typeof data.credits === 'object'
+                            ? data.credits?.credits ?? null
+                            : data.credits ?? null;
                     coupon = data.coupon_code ?? data?.coupon ?? null;
                 }
 
-                setCredits(typeof creditsVal === 'number' ? creditsVal : (Number(creditsVal) || null));
+                setCredits(typeof creditsVal === 'number' ? creditsVal : Number(creditsVal) || null);
                 setCouponCode(coupon ?? null);
             } catch (err) {
                 console.warn('Failed to load credits', err);
-                setCredits(null);
-                setCouponCode(null);
             } finally {
                 setCreditsLoading(false);
             }
         };
-
         loadCredits();
     }, []);
 
-    // Share modal state and templates
-    const [showShareModal, setShowShareModal] = useState(false);
-    const [templates, setTemplates] = useState<any[]>([]);
-    const [templatesLoading, setTemplatesLoading] = useState(false);
-    const [selectedTemplate, setSelectedTemplate] = useState<any | null>(null);
-    const [copyStatus, setCopyStatus] = useState<string | null>(null);
-
-    const fetchTemplates = async () => {
-        try {
-            const userData = JSON.parse(localStorage.getItem('user') || 'null');
-            const userId = userData?.user_id;
-            const token = userData?.token;
-            if (!userId || !token) return;
-            setTemplatesLoading(true);
-            const list = await getResumeTemplates(userId, token);
-            setTemplates(Array.isArray(list) ? list : []);
-            if (Array.isArray(list) && list.length) setSelectedTemplate(list[0]);
-        } catch (err) {
-            console.warn('Failed to load resume templates', err);
-            setTemplates([]);
-        } finally {
-            setTemplatesLoading(false);
-        }
-    };
-
-    // close popup on outside click
-    useEffect(() => {
-        const onDocClick = (e: MouseEvent) => {
-            if (!popupRef.current) return;
-            const target = e.target as Node;
-            if (popupRef.current.contains(target)) return;
-            setShowCreditsPopup(false);
-        };
-
-        if (showCreditsPopup) {
-            document.addEventListener('click', onDocClick);
-        }
-        return () => document.removeEventListener('click', onDocClick);
-    }, [showCreditsPopup]);
-
+    // ── credits:refresh event ──────────────────────────────────────────────────
     useEffect(() => {
         const onRefresh = (ev: Event) => {
             const detail = (ev as CustomEvent)?.detail;
@@ -107,11 +101,16 @@ export default function DashNav({heading}: {heading: string}) {
                     const userId = userData?.user_id;
                     const token = userData?.token;
                     if (!userId || !token) return;
-                    const resp = await api.get(`/credits/${userId}`, { headers: { Authorization: `Bearer ${token}` } });
+                    const resp = await api.get(`/credits/${userId}`, {
+                        headers: { Authorization: `Bearer ${token}` },
+                    });
                     const data = resp?.data ?? resp;
-                    const creditsVal = typeof data.credits === 'object' ? data.credits?.credits ?? null : data.credits ?? null;
+                    const creditsVal =
+                        typeof data.credits === 'object'
+                            ? data.credits?.credits ?? null
+                            : data.credits ?? null;
                     const coupon = data.coupon_code ?? data?.coupon ?? null;
-                    setCredits(typeof creditsVal === 'number' ? creditsVal : (Number(creditsVal) || null));
+                    setCredits(typeof creditsVal === 'number' ? creditsVal : Number(creditsVal) || null);
                     setCouponCode(coupon ?? null);
                 } catch (err) {
                     console.warn('credits refresh failed', err);
@@ -120,141 +119,359 @@ export default function DashNav({heading}: {heading: string}) {
                 }
             })();
         };
-
         window.addEventListener('credits:refresh', onRefresh as EventListener);
         return () => window.removeEventListener('credits:refresh', onRefresh as EventListener);
     }, []);
 
+    // ── close dropdown on outside click ───────────────────────────────────────
+    useEffect(() => {
+        const onDocClick = (e: MouseEvent) => {
+            if (!dropdownRef.current) return;
+            if (dropdownRef.current.contains(e.target as Node)) return;
+            setShowProfileDropdown(false);
+        };
+        if (showProfileDropdown) document.addEventListener('mousedown', onDocClick);
+        return () => document.removeEventListener('mousedown', onDocClick);
+    }, [showProfileDropdown]);
+
+    // ── share modal ────────────────────────────────────────────────────────────
+    const [showShareModal, setShowShareModal] = useState(false);
+    const [templates, setTemplates] = useState<any[]>([]);
+    const [templatesLoading, setTemplatesLoading] = useState(false);
+    const [copyStatus, setCopyStatus] = useState<string | null>(null);
+    const [copiedId, setCopiedId] = useState<string | null>(null);
+    const [couponHovered, setCouponHovered] = useState(false);
+    const [couponCopied, setCouponCopied] = useState(false);
+
+    const fetchTemplates = async () => {
+        try {
+            const userData = JSON.parse(localStorage.getItem('user') || 'null');
+            const userId = userData?.user_id;
+            const token = userData?.token;
+            if (!userId || !token) return;
+            setTemplatesLoading(true);
+            const list = await getResumeTemplates(userId, token);
+            setTemplates(Array.isArray(list) ? list : []);
+        } catch (err) {
+            console.warn('Failed to load resume templates', err);
+            setTemplates([]);
+        } finally {
+            setTemplatesLoading(false);
+        }
+    };
+
+    // ── derived display name ───────────────────────────────────────────────────
+    const displayName = profileData
+        ? [profileData.name.first_name, profileData.name.last_name].filter(Boolean).join(' ')
+        : null;
+
+    const hasValidImage = !!profileData?.image && !imgError;
+
+    const formattedCredits =
+        credits != null
+            ? Number(credits).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+            : '0.00';
+
     return (
-        <nav className="flex items-center justify-between px-6 py-6 bg-white border-b border-gray-200">
+        <nav className="flex items-center justify-between px-6 py-4 bg-white border-b border-gray-200">
             <div className="text-lg font-medium text-gray-700">{heading}</div>
+
             <div className="flex items-center gap-2">
+                {/* Search */}
                 <button className="w-9 h-9 flex items-center justify-center rounded-full border border-gray-200 bg-white hover:bg-gray-100 transition">
                     <Search size={18} />
                 </button>
+
+                {/* Bell */}
                 <div className="relative">
                     <button className="w-9 h-9 flex items-center justify-center rounded-full border border-gray-200 bg-white hover:bg-gray-100 transition">
                         <Bell size={18} />
                     </button>
-                    <span className="absolute top-1 right-1 w-2 h-2 bg-orange-500 rounded-full border-2 border-white"></span>
+                    <span className="absolute top-1 right-1 w-2 h-2 bg-orange-500 rounded-full border-2 border-white" />
                 </div>
 
-                {/* User profile / credits popover */}
-                <div className="relative" ref={popupRef}>
+                {/* Profile pill + dropdown */}
+                <div className="relative" ref={dropdownRef}>
                     <button
-                        onClick={() => setShowCreditsPopup((s) => !s)}
-                        className="w-9 h-9 flex items-center justify-center rounded-full border border-gray-200 bg-white hover:bg-gray-100 transition"
-                        aria-expanded={showCreditsPopup}
+                        onClick={() => setShowProfileDropdown((s) => !s)}
+                        className="flex items-center gap-2 pl-1 pr-3 h-9 rounded-full border border-gray-200 bg-white hover:bg-gray-50 transition"
+                        aria-expanded={showProfileDropdown}
                         aria-haspopup="true"
                     >
-                        <User size={16} />
+                        {/* Avatar */}
+                        <span className="w-7 h-7 rounded-full overflow-hidden bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center flex-shrink-0">
+                            {hasValidImage ? (
+                                <img
+                                    src={profileData!.image}
+                                    alt={displayName ?? 'Profile'}
+                                    onError={() => setImgError(true)}
+                                    className="w-full h-full object-cover"
+                                />
+                            ) : (
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    viewBox="0 0 24 24"
+                                    fill="white"
+                                    className="w-4 h-4"
+                                >
+                                    <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z" />
+                                </svg>
+                            )}
+                        </span>
+
+                        {/* Greeting */}
+                        <span className="text-sm text-gray-700 hidden sm:block">
+                            {profileLoading ? (
+                                <span className="inline-block w-24 h-3 bg-gray-200 rounded animate-pulse" />
+                            ) : displayName ? (
+                                <>
+                                    <span className="text-gray-400 font-normal">Hi, </span>
+                                    <span className="font-medium">{displayName}</span>
+                                </>
+                            ) : (
+                                'My Profile'
+                            )}
+                        </span>
+
+                        {/* Caret */}
+                        <svg
+                            className={`w-3 h-3 text-gray-400 ml-0.5 transition-transform ${showProfileDropdown ? 'rotate-180' : ''}`}
+                            viewBox="0 0 10 6"
+                            fill="none"
+                        >
+                            <path d="M1 1l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
                     </button>
 
-                    {showCreditsPopup && (
-                        <div className="absolute right-0 mt-2 w-72 z-50">
-                            <div className="absolute right-6 -top-2 w-3 h-3 bg-white transform rotate-45 shadow-sm" />
+                    {/* ── Dropdown ──────────────────────────────────────────── */}
+                    {showProfileDropdown && (
+                        <div className="absolute right-0 mt-2 w-56 z-50 animate-in fade-in slide-in-from-top-1 duration-150">
+                            {/* Arrow */}
+                            <div className="absolute right-5 -top-1.5 w-3 h-3 bg-white border-l border-t border-gray-200 transform rotate-45 z-10" />
 
-                            <div className="rounded-xl shadow-lg overflow-hidden bg-white">
-                                <div className="bg-gradient-to-br from-yellow-200 via-orange-300 to-orange-400 p-4">
-                                    <div className="flex items-start gap-3">
-                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center shadow-inner">
-                                            <div className="text-white text-lg">⭐</div>
+                            <div className="relative rounded-xl shadow-lg border border-gray-100 bg-white overflow-hidden">
+                                {/* Profile header */}
+                                <div className="px-4 py-3 bg-gradient-to-br from-orange-50 to-orange-100 border-b border-orange-100 flex items-center gap-3">
+                                    <span className="w-9 h-9 rounded-full overflow-hidden bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center flex-shrink-0 shadow">
+                                        {hasValidImage ? (
+                                            <img
+                                                src={profileData!.image}
+                                                alt={displayName ?? 'Profile'}
+                                                className="w-full h-full object-cover"
+                                            />
+                                        ) : (
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" className="w-5 h-5">
+                                                <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z" />
+                                            </svg>
+                                        )}
+                                    </span>
+                                    <div className="min-w-0">
+                                        <div className="text-sm font-semibold text-gray-800 truncate">
+                                            {displayName ?? '—'}
                                         </div>
-                                        <div className="flex-1">
-                                            <div className="text-xs text-white/90">Your Credits</div>
-                                            <div className="mt-1 text-2xl font-bold text-white">
-                                                {creditsLoading ? '...' : (credits != null ? credits : '—')}
-                                            </div>
-                                            <div className="text-xs text-white/80">Credits Available</div>
-                                        </div>
+                                        <div className="text-xs text-gray-500">Your Profile</div>
                                     </div>
                                 </div>
 
-                                <div className="p-4">
-                                    {couponCode ? (
-                                        <div className="mb-3">
-                                            <div className="text-xs text-gray-500 flex items-center gap-1">
-                                                <Ticket size={14} className="text-orange-500" />
-                                                Coupon
-                                            </div>
-                                            <div className="inline-block mt-1 px-3 py-1 bg-gray-100 text-sm rounded-full font-medium text-gray-800">{couponCode}</div>
-                                        </div>
-                                    ) : (
-                                        <div className="mb-3" />
-                                    )}
-
-                                    <button className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-full py-2 shadow-md hover:from-orange-500 hover:to-orange-600 transition">
-                                        <Plus size={16} />
-                                        <span className="font-medium">Top up credits</span>
+                                {/* Menu items */}
+                                <div>
+                                    {/* Share resume */}
+                                    <button
+                                        onClick={() => {
+                                            setShowProfileDropdown(false);
+                                            setShowShareModal(true);
+                                            fetchTemplates();
+                                        }}
+                                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition group"
+                                    >
+                                        <span className="w-7 h-7 rounded-full bg-blue-50 group-hover:bg-blue-100 flex items-center justify-center transition">
+                                            <Share2 size={14} className="text-blue-500" />
+                                        </span>
+                                        Share Resume
                                     </button>
+
+                                    {/* View Events */}
+                                    <button
+                                        onClick={() => {
+                                            window.open('https://nammaqa.com/meetups/', '_blank');
+                                        }}
+                                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition group"
+                                    >
+                                        <span className="w-7 h-7 rounded-full bg-purple-50 group-hover:bg-purple-100 flex items-center justify-center transition">
+                                            <CalendarDays size={14} className="text-purple-500" />
+                                        </span>
+                                        View Events
+                                    </button>
+
+                                    {/* Credits */}
+                                    <button
+                                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition group"
+                                    >
+                                        <span className="w-7 h-7 rounded-full bg-orange-50 group-hover:bg-orange-100 flex items-center justify-center transition">
+                                            <Plus size={14} className="text-orange-500" />
+                                        </span>
+                                        <span className="flex items-center justify-between w-full">
+                                            Credits
+                                            <span className="ml-auto text-xs font-semibold bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full">
+                                                {creditsLoading ? '…' : formattedCredits}
+                                            </span>
+                                        </span>
+                                    </button>
+
+                                    {/* Coupon */}
+                                    <div
+                                        className="w-full relative"
+                                        onMouseEnter={() => couponCode && setCouponHovered(true)}
+                                        onMouseLeave={() => {
+                                            setCouponHovered(false);
+                                            setCouponCopied(false);
+                                        }}
+                                    >
+                                        <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition group">
+                                            <span className="w-7 h-7 rounded-full bg-green-50 group-hover:bg-green-100 flex items-center justify-center transition">
+                                                <Ticket size={14} className="text-green-500" />
+                                            </span>
+                                            <span className="flex items-center justify-between w-full">
+                                                Coupon
+                                                {couponCode && (
+                                                    <span className="ml-auto text-xs font-medium bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full max-w-[90px] truncate">
+                                                        {couponCode}
+                                                    </span>
+                                                )}
+                                            </span>
+                                        </button>
+
+                                        {/* Coupon Copy Overlay */}
+                                        {couponCode && couponHovered && (
+                                            <div className="absolute inset-0 flex items-center justify-center bg-black/10 rounded-lg">
+                                                <button
+                                                    onClick={async () => {
+                                                        try {
+                                                            await navigator.clipboard.writeText(couponCode);
+                                                            setCouponCopied(true);
+                                                            setTimeout(() => setCouponCopied(false), 2000);
+                                                        } catch {
+                                                            console.error('Failed to copy coupon');
+                                                        }
+                                                    }}
+                                                    className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition ${
+                                                        couponCopied
+                                                            ? 'bg-green-500 text-white'
+                                                            : 'bg-white text-gray-800 hover:bg-gray-100'
+                                                    }`}
+                                                >
+                                                    {couponCopied ? (
+                                                        <>
+                                                            <Check size={13} />
+                                                            Copied
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <Copy size={13} />
+                                                            Copy Code
+                                                        </>
+                                                    )}
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     )}
                 </div>
 
-                <>
+                {/* Mobile sidebar toggle */}
                 <button
-                    onClick={() => {
-                        setShowShareModal(true);
-                        fetchTemplates();
-                    }}
-                    className="flex items-center gap-1 px-4 h-9 rounded-full border border-gray-200 bg-white hover:bg-gray-100 transition"
-                >
-                    <Share2 size={16} />
-                    <span className="text-sm">Share</span>
-                </button>
-
-                {showShareModal && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                        <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" style={{backdropFilter: 'blur(4px)'}} onClick={() => setShowShareModal(false)} />
-                        <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl p-4 z-20 overflow-hidden">
-                            <div className="flex items-center justify-between mb-3">
-                                <h3 className="text-lg font-semibold">Share Resume</h3>
-                                <button onClick={() => setShowShareModal(false)} className="text-gray-500">✕</button>
-                            </div>
-
-                            <div className="max-h-[70vh] overflow-auto">
-                                {templatesLoading ? (
-                                    <div className="text-sm text-gray-500">Loading templates…</div>
-                                ) : templates.length === 0 ? (
-                                    <div className="text-sm text-gray-500">No templates found.</div>
-                                ) : (
-                                    templates.map((t) => (
-                                        <div key={t.resume_template_id || t.template_id} className="flex items-center justify-between gap-3 p-3 border-b">
-                                            <div className="flex-1 text-sm truncate">{t.template_name}</div>
-                                            <div className="flex items-center gap-2">
-                                                <input readOnly value={t.template_file_url} className="hidden md:block w-96 px-2 py-1 text-sm border rounded truncate" />
-                                                <button
-                                                    onClick={async () => {
-                                                        try { await navigator.clipboard.writeText(t.template_file_url); setCopyStatus('URL copied'); }
-                                                        catch { setCopyStatus('Copy failed'); }
-                                                        setTimeout(() => setCopyStatus(null), 2000);
-                                                    }}
-                                                    className="px-3 py-1 bg-orange-500 text-white rounded text-sm"
-                                                >
-                                                    Copy URL
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ))
-                                )}
-                            </div>
-
-                            {copyStatus && <div className="mt-3 text-sm text-green-600">{copyStatus}</div>}
-                        </div>
-                    </div>
-                )}
-                </>
-                <button 
-                    onClick={() => toggleSidebar()} 
-                    className="w-9 h-9 flex items-center justify-center rounded-full border border-gray-200 bg-white 
-                            hover:bg-gray-100 transition lg:hidden"
+                    onClick={() => toggleSidebar()}
+                    className="w-9 h-9 flex items-center justify-center rounded-full border border-gray-200 bg-white hover:bg-gray-100 transition lg:hidden"
                 >
                     <Menu size={18} />
                 </button>
-
             </div>
+
+            {/* ── Share Modal ─────────────────────────────────────────────────── */}
+            {showShareModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div
+                        className="absolute inset-0 bg-black/40"
+                        style={{ backdropFilter: 'blur(4px)' }}
+                        onClick={() => setShowShareModal(false)}
+                    />
+                    <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl p-4 z-20 overflow-hidden">
+                        <div className="flex items-center justify-between mb-3">
+                            <h3 className="text-lg font-semibold">Share Resume</h3>
+                            <button onClick={() => setShowShareModal(false)} className="text-gray-500 hover:text-gray-700">
+                                ✕
+                            </button>
+                        </div>
+
+                        <div className="max-h-[70vh] overflow-auto">
+                            {templatesLoading ? (
+                                <div className="text-sm text-gray-500">Loading templates…</div>
+                            ) : templates.length === 0 ? (
+                                <div className="text-sm text-gray-500">No templates found.</div>
+                            ) : (
+                                <div className="grid grid-cols-1 gap-3 p-4">
+                                    {templates.map((t) => {
+                                        const templateId = t.resume_template_id || t.template_id;
+                                        const isCopied = copiedId === templateId;
+                                        return (
+                                            <div
+                                                key={templateId}
+                                                className="flex flex-col md:flex-row items-start gap-3 p-4 border border-gray-200 rounded-lg hover:border-orange-300 hover:bg-orange-50 transition group"
+                                            >
+                                                <div className="flex items-center gap-3 w-full">
+                                                    <span className="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center flex-shrink-0">
+                                                        <FileText size={20} className="text-red-500" />
+                                                    </span>
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="text-sm font-semibold text-gray-800 truncate">
+                                                            {t.template_name}
+                                                        </div>
+                                                        <div className="text-xs text-gray-500">Resume</div>
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    onClick={async () => {
+                                                        try {
+                                                            await navigator.clipboard.writeText(t.template_file_url);
+                                                            setCopiedId(templateId);
+                                                            setTimeout(() => setCopiedId(null), 2000);
+                                                        } catch {
+                                                            setCopyStatus('Copy failed');
+                                                            setTimeout(() => setCopyStatus(null), 2000);
+                                                        }
+                                                    }}
+                                                    className={`w-full items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition ${
+                                                        isCopied
+                                                            ? 'bg-green-100 text-green-600'
+                                                            : 'bg-orange-500 text-white hover:bg-orange-600'
+                                                    }`}
+                                                >
+                                                    {isCopied ? (
+                                                        <>
+                                                            <Check size={16} />
+                                                            Copied
+                                                        </>
+                                                    ) : (
+                                                        <div className="flex items-center justify-center gap-2">
+                                                            <Copy size={16} />
+                                                            <span>Share URL</span>
+                                                        </div>
+                                                    )}
+                                                </button>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
+
+                        {copyStatus && <div className="mt-3 text-sm text-green-600">{copyStatus}</div>}
+                    </div>
+                </div>
+            )}
         </nav>
     );
 }
