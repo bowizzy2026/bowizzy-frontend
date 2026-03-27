@@ -284,10 +284,10 @@ export const ResumeEditor: React.FC = () => {
   const [previewLoading, setPreviewLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [fetchTimedOut, setFetchTimedOut] = useState(false);
-const [fontName, setFontName] = useState("Arial (Recommended)");
+  const [fontName, setFontName] = useState("Arial (Recommended)");
   const [fontFamily, setFontFamily] = useState("Arial, sans-serif");
-const [colorName, setColorName] = useState("Black");
-const [primaryColor, setPrimaryColor] = useState("#000000");
+  const [colorName, setColorName] = useState("Black");
+  const [primaryColor, setPrimaryColor] = useState("#000000");
 
   const [userId, setUserId] = useState<string>("");
   const [token, setToken] = useState<string>("");
@@ -737,7 +737,7 @@ const [primaryColor, setPrimaryColor] = useState("#000000");
     switch (currentStep) {
       case 0:
         return (
-          <PersonalDetailsForm 
+          <PersonalDetailsForm
             data={resumeData.personal}
             fullResumeData={resumeData}
             onChange={updatePersonalData}
@@ -824,14 +824,14 @@ const [primaryColor, setPrimaryColor] = useState("#000000");
         />
       </div>
     );
-    };
+  };
 
   return (
     <div className="flex flex-col h-screen bg-gray-50 overflow-hidden">
       <DashNav heading="Resume Builder" />
 
-      <div className="flex-1 flex flex-col overflow-hidden p-4">
-        <div className="flex-1 flex flex-col bg-white rounded-lg overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex-1 flex flex-col bg-white rounded-lg overflow-hidden m-4">
           <div className="bg-white">
             <ProfileStepper
               steps={steps}
@@ -842,113 +842,111 @@ const [primaryColor, setPrimaryColor] = useState("#000000");
           </div>
 
           <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
-            <div className="flex-1 lg:w-[50%] overflow-auto scrollbar-hide">
-              <div className="p-4 md:p-6">
-               <div className="flex items-center justify-between mb-5">
-  <h2 className="text-lg font-semibold text-[#1A1A43]">
-    {stepTitles[currentStep]}
-  </h2>
+            <div className="flex-1 lg:w-[50%] overflow-auto scrollbar-hide min-w-0">
+              <div className="p-4 md:p-6 w-full max-w-full">
+                <div className="flex items-center justify-between mb-5">
+                  <h2 className="text-lg font-semibold text-[#1A1A43]">
+                    {stepTitles[currentStep]}
+                  </h2>
 
-  {/* Style controls */}
-  <div className="flex gap-3 items-center">
-    {/* Font Selector */}
-    <div className="relative" ref={fontDropdownRef}>
-      <button
-        onClick={() => setFontDropdownOpen(!fontDropdownOpen)}
-        className="border border-gray-300 rounded-lg px-4 py-2.5 text-sm font-medium bg-white hover:bg-gray-50 transition-colors flex items-center gap-2 shadow-sm"
-        style={{ fontFamily: fontFamily }}
-      >
-        <span className="font-semibold">{fontName}</span>
-        <svg
-          className={`w-4 h-4 text-gray-600 transition-transform ${fontDropdownOpen ? 'rotate-180' : ''}`}
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-        </svg>
-      </button>
-      {fontDropdownOpen && (
-        <div className="absolute top-full right-0 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-xl z-20">
-          <div className="p-3 max-h-80 overflow-y-auto">
-            <div className="text-xs font-semibold text-gray-500 px-3 py-2">SELECT FONT</div>
-            {FONT_OPTIONS.map((font) => (
-              <button
-                key={font.label}
-                onClick={() => {
-                  setFontName(font.label);
-                  setFontFamily(font.value);
-                  setFontDropdownOpen(false);
-                }}
-                className={`w-full text-left px-4 py-3 rounded-lg text-sm transition-all mb-2 font-medium ${
-                  fontName === font.label
-                    ? "bg-orange-500 text-white shadow-md"
-                    : "hover:bg-orange-50 text-gray-700 border border-transparent hover:border-orange-200"
-                }`}
-                style={{ fontFamily: font.value }}
-              >
-                {font.label}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
+                  {/* Style controls */}
+                  <div className="flex gap-3 items-center">
+                    {/* Font Selector */}
+                    <div className="relative" ref={fontDropdownRef}>
+                      <button
+                        onClick={() => setFontDropdownOpen(!fontDropdownOpen)}
+                        className="border border-gray-300 rounded-lg px-4 py-2.5 text-sm font-medium bg-white hover:bg-gray-50 transition-colors flex items-center gap-2 shadow-sm"
+                        style={{ fontFamily: fontFamily }}
+                      >
+                        <span className="font-semibold">{fontName}</span>
+                        <svg
+                          className={`w-4 h-4 text-gray-600 transition-transform ${fontDropdownOpen ? 'rotate-180' : ''}`}
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                        </svg>
+                      </button>
+                      {fontDropdownOpen && (
+                        <div className="absolute top-full right-0 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-xl z-20">
+                          <div className="p-3 max-h-80 overflow-y-auto">
+                            <div className="text-xs font-semibold text-gray-500 px-3 py-2">SELECT FONT</div>
+                            {FONT_OPTIONS.map((font) => (
+                              <button
+                                key={font.label}
+                                onClick={() => {
+                                  setFontName(font.label);
+                                  setFontFamily(font.value);
+                                  setFontDropdownOpen(false);
+                                }}
+                                className={`w-full text-left px-4 py-3 rounded-lg text-sm transition-all mb-2 font-medium ${fontName === font.label
+                                    ? "bg-orange-500 text-white shadow-md"
+                                    : "hover:bg-orange-50 text-gray-700 border border-transparent hover:border-orange-200"
+                                  }`}
+                                style={{ fontFamily: font.value }}
+                              >
+                                {font.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
 
-    {/* Color Selector */}
-    <div className="relative" ref={colorDropdownRef}>
-      <button
-        onClick={() => setColorDropdownOpen(!colorDropdownOpen)}
-        className="border border-gray-300 rounded-lg px-4 py-2.5 text-sm font-medium bg-white hover:bg-gray-50 transition-colors flex items-center gap-2 shadow-sm"
-      >
-        <div
-          className="w-6 h-6 rounded-lg border-2 border-white shadow-md"
-          style={{ backgroundColor: primaryColor }}
-        />
-        <span className="font-semibold text-gray-700">{COLOR_OPTIONS.find(c => c.value === primaryColor)?.label}</span>
-        <svg
-          className={`w-4 h-4 text-gray-600 transition-transform ${colorDropdownOpen ? 'rotate-180' : ''}`}
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-        </svg>
-      </button>
-      {colorDropdownOpen && (
-        <div className="absolute top-full right-0 mt-2 w-72 bg-white border border-gray-200 rounded-lg shadow-xl z-20">
-          <div className="p-4">
-            <div className="text-xs font-semibold text-gray-500 px-2 pb-3">SELECT COLOR</div>
-            <div className="grid grid-cols-2 gap-3">
-              {COLOR_OPTIONS.map((color) => (
-                <button
-                  key={color.value}
-                  onClick={() => {
-                    setPrimaryColor(color.value);
-                    setColorDropdownOpen(false);
-                  }}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-                    primaryColor === color.value
-                      ? "bg-orange-100 border-2 border-orange-500 shadow-md"
-                      : "hover:bg-gray-50 border border-gray-200 hover:border-gray-300"
-                  }`}
-                >
-                  <div
-                    className="w-10 h-10 rounded-lg border-2 border-white shadow-md flex-shrink-0"
-                    style={{ backgroundColor: color.value }}
-                  />
-                  <span className={`text-sm font-medium ${primaryColor === color.value ? 'text-orange-700' : 'text-gray-700'}`}>
-                    {color.label}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  </div>
-</div>
+                    {/* Color Selector */}
+                    <div className="relative" ref={colorDropdownRef}>
+                      <button
+                        onClick={() => setColorDropdownOpen(!colorDropdownOpen)}
+                        className="border border-gray-300 rounded-lg px-4 py-2.5 text-sm font-medium bg-white hover:bg-gray-50 transition-colors flex items-center gap-2 shadow-sm"
+                      >
+                        <div
+                          className="w-6 h-6 rounded-lg border-2 border-white shadow-md"
+                          style={{ backgroundColor: primaryColor }}
+                        />
+                        <span className="font-semibold text-gray-700">{COLOR_OPTIONS.find(c => c.value === primaryColor)?.label}</span>
+                        <svg
+                          className={`w-4 h-4 text-gray-600 transition-transform ${colorDropdownOpen ? 'rotate-180' : ''}`}
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                        </svg>
+                      </button>
+                      {colorDropdownOpen && (
+                        <div className="absolute top-full right-0 mt-2 w-72 bg-white border border-gray-200 rounded-lg shadow-xl z-20">
+                          <div className="p-4">
+                            <div className="text-xs font-semibold text-gray-500 px-2 pb-3">SELECT COLOR</div>
+                            <div className="grid grid-cols-2 gap-3">
+                              {COLOR_OPTIONS.map((color) => (
+                                <button
+                                  key={color.value}
+                                  onClick={() => {
+                                    setPrimaryColor(color.value);
+                                    setColorDropdownOpen(false);
+                                  }}
+                                  className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${primaryColor === color.value
+                                      ? "bg-orange-100 border-2 border-orange-500 shadow-md"
+                                      : "hover:bg-gray-50 border border-gray-200 hover:border-gray-300"
+                                    }`}
+                                >
+                                  <div
+                                    className="w-10 h-10 rounded-lg border-2 border-white shadow-md flex-shrink-0"
+                                    style={{ backgroundColor: color.value }}
+                                  />
+                                  <span className={`text-sm font-medium ${primaryColor === color.value ? 'text-orange-700' : 'text-gray-700'}`}>
+                                    {color.label}
+                                  </span>
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
 
                 <div className="mb-6">{renderCurrentForm()}</div>
 
@@ -982,8 +980,8 @@ const [primaryColor, setPrimaryColor] = useState("#000000");
             </div>
 
 
-            <div className="hidden lg:flex lg:w-[50%] bg-white overflow-auto scrollbar-hide">
-              <div className="flex-1 p-4 overflow-auto scrollbar-hide border border-gray-300 m-4 rounded-lg">
+            <div className="hidden lg:flex lg:w-[50%] bg-white overflow-auto scrollbar-hide p-4">
+              <div className="flex-1 overflow-auto scrollbar-hide border border-gray-300 rounded-lg">
                 <div className="relative w-full h-full flex items-start justify-center">
                   {/* Page info */}
                   {totalPages > 1 && (

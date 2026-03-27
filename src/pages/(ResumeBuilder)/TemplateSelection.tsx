@@ -17,10 +17,8 @@ export default function TemplateSelection() {
   const [showPremiumModal, setShowPremiumModal] = useState(false);
   const location = useLocation();
 
-  // Track which template is selected in normal (non-selection) mode
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
 
-  // selection mode for picking templates after subscribing
   const [selectionMode, setSelectionMode] = useState(false);
   const [subscription, setSubscription] = useState<any>(null);
   const [selectedTemplates, setSelectedTemplates] = useState<string[]>([]);
@@ -43,7 +41,6 @@ export default function TemplateSelection() {
       return;
     }
     if (locked) return;
-    // In normal mode, just select the template (don't navigate)
     setSelectedTemplate(templateId);
   };
 
@@ -492,34 +489,32 @@ export default function TemplateSelection() {
                       </div>
                     )}
 
-                    {/* Hover overlay with "Use This Template" button */}
-                    <div
-                      className={`absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent ${
-                        selectionMode ? "opacity-0" : "opacity-0 group-hover:opacity-100"
-                      } transition-opacity flex flex-col items-center justify-end p-6`}
-                    >
-                      <span className="text-white text-lg font-semibold mb-3">
-                        {template.name}
-                      </span>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate(`/resume-editor?templateId=${template.id}`);
-                        }}
-                        className={`
-                          px-6 py-2
-                          ${isSelected ? "bg-orange-500 text-white" : "bg-white text-[#1A1A43]"}
-                          rounded-lg font-medium text-sm cursor-pointer hover:bg-gray-100 transition-colors
-                        `}
-                      >
-                        Use This Template
-                      </button>
-                    </div>
+                    {/* ✅ FIX: Always-visible bottom bar with "Use This Template" button */}
+                    {!selectionMode && (
+                      <div className="absolute bottom-0 left-0 right-0 z-10 bg-gradient-to-t from-black/80 to-transparent p-4 flex flex-col items-center justify-end gap-2">
+                        <span className="text-white text-sm font-medium">{template.name}</span>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/resume-editor?templateId=${template.id}`);
+                          }}
+                          className={`
+                            w-full px-6 py-2
+                            ${isSelected ? "bg-orange-500 text-white" : "bg-white text-[#1A1A43]"}
+                            rounded-lg font-medium text-sm cursor-pointer hover:bg-orange-500 hover:text-white transition-colors
+                          `}
+                        >
+                          Use This Template
+                        </button>
+                      </div>
+                    )}
 
-                    {/* Template name at bottom (hides on hover) */}
-                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4 group-hover:opacity-0 transition-opacity">
-                      <span className="text-white text-sm font-medium">{template.name}</span>
-                    </div>
+                    {/* Selection mode bottom label */}
+                    {selectionMode && (
+                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">
+                        <span className="text-white text-sm font-medium">{template.name}</span>
+                      </div>
+                    )}
                   </div>
                 );
               })}
