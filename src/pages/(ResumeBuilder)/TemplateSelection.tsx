@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { getAllTemplates, getTemplateById } from "@/templates/templateRegistry";
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { Check } from "lucide-react";
+import { Check, Heart } from "lucide-react";
 import * as subscriptionService from "@/services/subscriptionService";
 import { Lock, Crown } from "lucide-react";
 import Premium from "@/pages/Premium";
@@ -338,7 +338,7 @@ export default function TemplateSelection() {
 
           <div className="px-4 md:px-5 mb-10">
             <div
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-10 p-4 max-h-[70vh] overflow-auto"
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-10 p-4 overflow-auto"
               style={{ paddingBottom: 12 }}
             >
               {templates.map((template) => {
@@ -368,7 +368,7 @@ export default function TemplateSelection() {
                   !allowedTemplates.includes(template.id) &&
                   !(isPaidExtra && allowPaidAsPurchase);
 
-                // Locked template card
+                // ── LOCKED CARD ──
                 if (locked && !selectionMode) {
                   return (
                     <div
@@ -379,13 +379,10 @@ export default function TemplateSelection() {
                       <img
                         src={template.thumbnail}
                         alt={template.name}
-                        className="w-full h-[260px] md:h-[320px] lg:h-[439px] object-cover"
+                        className="w-full h-[250px] md:h-[320px] lg:h-[439px] object-contain"
                       />
 
-                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4 transition-opacity cursor-pointer">
-                        <span className="text-white text-sm font-medium">{template.name}</span>
-                      </div>
-
+                      {/* Lock overlay */}
                       <div className="absolute inset-0 bg-black/50 flex items-center justify-center p-4">
                         <div className="flex flex-col items-center text-white gap-4">
                           <Lock size={36} />
@@ -408,100 +405,123 @@ export default function TemplateSelection() {
                         </div>
                       </div>
 
+                      {/* Crown — top right */}
                       <div className="absolute top-3 right-3 z-10">
                         <div className="flex items-center justify-center w-10 h-10 rounded-full bg-yellow-500 text-white shadow-md">
                           <Crown size={16} />
                         </div>
                       </div>
+
+                      {/* Premium tag — absolute bottom-left */}
+                      <div className="absolute bottom-3 left-3 z-10">
+                        <span className="flex items-center gap-1 bg-orange-500 text-white text-[11px] font-bold px-2.5 py-1 rounded-md shadow">
+                          <Crown size={10} />
+                          {template.label ? template.label : "Label"}
+                        </span>
+                      </div>
                     </div>
                   );
                 }
 
-                // Unlocked template card
+                // ── UNLOCKED CARD ──
                 const isSelected =
                   (selectionMode && selectedTemplates.includes(template.id)) ||
                   (!selectionMode && selectedTemplate === template.id);
 
+                // Show premium tag for non-default / paid-extra templates
+                const isPremiumTemplate = !DEFAULT_TEMPLATES.includes(template.id) || isPaidExtra;
+
                 return (
                   <div
                     key={template.id}
-                    className={`relative w-full rounded-lg transition-all overflow-hidden group hover:shadow-xl hover:scale-[1.02] cursor-pointer ${
-                      isSelected ? "border-2 border-orange-500" : "border-0"
-                    }`}
+                    className={`relative w-full rounded-lg transition-all overflow-hidden group hover:shadow-xl hover:scale-[1.02] cursor-pointer ${isSelected ? "border-2 border-orange-500" : "border-0"
+                      }`}
                     style={{ boxShadow: "0px 0px 1px #00000040" }}
                     onClick={() => handleTemplateSelect(template.id, locked)}
                   >
                     <img
                       src={template.thumbnail}
                       alt={template.name}
-                      className="w-full h-[260px] md:h-[320px] lg:h-[439px] object-cover"
+                      className="w-full h-[250px] md:h-[320px] lg:h-[439px] object-contain"
                     />
 
-                    {/* Selection checkbox (top-left) when in selection mode */}
-                    {selectionMode && (
-                      <div className="absolute top-3 left-3 z-20">
-                        {DEFAULT_TEMPLATES.includes(template.id) ? (
-                          <div
-                            className="w-9 h-9 rounded-full flex items-center justify-center border-2 bg-orange-500 border-orange-500 text-white"
-                            title="Included in all plans"
-                          >
-                            <Check size={16} />
-                          </div>
-                        ) : (
-                          !locked && (
-                            preSelectedTemplates.includes(template.id) ? (
-                              <div
-                                className="w-9 h-9 rounded-full flex items-center justify-center border-2 bg-gray-200 border-gray-200 text-gray-700"
-                                title="Saved"
-                              >
-                                <Check size={16} />
-                              </div>
-                            ) : (
-                              <div
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  toggleSelect(template.id);
-                                }}
-                                className={`w-9 h-9 rounded-full flex items-center justify-center border-2 ${
-                                  selectedTemplates.includes(template.id)
-                                    ? "bg-orange-500 border-orange-500 text-white"
-                                    : "bg-white border-gray-200 text-gray-600"
-                                }`}
-                              >
-                                {selectedTemplates.includes(template.id) ? (
-                                  <Check size={16} />
-                                ) : (
-                                  <div className="w-2 h-2 rounded-full" />
-                                )}
-                              </div>
-                            )
-                          )
-                        )}
-                      </div>
-                    )}
+                    {/* Selection checkbox — top-left, selection mode only */}
+                    { //selectionMode && (
+                      // <div className="absolute top-3 left-3 z-20">
+                      //   {DEFAULT_TEMPLATES.includes(template.id) ? (
+                      //     <div
+                      //       className="w-9 h-9 rounded-full flex items-center justify-center border-2 bg-orange-500 border-orange-500 text-white"
+                      //       title="Included in all plans"
+                      //     >
+                      //       <Check size={16} />
+                      //     </div>
+                      //   ) : (
+                      //     !locked && (
+                      //       preSelectedTemplates.includes(template.id) ? (
+                      //         <div
+                      //           className="w-9 h-9 rounded-full flex items-center justify-center border-2 bg-gray-200 border-gray-200 text-gray-700"
+                      //           title="Saved"
+                      //         >
+                      //           <Check size={16} />
+                      //         </div>
+                      //       ) : (
+                      //         <div
+                      //           onClick={(e) => {
+                      //             e.stopPropagation();
+                      //             toggleSelect(template.id);
+                      //           }}
+                      //           className={`w-9 h-9 rounded-full flex items-center justify-center border-2 ${
+                      //             selectedTemplates.includes(template.id)
+                      //               ? "bg-orange-500 border-orange-500 text-white"
+                      //               : "bg-white border-gray-200 text-gray-600"
+                      //           }`}
+                      //         >
+                      //           {selectedTemplates.includes(template.id) ? (
+                      //             <Check size={16} />
+                      //           ) : (
+                      //             <div className="w-2 h-2 rounded-full" />
+                      //           )}
+                      //         </div>
+                      //       )
+                      //     )
+                      //   )}
+                      // </div>
+                      //)
+                    }
 
-                    {/* Price badge for paid extras */}
-                    {PAID_EXTRA_TEMPLATE_IDS.includes(template.id) && (
+                    {/* Paid extra price badge — top-right */}
+                    {isPaidExtra && (
                       <div className="absolute top-3 right-3 z-10">
-                        <div className="px-3 py-1 rounded-full bg-white text-sm font-semibold">
+                        <div className="px-3 py-1 rounded-full bg-white text-sm font-semibold shadow">
                           ₹{EXTRA_PRICE}
                         </div>
                       </div>
                     )}
 
-                    {/* ✅ FIX: Always-visible bottom bar with "Use This Template" button */}
+                    {/* ── BOTTOM-LEFT: Premium tag — absolute ── */}
+
+                    <div className={`absolute bottom-3 ${isSelected ? "left-0" : "left-0"} z-10`}>
+                      <span className="flex items-center gap-1 bg-orange-500 text-white text-[11px] font-bold px-2.5 py-1 rounded-r-md  shadow">
+                        <Heart size={10} />
+                        {template.label ? template.label : "Label"}
+                      </span>
+                    </div>
+
+
+                    {/* ── BOTTOM-RIGHT: "Use This Template" button — absolute ── */}
                     {!selectionMode && (
-                      <div className="absolute bottom-0 left-0 right-0 z-10 bg-gradient-to-t from-black/80 to-transparent p-4 flex flex-col items-center justify-end gap-2">
-                        <span className="text-white text-sm font-medium">{template.name}</span>
+                      <div className="absolute bottom-3 right-3 z-10">
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
                             navigate(`/resume-editor?templateId=${template.id}`);
                           }}
                           className={`
-                            w-full px-6 py-2
-                            ${isSelected ? "bg-orange-500 text-white" : "bg-white text-[#1A1A43]"}
-                            rounded-lg font-medium text-sm cursor-pointer hover:bg-orange-500 hover:text-white transition-colors
+                            px-4 py-2 rounded-lg font-semibold text-sm shadow-md transition-all duration-200
+                            ${isSelected
+                              ? "bg-orange-500 text-white hover:bg-orange-600"
+                              : "bg-white text-[#1A1A43] border border-gray-200 hover:bg-orange-500 hover:text-white hover:border-orange-500"
+                            }
                           `}
                         >
                           Use This Template
@@ -509,10 +529,10 @@ export default function TemplateSelection() {
                       </div>
                     )}
 
-                    {/* Selection mode bottom label */}
+                    {/* Selection mode — template name label */}
                     {selectionMode && (
-                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">
-                        <span className="text-white text-sm font-medium">{template.name}</span>
+                      <div className="absolute bottom-0 left-0 right-0 p-4">
+                        <span className="text-[#1A1A43] text-sm font-medium">{template.name}</span>
                       </div>
                     )}
                   </div>

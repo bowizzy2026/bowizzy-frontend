@@ -277,12 +277,12 @@ export default function ResumeBuilder() {
             </div>
           </div>
 
-          <div className="mb-5 px-4 md:px-5">
+          {/* <div className="mb-5 px-4 md:px-5">
             <span className="text-[#1A1A43] text-base font-semibold">Our Recommended Templates</span>
-          </div>
+          </div> */}
 
           {/* Templates: responsive grid (scrollable) - shows all templates */}
-          <div className="mb-10 px-4 md:px-5 flex-1 overflow-auto">
+          {/* <div className="mb-10 px-4 md:px-5 flex-1 overflow-auto">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-10 p-4" style={{ paddingBottom: 12 }}>
               {templates.map((template) => (
                 <button
@@ -302,7 +302,7 @@ export default function ResumeBuilder() {
                 </button>
               ))}
             </div>
-          </div>
+          </div> */}
 
         </div>
       </div>

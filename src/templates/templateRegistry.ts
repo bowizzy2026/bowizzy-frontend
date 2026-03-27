@@ -53,6 +53,7 @@ export interface TemplateInfo {
   pdfComponent?: React.ComponentType<any>; 
   pageCount?: number;
   supportsPhoto?: boolean;
+  label?: string;
 }
 
 // Template Registry
@@ -169,6 +170,7 @@ const TEMPLATE_REGISTRY: TemplateInfo[] = [
     pdfComponent: Template11PDF,
     pageCount: 1,
     supportsPhoto: false,
+    label: 'Vijayanagara',
   },
   {
     id: 'template12',
@@ -179,6 +181,7 @@ const TEMPLATE_REGISTRY: TemplateInfo[] = [
     pdfComponent: Template12PDF,
     pageCount: 1,
     supportsPhoto: false,
+    label: 'Hoysala',
   },
     {
     id: 'template13',
@@ -189,6 +192,7 @@ const TEMPLATE_REGISTRY: TemplateInfo[] = [
     pdfComponent: Template13PDF,
     pageCount: 1,
     supportsPhoto: false,
+    label: 'Chalukya',
   },
   {
     id: 'template14',
@@ -199,6 +203,7 @@ const TEMPLATE_REGISTRY: TemplateInfo[] = [
     pdfComponent: Template14PDF,
     pageCount: 1,
     supportsPhoto: false,
+    label: 'Rashtrakuta',
   },  {
     id: 'template15',
     name: 'Centered Blue Classic',
@@ -208,6 +213,7 @@ const TEMPLATE_REGISTRY: TemplateInfo[] = [
     pdfComponent: Template15PDF,
     pageCount: 1,
     supportsPhoto: false,
+    label: 'Kadamba',
   },
   {
     id: 'template16',
@@ -218,6 +224,7 @@ const TEMPLATE_REGISTRY: TemplateInfo[] = [
     pdfComponent: Template16PDF,
     pageCount: 1,
     supportsPhoto: false,
+    label: 'Wodeyar',
   },
   {
     id: 'template17',
@@ -228,6 +235,7 @@ const TEMPLATE_REGISTRY: TemplateInfo[] = [
     pdfComponent: Template17PDF,
     pageCount: 1,
     supportsPhoto: false,
+    label: 'Ganga',
   },
   {
     id: 'template18',
@@ -238,6 +246,7 @@ const TEMPLATE_REGISTRY: TemplateInfo[] = [
     pdfComponent: Template18PDF,
     pageCount: 1,
     supportsPhoto: false,
+    label: 'Maurya',
   },
   {
     id: 'template19',
@@ -248,6 +257,7 @@ const TEMPLATE_REGISTRY: TemplateInfo[] = [
     pdfComponent: Template19PDF,
     pageCount: 1,
     supportsPhoto: false,
+    label: 'Satavahana',
   },
   {
     id: 'template20',
@@ -258,6 +268,7 @@ const TEMPLATE_REGISTRY: TemplateInfo[] = [
     pdfComponent: Template20PDF,
     pageCount: 1,
     supportsPhoto: false,
+    label: 'Maratha',
   },
   // Add more templates here...
 ];
