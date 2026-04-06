@@ -299,7 +299,7 @@ const Template11PDF: React.FC<Template11PDFProps> = ({ data, primaryColor = '#11
           )}
 
           {/* Experience */}
-          {experience.workExperiences.length > 0 && (
+          {experience.workExperiences.filter((w: any) => w.enabled).length > 0 && (
             <View style={{ marginBottom: 12 }}>
               <Text style={{ fontSize: 13, fontFamily: pdfFontFamilyBold, color: primaryColor, letterSpacing: 1.2, marginBottom: 4 }}>EXPERIENCE</Text>
               <View style={{ height: 1, backgroundColor: '#333333', width: '100%', marginBottom: 8 }} />
@@ -326,12 +326,25 @@ const Template11PDF: React.FC<Template11PDFProps> = ({ data, primaryColor = '#11
           )}
 
           {/* Education */}
-          {education.higherEducationEnabled && education.higherEducation.length > 0 && (
+          {(education.higherEducationEnabled || education.preUniversityEnabled || education.sslcEnabled) && (
             <View style={{ marginBottom: 12 }}>
               <Text style={{ fontSize: 13, fontFamily: pdfFontFamilyBold, color: primaryColor, letterSpacing: 1.2, marginBottom: 4 }}>EDUCATION</Text>
               <View style={{ height: 1, backgroundColor: '#333333', width: '100%', marginBottom: 8 }} />
 
-              {education.higherEducation.map((edu: any, idx: number) => (
+              {education.higherEducationEnabled && education.higherEducation.length > 0 && (
+                <>
+                  {[...education.higherEducation].sort((a: any, b: any) => {
+                    const parseYearKey = (val: string) => {
+                      if (!val) return -Infinity;
+                      const parts = val.split('-');
+                      const y = parseInt(parts[0], 10) || 0;
+                      const m = parseInt(parts[1], 10) || 0;
+                      return y * 100 + m;
+                    };
+                    const aKey = parseYearKey(a.endYear || a.startYear || '');
+                    const bKey = parseYearKey(b.endYear || b.startYear || '');
+                    return aKey - bKey;
+                  }).map((edu: any, idx: number) => (
                 <View key={idx} style={{ marginBottom: 8 }}>
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <Text style={{ fontSize: 11, fontFamily: pdfFontFamilyBold, color: '#000000', flex: 1, marginRight: 8 }}>{edu.instituteName}</Text>
@@ -344,9 +357,11 @@ const Template11PDF: React.FC<Template11PDFProps> = ({ data, primaryColor = '#11
                   </Text>
                 </View>
               ))}
+                </>
+              )}
 
               {/* Pre University */}
-              {(education.preUniversityEnabled || education.preUniversity.instituteName || education.higherEducation.length > 0) && (
+              {education.preUniversityEnabled && (
                 <View style={{ marginBottom: 8 }}>
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <Text style={{ fontSize: 11, fontFamily: pdfFontFamilyBold, color: '#000000', flex: 1, marginRight: 8 }}>{education.preUniversity.instituteName || 'Pre University'}</Text>
@@ -364,7 +379,7 @@ const Template11PDF: React.FC<Template11PDFProps> = ({ data, primaryColor = '#11
               )}
 
               {/* SSLC */}
-              {(education.sslcEnabled || education.sslc.instituteName || education.higherEducation.length > 0) && (
+              {education.sslcEnabled && (
                 <View style={{ marginBottom: 8 }}>
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <Text style={{ fontSize: 11, fontFamily: pdfFontFamilyBold, color: '#000000', flex: 1, marginRight: 8 }}>{education.sslc.instituteName || 'SSLC'}</Text>
@@ -422,7 +437,7 @@ const Template11PDF: React.FC<Template11PDFProps> = ({ data, primaryColor = '#11
           )}
 
           {/* Certifications */}
-          {certifications.length > 0 && (
+          {certifications.filter((c: any) => c.enabled).length > 0 && (
             <View style={{ marginBottom: 12 }}>
               <Text style={{ fontSize: 13, fontFamily: pdfFontFamilyBold, color: primaryColor, letterSpacing: 1.2, marginBottom: 4 }}>TECHNICAL CERTIFICATIONS</Text>
               <View style={{ height: 1, backgroundColor: '#333333', width: '100%', marginBottom: 8 }} />

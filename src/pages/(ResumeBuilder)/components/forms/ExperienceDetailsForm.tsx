@@ -80,6 +80,7 @@ export const ExperienceDetailsForm: React.FC<ExperienceDetailsFormProps> = ({
 
   const [jobRoleFeedback, setJobRoleFeedback] = useState("");
   const [experienceFeedback, setExperienceFeedback] = useState<Record<string, string>>({});
+  const [hiddenSaveIds, setHiddenSaveIds] = useState<Set<string>>(new Set());
 
   const initialDataRef = useRef(data);
   const initialJobRole = useRef(data.jobRole || "");
@@ -358,7 +359,18 @@ export const ExperienceDetailsForm: React.FC<ExperienceDetailsFormProps> = ({
       }
     
       setExperienceFeedback(prev => ({ ...prev, [exp.id]: feedbackMessage }));
-      setTimeout(() => setExperienceFeedback(prev => { const updated = { ...prev }; delete updated[exp.id]; return updated; }), 3000);
+      
+      // Hide save button after successful save
+      setHiddenSaveIds(prev => new Set([...prev, exp.id]));
+      
+      setTimeout(() => {
+        setExperienceFeedback(prev => { const updated = { ...prev }; delete updated[exp.id]; return updated; });
+        setHiddenSaveIds(prev => {
+          const updated = new Set(prev);
+          updated.delete(exp.id);
+          return updated;
+        });
+      }, 3000);
     } catch (error) {
       console.error("Error saving experience:", error);
       const feedback = isNew ? "Failed to save." : "Failed to update.";
@@ -499,36 +511,6 @@ export const ExperienceDetailsForm: React.FC<ExperienceDetailsFormProps> = ({
         isCollapsed={!experience.isExpanded}
         onCollapseToggle={() => toggleCollapse(experience.id)}
       >
-        <div className='flex items-center justify-end gap-2 mb-4'>
-          {feedback && (
-            <span className={`text-xs px-2 py-1 rounded-full ${
-              feedback.includes("successfully") ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-            }`}>
-              {feedback}
-            </span>
-          )}
-          {changed && (
-            <button
-              type="button"
-              onClick={() => handleSaveExperience(experience)}
-              className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-md text-sm font-medium shadow-sm hover:from-orange-500 hover:to-orange-600 transition cursor-pointer"
-              aria-pressed="false"
-              aria-label={experience.experience_id ? "Update experience changes" : "Save new experience"}
-            >
-              <Save className="w-4 h-4" strokeWidth={2} />
-              Save
-            </button>
-          )}
-          <button
-            type="button"
-            onClick={() => resetExperience(experience.id)}
-            className="w-6 h-6 flex items-center justify-center rounded-full border-2 border-gray-600 hover:bg-gray-100 transition-colors"
-            title="Reset to saved values"
-          >
-            <RotateCcw className="w-3 h-3 text-gray-600 cursor-pointer" strokeWidth={2.5} />
-          </button>
-        </div >
-        
         <FormInput
           label="Company Name"
           placeholder="Enter Company Name"
@@ -628,6 +610,36 @@ export const ExperienceDetailsForm: React.FC<ExperienceDetailsFormProps> = ({
             placeholder="Provide Description / Projects of your Work"
             rows={4}
           />
+        </div>
+
+        <div className='flex items-center justify-end gap-2 mt-8 pt-4 border-t border-gray-200'>
+          {experienceFeedback[experience.id] && (
+            <span className={`text-xs px-2 py-1 rounded-full ${
+              experienceFeedback[experience.id].includes("successfully") ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+            }`}>
+              {experienceFeedback[experience.id]}
+            </span>
+          )}
+          {changed && !hiddenSaveIds.has(experience.id) && (
+            <button
+              type="button"
+              onClick={() => handleSaveExperience(experience)}
+              className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-md text-sm font-medium shadow-sm hover:from-orange-500 hover:to-orange-600 transition cursor-pointer"
+              aria-pressed="false"
+              aria-label={experience.experience_id ? "Update experience changes" : "Save new experience"}
+            >
+              <Save className="w-4 h-4" strokeWidth={2} />
+              Save
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => resetExperience(experience.id)}
+            className="w-6 h-6 flex items-center justify-center rounded-full border-2 border-gray-600 hover:bg-gray-100 transition-colors"
+            title="Reset to saved values"
+          >
+            <RotateCcw className="w-3 h-3 text-gray-600 cursor-pointer" strokeWidth={2.5} />
+          </button>
         </div>
       </FormSection>
     );

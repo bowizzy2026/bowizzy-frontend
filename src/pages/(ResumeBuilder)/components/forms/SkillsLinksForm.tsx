@@ -63,6 +63,7 @@ export const SkillsLinksForm: React.FC<SkillsLinksFormProps> = ({
   const [linkFeedback, setLinkFeedback] = useState<string>("");
   const [technicalSummaryFeedback, setTechnicalSummaryFeedback] =
     useState<string>("");
+  const [hiddenSaveIds, setHiddenSaveIds] = useState<Set<string>>(new Set());
 
 const [isEnhancingSummary, setIsEnhancingSummary] = useState(false);
 const [enhanceSummaryError, setEnhanceSummaryError] = useState("");
@@ -272,7 +273,15 @@ const [enhancedSummaryVersions, setEnhancedSummaryVersions] = useState<{ atsFrie
 
     setSkillChanges({});
     setSkillFeedback({ ["all"]: finalMessage });
-    setTimeout(() => setSkillFeedback({}), 3000);
+    setHiddenSaveIds(prev => new Set([...prev, "skills"]));
+    setTimeout(() => {
+      setSkillFeedback({});
+      setHiddenSaveIds(prev => {
+        const updated = new Set(prev);
+        updated.delete("skills");
+        return updated;
+      });
+    }, 3000);
   };
 
   // Handler for resetting all skills
@@ -406,7 +415,15 @@ const [enhancedSummaryVersions, setEnhancedSummaryVersions] = useState<{ atsFrie
 
     setLinkChanges(false);
     setLinkFeedback(finalMessage);
-    setTimeout(() => setLinkFeedback(""), 3000);
+    setHiddenSaveIds(prev => new Set([...prev, "links"]));
+    setTimeout(() => {
+      setLinkFeedback("");
+      setHiddenSaveIds(prev => {
+        const updated = new Set(prev);
+        updated.delete("links");
+        return updated;
+      });
+    }, 3000);
   };
 
   // Handler for resetting all links
@@ -461,7 +478,15 @@ const [enhancedSummaryVersions, setEnhancedSummaryVersions] = useState<{ atsFrie
       initialTechnicalSummaryRef.current = data.technicalSummary;
       setTechnicalSummaryChanges(false);
       setTechnicalSummaryFeedback("Technical summary saved successfully!");
-      setTimeout(() => setTechnicalSummaryFeedback(""), 3000);
+      setHiddenSaveIds(prev => new Set([...prev, "technicalSummary"]));
+      setTimeout(() => {
+        setTechnicalSummaryFeedback("");
+        setHiddenSaveIds(prev => {
+          const updated = new Set(prev);
+          updated.delete("technicalSummary");
+          return updated;
+        });
+      }, 3000);
     } catch (error) {
       console.error("Error saving technical summary:", error);
       setTechnicalSummaryFeedback("Failed to save technical summary.");
@@ -642,42 +667,6 @@ const hasSkillChanges = Object.keys(skillChanges).length > 0;
         isCollapsed={skillsCollapsed}
         onCollapseToggle={() => setSkillsCollapsed(!skillsCollapsed)}
       >
-        <div className="flex items-center justify-end gap-2 mb-4">
-          {skillFeedback["all"] && (
-            <span
-              className={`text-xs px-2 py-1 rounded-full ${
-                skillFeedback["all"].includes("successfully")
-                  ? "bg-green-100 text-green-700"
-                  : "bg-red-100 text-red-700"
-              }`}
-            >
-              {skillFeedback["all"]}
-            </span>
-          )}
-          {hasSkillChanges && (
-            <button
-              type="button"
-              onClick={handleSaveAllSkills}
-              className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-md text-sm font-medium shadow-sm hover:from-orange-500 hover:to-orange-600 transition cursor-pointer"
-              title="Save all skill changes"
-            >
-              <Save className="w-4 h-4" strokeWidth={2} />
-              Save
-            </button>
-          )}
-          <button
-            type="button"
-            onClick={handleResetAllSkills}
-            className="w-6 h-6 flex items-center justify-center rounded-full border-2 border-gray-600 hover:bg-gray-100 transition-colors"
-            title="Reset to saved values"
-          >
-            <RotateCcw
-              className="w-3 h-3 text-gray-600 cursor-pointer"
-              strokeWidth={2.5}
-            />
-          </button>
-        </div>
-
         {data.skills.map((skill, index) => (
           <div key={skill.id} className={`${index > 0 ? "mt-4" : ""}`}>
             {skillFeedback[skill.id] && (
@@ -741,6 +730,42 @@ const hasSkillChanges = Object.keys(skillChanges).length > 0;
             <span className="text-lg">+</span> Add Skill
           </button>
         </div>
+
+        <div className="flex items-center justify-end gap-2 mt-8 pt-4 border-t border-gray-200">
+          {skillFeedback["all"] && (
+            <span
+              className={`text-xs px-2 py-1 rounded-full ${
+                skillFeedback["all"].includes("successfully")
+                  ? "bg-green-100 text-green-700"
+                  : "bg-red-100 text-red-700"
+              }`}
+            >
+              {skillFeedback["all"]}
+            </span>
+          )}
+          {hasSkillChanges && !hiddenSaveIds.has("skills") && (
+            <button
+              type="button"
+              onClick={handleSaveAllSkills}
+              className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-md text-sm font-medium shadow-sm hover:from-orange-500 hover:to-orange-600 transition cursor-pointer"
+              title="Save all skill changes"
+            >
+              <Save className="w-4 h-4" strokeWidth={2} />
+              Save
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={handleResetAllSkills}
+            className="w-6 h-6 flex items-center justify-center rounded-full border-2 border-gray-600 hover:bg-gray-100 transition-colors"
+            title="Reset to saved values"
+          >
+            <RotateCcw
+              className="w-3 h-3 text-gray-600 cursor-pointer"
+              strokeWidth={2.5}
+            />
+          </button>
+        </div>
       </FormSection>
 
       {/* LINKS SECTION */}
@@ -753,42 +778,6 @@ const hasSkillChanges = Object.keys(skillChanges).length > 0;
         isCollapsed={linksCollapsed}
         onCollapseToggle={() => setLinksCollapsed(!linksCollapsed)}
       >
-        <div className="flex items-center justify-end gap-2 mb-4">
-          {linkFeedback && (
-            <span
-              className={`text-xs px-2 py-1 rounded-full ${
-                linkFeedback.includes("successfully")
-                  ? "bg-green-100 text-green-700"
-                  : "bg-red-100 text-red-700"
-              }`}
-            >
-              {linkFeedback}
-            </span>
-          )}
-          {linkChanges && (
-            <button
-              type="button"
-              onClick={handleSaveAllLinks}
-              className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-md text-sm font-medium shadow-sm hover:from-orange-500 hover:to-orange-600 transition cursor-pointer"
-              title="Save all link changes"
-            >
-              <Save className="w-4 h-4" strokeWidth={2} />
-              Save
-            </button>
-          )}
-          <button
-            type="button"
-            onClick={handleResetAllLinks}
-            className="w-6 h-6 flex items-center justify-center rounded-full border-2 border-gray-600 hover:bg-gray-100 transition-colors"
-            title="Reset to saved values"
-          >
-            <RotateCcw
-              className="w-3 h-3 text-gray-600 cursor-pointer"
-              strokeWidth={2.5}
-            />
-          </button>
-        </div>
-
         <div className="space-y-4">
           {/* LinkedIn */}
           <div className="flex items-center gap-3">
@@ -886,6 +875,42 @@ const hasSkillChanges = Object.keys(skillChanges).length > 0;
             />
           </div>
         </div>
+
+        <div className="flex items-center justify-end gap-2 mt-8 pt-4 border-t border-gray-200">
+          {linkFeedback && (
+            <span
+              className={`text-xs px-2 py-1 rounded-full ${
+                linkFeedback.includes("successfully")
+                  ? "bg-green-100 text-green-700"
+                  : "bg-red-100 text-red-700"
+              }`}
+            >
+              {linkFeedback}
+            </span>
+          )}
+          {linkChanges && !hiddenSaveIds.has("links") && (
+            <button
+              type="button"
+              onClick={handleSaveAllLinks}
+              className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-md text-sm font-medium shadow-sm hover:from-orange-500 hover:to-orange-600 transition cursor-pointer"
+              title="Save all link changes"
+            >
+              <Save className="w-4 h-4" strokeWidth={2} />
+              Save
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={handleResetAllLinks}
+            className="w-6 h-6 flex items-center justify-center rounded-full border-2 border-gray-600 hover:bg-gray-100 transition-colors"
+            title="Reset to saved values"
+          >
+            <RotateCcw
+              className="w-3 h-3 text-gray-600 cursor-pointer"
+              strokeWidth={2.5}
+            />
+          </button>
+        </div>
       </FormSection>
 
       {/* TECHNICAL SUMMARY */}
@@ -902,7 +927,7 @@ const hasSkillChanges = Object.keys(skillChanges).length > 0;
           setTechnicalSummaryCollapsed(!technicalSummaryCollapsed)
         }
       >
-        <div className="flex items-center justify-between gap-2 mb-4 flex-wrap">
+        <div className="flex items-center justify-start gap-2 mb-4">
           {/* AI Enhance button */}
           <button
             type="button"
@@ -921,34 +946,6 @@ const hasSkillChanges = Object.keys(skillChanges).length > 0;
             }
             {isEnhancingSummary ? "Enhancing..." : "Enhance with AI"}
           </button>
-
-          {/* Save / Reset */}
-          <div className="flex items-center gap-2">
-            {technicalSummaryFeedback && (
-              <span className={`text-xs px-2 py-1 rounded-full ${technicalSummaryFeedback.includes("successfully") ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
-                {technicalSummaryFeedback}
-              </span>
-            )}
-            {technicalSummaryChanges && (
-              <button
-                type="button"
-                onClick={handleSaveTechnicalSummary}
-                className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-md text-sm font-medium shadow-sm hover:from-orange-500 hover:to-orange-600 transition cursor-pointer"
-                title="Save technical summary"
-              >
-                <Save className="w-4 h-4" strokeWidth={2} />
-                Save
-              </button>
-            )}
-            <button
-              type="button"
-              onClick={handleResetTechnicalSummary}
-              className="w-6 h-6 flex items-center justify-center rounded-full border-2 border-gray-600 hover:bg-gray-100 transition-colors"
-              title="Reset to saved value"
-            >
-              <RotateCcw className="w-3 h-3 text-gray-600 cursor-pointer" strokeWidth={2.5} />
-            </button>
-          </div>
         </div>
 
         <div className="flex flex-col gap-1 mt-4">
@@ -1028,6 +1025,33 @@ const hasSkillChanges = Object.keys(skillChanges).length > 0;
             </div>
           </div>
         )}
+
+        <div className="flex items-center justify-end gap-2 mt-8 pt-4 border-t border-gray-200">
+          {technicalSummaryFeedback && (
+            <span className={`text-xs px-2 py-1 rounded-full ${technicalSummaryFeedback.includes("successfully") ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+              {technicalSummaryFeedback}
+            </span>
+          )}
+          {technicalSummaryChanges && !hiddenSaveIds.has("technicalSummary") && (
+            <button
+              type="button"
+              onClick={handleSaveTechnicalSummary}
+              className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-md text-sm font-medium shadow-sm hover:from-orange-500 hover:to-orange-600 transition cursor-pointer"
+              title="Save technical summary"
+            >
+              <Save className="w-4 h-4" strokeWidth={2} />
+              Save
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={handleResetTechnicalSummary}
+            className="w-6 h-6 flex items-center justify-center rounded-full border-2 border-gray-600 hover:bg-gray-100 transition-colors"
+            title="Reset to saved value"
+          >
+            <RotateCcw className="w-3 h-3 text-gray-600 cursor-pointer" strokeWidth={2.5} />
+          </button>
+        </div>
       </FormSection>
     </div>
   );

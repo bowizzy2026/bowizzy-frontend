@@ -198,6 +198,7 @@ export const EducationDetailsForm: React.FC<EducationDetailsFormProps> = ({
   const [sslcFeedback, setSslcFeedback] = useState("");
   const [puFeedback, setPuFeedback] = useState("");
   const [higherEduFeedback, setHigherEduFeedback] = useState<Record<string, string>>({});
+  const [hiddenSaveIds, setHiddenSaveIds] = useState<Set<string>>(new Set());
 
 
   const initialDataRef = useRef(data);
@@ -563,8 +564,16 @@ export const EducationDetailsForm: React.FC<EducationDetailsFormProps> = ({
         sslcEnabled: data.sslcEnabled,
       };
       setSslcFeedback(feedbackMessage);
+      setHiddenSaveIds(prev => new Set([...prev, "sslc"]));
 
-      setTimeout(() => setSslcFeedback(""), 3000);
+      setTimeout(() => {
+        setSslcFeedback("");
+        setHiddenSaveIds(prev => {
+          const updated = new Set(prev);
+          updated.delete("sslc");
+          return updated;
+        });
+      }, 3000);
     } catch (error) {
       console.error("Error saving SSLC:", error);
       setSslcFeedback("Failed to save SSLC details");
@@ -676,8 +685,16 @@ export const EducationDetailsForm: React.FC<EducationDetailsFormProps> = ({
         preUniversityEnabled: data.preUniversityEnabled,
       };
       setPuFeedback(feedbackMessage);
+      setHiddenSaveIds(prev => new Set([...prev, "preUniversity"]));
 
-      setTimeout(() => setPuFeedback(""), 3000);
+      setTimeout(() => {
+        setPuFeedback("");
+        setHiddenSaveIds(prev => {
+          const updated = new Set(prev);
+          updated.delete("preUniversity");
+          return updated;
+        });
+      }, 3000);
     } catch (error) {
       console.error("Error saving PU:", error);
       setPuFeedback("Failed to save Pre University details");
@@ -824,15 +841,20 @@ export const EducationDetailsForm: React.FC<EducationDetailsFormProps> = ({
       }
 
       setHigherEduFeedback((prev) => ({ ...prev, [edu.id]: feedbackMessage }));
-      setTimeout(
-        () =>
-          setHigherEduFeedback((prev) => {
-            const updated = { ...prev };
-            delete updated[edu.id];
-            return updated;
-          }),
-        3000
-      );
+      setHiddenSaveIds(prev => new Set([...prev, edu.id]));
+      
+      setTimeout(() => {
+        setHigherEduFeedback((prev) => {
+          const updated = { ...prev };
+          delete updated[edu.id];
+          return updated;
+        });
+        setHiddenSaveIds(prev => {
+          const updated = new Set(prev);
+          updated.delete(edu.id);
+          return updated;
+        });
+      }, 3000);
     } catch (error) {
       console.error(`Error saving higher education ${edu.id}:`, error);
       setHigherEduFeedback((prev) => ({
@@ -1076,40 +1098,16 @@ export const EducationDetailsForm: React.FC<EducationDetailsFormProps> = ({
         )}
 
         <div className="flex items-center justify-end gap-2 mb-4">
-          {feedback && (
-            <span
-              className={`text-xs px-2 py-1 rounded-full ${
-                feedback.includes("successfully")
-                  ? "bg-green-100 text-green-700"
-                  : "bg-red-100 text-red-700"
-              }`}
-            >
-              {feedback}
-            </span>
-          )}
-          {hasChanged && (
-            <button
-              type="button"
-              onClick={() => handleSaveHigherEducation(education)}
-              className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-md text-sm font-medium shadow-sm hover:from-orange-500 hover:to-orange-600 transition cursor-pointer"
-              aria-pressed="false"
-              aria-label={isNewCard ? "Save new education" : "Save education changes"}
-            >
-              <Save className="w-4 h-4" strokeWidth={2} />
-              Save
-            </button>
-          )}
-          <button
-            type="button"
-            onClick={() => handleResetHigherEducation(id)}
-            className="w-6 h-6 flex items-center justify-center rounded-full border-2 border-gray-600 hover:bg-gray-100 transition-colors"
-            title="Reset to saved values"
-          >
-            <RotateCcw
-              className="w-3 h-3 text-gray-600 cursor-pointer"
-              strokeWidth={2.5}
-            />
-          </button>
+          <h4 className="text-sm font-medium text-gray-900">
+            {education.degree && education.fieldOfStudy
+              ? `${education.degree} in ${education.fieldOfStudy}`
+              : education.degree || `Education #${index + 1}`}
+          </h4>
+          <span className="text-xs text-gray-500">
+            {education.instituteName &&
+              education.instituteName !== "undefined" &&
+              education.instituteName}
+          </span>
         </div>
 
         <div className="space-y-4">
@@ -1233,6 +1231,43 @@ export const EducationDetailsForm: React.FC<EducationDetailsFormProps> = ({
               error={errors[`higherEducation.${id}.result`]}
             />
           </div>
+
+          <div className='flex items-center justify-end gap-2 mt-8 pt-4 border-t border-gray-200'>
+            {feedback && (
+              <span
+                className={`text-xs px-2 py-1 rounded-full ${
+                  feedback.includes("successfully")
+                    ? "bg-green-100 text-green-700"
+                    : "bg-red-100 text-red-700"
+                }`}
+              >
+                {feedback}
+              </span>
+            )}
+            {hasChanged && !hiddenSaveIds.has(education.id) && (
+              <button
+                type="button"
+                onClick={() => handleSaveHigherEducation(education)}
+                className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-md text-sm font-medium shadow-sm hover:from-orange-500 hover:to-orange-600 transition cursor-pointer"
+                aria-pressed="false"
+                aria-label={isNewCard ? "Save new education" : "Save education changes"}
+              >
+                <Save className="w-4 h-4" strokeWidth={2} />
+                Save
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => handleResetHigherEducation(id)}
+              className="w-6 h-6 flex items-center justify-center rounded-full border-2 border-gray-600 hover:bg-gray-100 transition-colors"
+              title="Reset to saved values"
+            >
+              <RotateCcw
+                className="w-3 h-3 text-gray-600 cursor-pointer"
+                strokeWidth={2.5}
+              />
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -1249,43 +1284,6 @@ export const EducationDetailsForm: React.FC<EducationDetailsFormProps> = ({
         isCollapsed={sslcCollapsed}
         onCollapseToggle={() => setSslcCollapsed(!sslcCollapsed)}
       >
-        <div className="flex items-center justify-end gap-2 mb-4">
-          {sslcFeedback && (
-            <span
-              className={`text-xs px-2 py-1 rounded-full ${
-                sslcFeedback.includes("successfully")
-                  ? "bg-green-100 text-green-700"
-                  : "bg-red-100 text-red-700"
-              }`}
-            >
-              {sslcFeedback}
-            </span>
-          )}
-          {hasSslcChanged() && (
-            <button
-              type="button"
-              onClick={handleSaveSslc}
-              className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-md text-sm font-medium shadow-sm hover:from-orange-500 hover:to-orange-600 transition cursor-pointer"
-              aria-pressed="false"
-              aria-label={data.sslc.education_id ? "Update SSLC" : "Save SSLC"}
-            >
-              <Save className="w-4 h-4" strokeWidth={2} />
-              Save
-            </button>
-          )}
-          <button
-            type="button"
-            onClick={handleResetSslc}
-            className="w-6 h-6 flex items-center justify-center rounded-full border-2 border-gray-600 hover:bg-gray-100 transition-colors"
-            title="Reset to saved values"
-          >
-            <RotateCcw
-              className="w-3 h-3 text-gray-600 cursor-pointer"
-              strokeWidth={2.5}
-            />
-          </button>
-        </div>
-
         <FormInput
           label="Institution Name"
           placeholder="Enter Institute Name"
@@ -1332,6 +1330,43 @@ export const EducationDetailsForm: React.FC<EducationDetailsFormProps> = ({
             error={errors["sslc.result"]}
           />
         </div>
+
+        <div className="flex items-center justify-end gap-2 mt-8 pt-4 border-t border-gray-200">
+          {sslcFeedback && (
+            <span
+              className={`text-xs px-2 py-1 rounded-full ${
+                sslcFeedback.includes("successfully")
+                  ? "bg-green-100 text-green-700"
+                  : "bg-red-100 text-red-700"
+              }`}
+            >
+              {sslcFeedback}
+            </span>
+          )}
+          {hasSslcChanged() && !hiddenSaveIds.has("sslc") && (
+            <button
+              type="button"
+              onClick={handleSaveSslc}
+              className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-md text-sm font-medium shadow-sm hover:from-orange-500 hover:to-orange-600 transition cursor-pointer"
+              aria-pressed="false"
+              aria-label={data.sslc.education_id ? "Update SSLC" : "Save SSLC"}
+            >
+              <Save className="w-4 h-4" strokeWidth={2} />
+              Save
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={handleResetSslc}
+            className="w-6 h-6 flex items-center justify-center rounded-full border-2 border-gray-600 hover:bg-gray-100 transition-colors"
+            title="Reset to saved values"
+          >
+            <RotateCcw
+              className="w-3 h-3 text-gray-600 cursor-pointer"
+              strokeWidth={2.5}
+            />
+          </button>
+        </div>
       </FormSection>
 
       <FormSection
@@ -1347,43 +1382,6 @@ export const EducationDetailsForm: React.FC<EducationDetailsFormProps> = ({
           setPreUniversityCollapsed(!preUniversityCollapsed)
         }
       >
-        <div className="flex items-center justify-end gap-2 mb-4">
-          {puFeedback && (
-            <span
-              className={`text-xs px-2 py-1 rounded-full ${
-                puFeedback.includes("successfully")
-                  ? "bg-green-100 text-green-700"
-                  : "bg-red-100 text-red-700"
-              }`}
-            >
-              {puFeedback}
-            </span>
-          )}
-          {hasPuChanged() && (
-            <button
-              type="button"
-              onClick={handleSavePu}
-              className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-md text-sm font-medium shadow-sm hover:from-orange-500 hover:to-orange-600 transition cursor-pointer"
-              aria-pressed="false"
-              aria-label={data.preUniversity.education_id ? "Update Pre University" : "Save Pre University"}
-            >
-              <Save className="w-4 h-4" strokeWidth={2} />
-              Save
-            </button>
-          )}
-          <button
-            type="button"
-            onClick={handleResetPu}
-            className="w-6 h-6 flex items-center justify-center rounded-full border-2 border-gray-600 hover:bg-gray-100 transition-colors"
-            title="Reset to saved values"
-          >
-            <RotateCcw
-              className="w-3 h-3 text-gray-600 cursor-pointer"
-              strokeWidth={2.5}
-            />
-          </button>
-        </div>
-
         <FormInput
           label="Institution Name"
           placeholder="Enter Institute Name"
@@ -1438,6 +1436,43 @@ export const EducationDetailsForm: React.FC<EducationDetailsFormProps> = ({
             onChange={(v) => updatePreUniversity("result", v)}
             error={errors["preUniversity.result"]}
           />
+        </div>
+
+        <div className="flex items-center justify-end gap-2 mt-8 pt-4 border-t border-gray-200">
+          {puFeedback && (
+            <span
+              className={`text-xs px-2 py-1 rounded-full ${
+                puFeedback.includes("successfully")
+                  ? "bg-green-100 text-green-700"
+                  : "bg-red-100 text-red-700"
+              }`}
+            >
+              {puFeedback}
+            </span>
+          )}
+          {hasPuChanged() && !hiddenSaveIds.has("preUniversity") && (
+            <button
+              type="button"
+              onClick={handleSavePu}
+              className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-md text-sm font-medium shadow-sm hover:from-orange-500 hover:to-orange-600 transition cursor-pointer"
+              aria-pressed="false"
+              aria-label={data.preUniversity.education_id ? "Update Pre University" : "Save Pre University"}
+            >
+              <Save className="w-4 h-4" strokeWidth={2} />
+              Save
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={handleResetPu}
+            className="w-6 h-6 flex items-center justify-center rounded-full border-2 border-gray-600 hover:bg-gray-100 transition-colors"
+            title="Reset to saved values"
+          >
+            <RotateCcw
+              className="w-3 h-3 text-gray-600 cursor-pointer"
+              strokeWidth={2.5}
+            />
+          </button>
         </div>
       </FormSection>
 

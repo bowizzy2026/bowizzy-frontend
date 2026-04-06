@@ -46,6 +46,7 @@ export const CertificationsForm: React.FC<CertificationsFormProps> = ({
 
   // State for tracking feedback
   const [certFeedback, setCertFeedback] = useState<Record<string, string>>({});
+  const [hiddenSaveIds, setHiddenSaveIds] = useState<Set<string>>(new Set());
 
   // Refs for tracking initial data and file inputs
   const initialCertificatesRef = useRef<Record<string, Certificate>>({});
@@ -498,11 +499,17 @@ export const CertificationsForm: React.FC<CertificationsFormProps> = ({
         }
       }
 
-      // Clear general feedback after 3 seconds
+      // Clear general feedback after 3 seconds and hide save button
+      setHiddenSaveIds(prev => new Set([...prev, certificate.id]));
       setTimeout(() => {
         setCertFeedback((prev) => {
           const updated = { ...prev };
           delete updated[certificate.id];
+          return updated;
+        });
+        setHiddenSaveIds(prev => {
+          const updated = new Set(prev);
+          updated.delete(certificate.id);
           return updated;
         });
       }, 3000);
@@ -679,46 +686,6 @@ export const CertificationsForm: React.FC<CertificationsFormProps> = ({
             isCollapsed={collapsedStates[cert.id] || false}
             onCollapseToggle={() => toggleCollapse(cert.id)}
           >
-            <div className="flex items-center justify-end gap-2 mb-4">
-              {feedback && (
-                <span
-                  className={`text-xs px-2 py-1 rounded-full ${
-                    feedback.includes("successfully")
-                      ? "bg-green-100 text-green-700"
-                      : "bg-red-100 text-red-700"
-                  }`}
-                >
-                  {feedback}
-                </span>
-              )}
-              {changed && (
-                <button
-                  type="button"
-                  onClick={() => handleSaveCertificate(cert)}
-                  className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-md text-sm font-medium shadow-sm hover:from-orange-500 hover:to-orange-600 transition cursor-pointer"
-                  title={
-                    cert.certificate_id
-                      ? "Update changes"
-                      : "Save new certificate"
-                  }
-                >
-                  <Save className="w-4 h-4" strokeWidth={2} />
-                  Save
-                </button>
-              )}
-              <button
-                type="button"
-                onClick={() => resetCertificate(cert.id)}
-                className="w-6 h-6 flex items-center justify-center rounded-full border-2 border-gray-600 hover:bg-gray-100 transition-colors"
-                title="Reset to saved values"
-              >
-                <RotateCcw
-                  className="w-3 h-3 text-gray-600 cursor-pointer"
-                  strokeWidth={2.5}
-                />
-              </button>
-            </div>
-
             <FormInput
               label="Certificate Title"
               placeholder="Enter Certificate Title"
@@ -851,6 +818,46 @@ export const CertificationsForm: React.FC<CertificationsFormProps> = ({
                   </button>
                 </div>
               )}
+            </div>
+
+            <div className="flex items-center justify-end gap-2 mt-8 pt-4 border-t border-gray-200">
+              {feedback && (
+                <span
+                  className={`text-xs px-2 py-1 rounded-full ${
+                    feedback.includes("successfully")
+                      ? "bg-green-100 text-green-700"
+                      : "bg-red-100 text-red-700"
+                  }`}
+                >
+                  {feedback}
+                </span>
+              )}
+              {changed && !hiddenSaveIds.has(cert.id) && (
+                <button
+                  type="button"
+                  onClick={() => handleSaveCertificate(cert)}
+                  className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-md text-sm font-medium shadow-sm hover:from-orange-500 hover:to-orange-600 transition cursor-pointer"
+                  title={
+                    cert.certificate_id
+                      ? "Update changes"
+                      : "Save new certificate"
+                  }
+                >
+                  <Save className="w-4 h-4" strokeWidth={2} />
+                  Save
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => resetCertificate(cert.id)}
+                className="w-6 h-6 flex items-center justify-center rounded-full border-2 border-gray-600 hover:bg-gray-100 transition-colors"
+                title="Reset to saved values"
+              >
+                <RotateCcw
+                  className="w-3 h-3 text-gray-600 cursor-pointer"
+                  strokeWidth={2.5}
+                />
+              </button>
             </div>
           </FormSection>
         );

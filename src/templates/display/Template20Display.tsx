@@ -2,7 +2,8 @@ import React from 'react';
 import DOMPurify from 'dompurify';
 import type { ResumeData } from '@/types/resume';
 
-interface Template20DisplayProps { data: ResumeData 
+interface Template20DisplayProps {
+  data: ResumeData
   fontFamily?: string;
   primaryColor?: string;
 }
@@ -22,14 +23,14 @@ const htmlToLines = (s?: string) => {
 
 const formatMonthYear = (s?: string) => {
   if (!s) return '';
-  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
   try {
     const str = String(s).trim();
     const ymd = str.match(/^(\d{4})-(\d{2})(?:-\d{2})?$/);
-    if (ymd) return `${months[parseInt(ymd[2],10)-1]} ${ymd[1]}`;
+    if (ymd) return `${months[parseInt(ymd[2], 10) - 1]} ${ymd[1]}`;
     const mY = str.match(/^(\d{2})\/(\d{4})$/);
-    if (mY) return `${months[parseInt(mY[1],10)-1]} ${mY[2]}`;
-  } catch (e) {}
+    if (mY) return `${months[parseInt(mY[1], 10) - 1]} ${mY[2]}`;
+  } catch (e) { }
   const yr = String(s).match(/(\d{4})/)?.[1];
   return yr || String(s);
 };
@@ -38,7 +39,8 @@ const Template20Display: React.FC<Template20DisplayProps> = ({
   data,
   fontFamily = 'Georgia, serif',
   primaryColor = '#111827',
-}) => {  const { personal, experience, education, certifications, skillsLinks } = data;
+}) => {
+  const { personal, experience, education, certifications, skillsLinks } = data;
 
   const formatMobile = (m?: string) => {
     if (!m) return '';
@@ -60,8 +62,8 @@ const Template20Display: React.FC<Template20DisplayProps> = ({
     <div style={{ width: '210mm', minHeight: '297mm', fontFamily: fontFamily, background: '#fff', padding: 24, boxSizing: 'border-box' }}>
       <div style={{ paddingBottom: 12 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h1 style={{ margin: 0, fontFamily: fontFamily, fontSize: 28,color: primaryColor, }}>{personal.firstName} {personal.middleName || ''} {personal.lastName}</h1>
-          { (experience && (experience as any).jobRole) && <div style={{ fontSize: 14, color: primaryColor, fontFamily: 'monospace' }}>{(experience as any).jobRole}</div> }
+          <h1 style={{ margin: 0, fontFamily: fontFamily, fontSize: 28, color: primaryColor, }}>{personal.firstName} {personal.middleName || ''} {personal.lastName}</h1>
+          {(experience && (experience as any).jobRole) && <div style={{ fontSize: 14, color: primaryColor, fontFamily: 'monospace' }}>{(experience as any).jobRole}</div>}
         </div>
       </div>
 
@@ -70,43 +72,46 @@ const Template20Display: React.FC<Template20DisplayProps> = ({
       <div>
         {/* CONTACT row */}
         <div style={{ display: 'flex', alignItems: 'flex-start' }}>
-<div
-  style={{
-    width: 170,
-    paddingRight: 12,
-    fontSize: 11,
-    fontWeight: 800,
-    textTransform: 'uppercase',
-    letterSpacing: 1.2,
-    color: primaryColor, // ✅ headline accent
-  }}
->
-  Contact
-</div>          <div style={{ flex: 1 }}>
+          <div
+            style={{
+              width: 170,
+              paddingRight: 12,
+              fontSize: 11,
+              fontWeight: 800,
+              textTransform: 'uppercase',
+              letterSpacing: 1.2,
+              color: primaryColor, // ✅ headline accent
+            }}
+          >
+            Contact
+          </div>          <div style={{ flex: 1 }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, fontSize: 12, color: '#111827', lineHeight: 1.6 }}>
               {contactItems.map((c, i) => (<div key={i} style={{ marginBottom: 6 }}>{c}</div>))}
             </div>
           </div>
         </div>
 
+        {experience.workExperiences.filter((w: any) => w.enabled).length > 0 && (
         <div style={{ height: 1, background: '#ddd', margin: '12px 0' }} />
+        )}
 
         {/* PROFESSIONAL EXPERIENCE row */}
+        {experience.workExperiences.filter((w: any) => w.enabled).length > 0 && (
         <div style={{ display: 'flex', alignItems: 'flex-start' }}>
-<div
-  style={{
-    width: 170,
-    paddingRight: 12,
-    fontSize: 11,
-    fontWeight: 800,
-    textTransform: 'uppercase',
-    letterSpacing: 1.2,
-    color: primaryColor, // ✅ ADD THIS
-  }}
->
-  Professional Experience
-</div>          <div style={{ flex: 1 }}>
-            {experience.workExperiences.filter((w:any)=>w.enabled).map((w:any, idx:number)=> (
+          <div
+            style={{
+              width: 170,
+              paddingRight: 12,
+              fontSize: 11,
+              fontWeight: 800,
+              textTransform: 'uppercase',
+              letterSpacing: 1.2,
+              color: primaryColor, // ✅ ADD THIS
+            }}
+          >
+            Professional Experience
+          </div>          <div style={{ flex: 1 }}>
+            {experience.workExperiences.filter((w: any) => w.enabled).map((w: any, idx: number) => (
               <div key={idx} style={{ marginBottom: 14 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                   <div style={{ fontWeight: 700 }}>{w.jobTitle}</div>
@@ -122,25 +127,29 @@ const Template20Display: React.FC<Template20DisplayProps> = ({
             ))}
           </div>
         </div>
+        )}
 
+        {(education.higherEducationEnabled || education.preUniversityEnabled || education.sslcEnabled) && (
         <div style={{ height: 1, background: '#ddd', margin: '12px 0' }} />
+        )}
 
         {/* EDUCATION row */}
+        {(education.higherEducationEnabled || education.preUniversityEnabled || education.sslcEnabled) && (
         <div style={{ display: 'flex', alignItems: 'flex-start' }}>
-<div
-  style={{
-    width: 170,
-    paddingRight: 12,
-    fontSize: 11,
-    fontWeight: 800,
-    textTransform: 'uppercase',
-    letterSpacing: 1.2,
-    color: primaryColor, // ✅ add this
-  }}
->
-  Education
-</div>          <div style={{ flex: 1 }}>
-            {education.higherEducationEnabled && education.higherEducation.slice().map((edu:any,i:number)=> (
+          <div
+            style={{
+              width: 170,
+              paddingRight: 12,
+              fontSize: 11,
+              fontWeight: 800,
+              textTransform: 'uppercase',
+              letterSpacing: 1.2,
+              color: primaryColor, // ✅ add this
+            }}
+          >
+            Education
+          </div>          <div style={{ flex: 1 }}>
+            {education.higherEducationEnabled && education.higherEducation.slice().map((edu: any, i: number) => (
               <div key={i} style={{ marginBottom: 12 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <div style={{ fontWeight: 800, color: '#000' }}>{edu.degree}{(edu.startYear || edu.endYear) ? ` ${edu.startYear ? formatYear(edu.startYear) : ''} | ${edu.endYear ? formatYear(edu.endYear) : ''}` : ''}</div>
@@ -152,7 +161,7 @@ const Template20Display: React.FC<Template20DisplayProps> = ({
                 ) : null}
                 {edu.description && (
                   <ul style={{ marginTop: 8, paddingLeft: 18 }}>
-                    {htmlToLines(edu.description).map((ln, j)=> <li key={j} style={{ marginBottom: 6 }}>{ln}</li>)}
+                    {htmlToLines(edu.description).map((ln, j) => <li key={j} style={{ marginBottom: 6 }}>{ln}</li>)}
                   </ul>
                 )}
               </div>
@@ -185,26 +194,30 @@ const Template20Display: React.FC<Template20DisplayProps> = ({
             )}
           </div>
         </div>
+        )}
 
+        {(certifications || []).filter((c: any) => c.enabled && c.certificateTitle).length > 0 && (
         <div style={{ height: 1, background: '#ddd', margin: '12px 0' }} />
+        )}
 
         {/* CERTIFICATES row */}
+        {(certifications || []).filter((c: any) => c.enabled && c.certificateTitle).length > 0 && (
         <div style={{ display: 'flex', alignItems: 'flex-start' }}>
-<div
-  style={{
-    width: 140,
-    paddingRight: 12,
-    fontSize: 11,
-    fontWeight: 800,
-    textTransform: 'uppercase',
-    letterSpacing: 1.2,
-    color: primaryColor, // ✅ headline accent
-  }}
->
-  Certificates
-</div>          <div style={{ flex: 1 }}>
+          <div
+            style={{
+              width: 140,
+              paddingRight: 12,
+              fontSize: 11,
+              fontWeight: 800,
+              textTransform: 'uppercase',
+              letterSpacing: 1.2,
+              color: primaryColor, // ✅ headline accent
+            }}
+          >
+            Certificates
+          </div>          <div style={{ flex: 1 }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              {(certifications || []).filter((c:any)=>c.enabled && c.certificateTitle).map((c:any,i:number)=> (
+              {(certifications || []).filter((c: any) => c.enabled && c.certificateTitle).map((c: any, i: number) => (
                 <div key={i} style={{ fontSize: 12 }}>
                   <div style={{ fontWeight: 700 }}>{c.certificateTitle} {c.year ? `| ${c.year}` : ''}</div>
                   {c.providedBy && <div style={{ color: '#6b7280', marginTop: 4 }}>{c.providedBy}</div>}
@@ -213,6 +226,7 @@ const Template20Display: React.FC<Template20DisplayProps> = ({
             </div>
           </div>
         </div>
+        )}
 
       </div>
     </div>

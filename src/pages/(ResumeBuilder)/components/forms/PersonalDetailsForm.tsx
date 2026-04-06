@@ -119,6 +119,7 @@ export const PersonalDetailsForm: React.FC<PersonalDetailsFormProps> = ({
   const [languagesFeedback, setLanguagesFeedback] = useState("");
   const [locationFeedback, setLocationFeedback] = useState("");
   const [careerObjectiveFeedback, setCareerObjectiveFeedback] = useState("");
+  const [hiddenSaveIds, setHiddenSaveIds] = useState<Set<string>>(new Set());
 
 const [isEnhancing, setIsEnhancing] = useState(false);
 const [enhanceError, setEnhanceError] = useState("");
@@ -520,7 +521,15 @@ const handleDismissEnhanced = () => {
       initialLanguages.current = [...data.languagesKnown];
       setLanguagesChanged(false);
       setLanguagesFeedback("Languages updated successfully!");
-      setTimeout(() => setLanguagesFeedback(""), 3000);
+      setHiddenSaveIds(prev => new Set([...prev, "languages"]));
+      setTimeout(() => {
+        setLanguagesFeedback("");
+        setHiddenSaveIds(prev => {
+          const updated = new Set(prev);
+          updated.delete("languages");
+          return updated;
+        });
+      }, 3000);
     } catch (error) {
       console.error("Error updating languages:", error);
       setLanguagesFeedback("Failed to update languages");
@@ -598,7 +607,15 @@ const handleDismissEnhanced = () => {
       setLocationChanged(false);
       setChangedLocationFields([]);
       setLocationFeedback("Location updated successfully!");
-      setTimeout(() => setLocationFeedback(""), 3000);
+      setHiddenSaveIds(prev => new Set([...prev, "location"]));
+      setTimeout(() => {
+        setLocationFeedback("");
+        setHiddenSaveIds(prev => {
+          const updated = new Set(prev);
+          updated.delete("location");
+          return updated;
+        });
+      }, 3000);
     } catch (error) {
       console.error("Error updating location:", error);
       setLocationFeedback("Failed to update location");
@@ -639,7 +656,15 @@ const handleDismissEnhanced = () => {
       initialCareerObjective.current = data.aboutCareerObjective ?? "";
       setCareerObjectiveChanged(false);
       setCareerObjectiveFeedback("Career Objective updated successfully!");
-      setTimeout(() => setCareerObjectiveFeedback(""), 3000);
+      setHiddenSaveIds(prev => new Set([...prev, "careerObjective"]));
+      setTimeout(() => {
+        setCareerObjectiveFeedback("");
+        setHiddenSaveIds(prev => {
+          const updated = new Set(prev);
+          updated.delete("careerObjective");
+          return updated;
+        });
+      }, 3000);
     } catch (error) {
       console.error("Error updating career objective:", error);
       setCareerObjectiveFeedback("Failed to update Career Objective");
@@ -885,39 +910,6 @@ const handleDismissEnhanced = () => {
 
         {languagesEnabled && !languagesCollapsed && (
           <div className="p-4">
-            <div className="flex items-center justify-end gap-2 mb-4">
-              {languagesFeedback && (
-                <span
-                  className={`text-xs px-2 py-1 rounded-full ${languagesFeedback.includes("success")
-                    ? "bg-green-100 text-green-700"
-                    : "bg-red-100 text-red-700"
-                    }`}
-                >
-                  {languagesFeedback}
-                </span>
-              )}
-              {languagesChanged && (
-                <button
-                  type="button"
-                  onClick={handleUpdateLanguages}
-                  className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-md text-sm font-medium shadow-sm hover:from-orange-500 hover:to-orange-600 transition cursor-pointer"
-                  aria-pressed="false"
-                  aria-label="Save language changes"
-                >
-                  <Save className="w-4 h-4" strokeWidth={2} />
-                  Save
-                </button>
-              )}
-              <button
-                type="button"
-                onClick={handleResetLanguages}
-                className="w-6 h-6 flex items-center justify-center rounded-full border-2 border-gray-600 hover:bg-gray-100 transition-colors"
-                title="Reset to saved values"
-              >
-                <RotateCcw className="w-3 h-3 text-gray-600" strokeWidth={2.5} />
-              </button>
-            </div>
-
             <div
               ref={languageContainerRef}
               className="relative w-full overflow-visible"
@@ -976,6 +968,41 @@ const handleDismissEnhanced = () => {
                 document.body
               )}
             </div>
+
+            {/* Save/Reset section moved to bottom */}
+            <div className="flex items-center justify-end gap-2 mt-8 pt-4 border-t border-gray-200">
+              {languagesFeedback && (
+                <span
+                  className={`text-xs px-2 py-1 rounded-full ${
+                    languagesFeedback.includes("success")
+                      ? "bg-green-100 text-green-700"
+                      : "bg-red-100 text-red-700"
+                  }`}
+                >
+                  {languagesFeedback}
+                </span>
+              )}
+              {languagesChanged && !hiddenSaveIds.has("languages") && (
+                <button
+                  type="button"
+                  onClick={handleUpdateLanguages}
+                  className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-md text-sm font-medium shadow-sm hover:from-orange-500 hover:to-orange-600 transition cursor-pointer"
+                  aria-pressed="false"
+                  aria-label="Save language changes"
+                >
+                  <Save className="w-4 h-4" strokeWidth={2} />
+                  Save
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={handleResetLanguages}
+                className="w-6 h-6 flex items-center justify-center rounded-full border-2 border-gray-600 hover:bg-gray-100 transition-colors"
+                title="Reset to saved values"
+              >
+                <RotateCcw className="w-3 h-3 text-gray-600" strokeWidth={2.5} />
+              </button>
+            </div>
           </div>
         )}
       </div>
@@ -995,39 +1022,6 @@ const handleDismissEnhanced = () => {
 
         {locationEnabled && !locationDetailsCollapsed && (
           <div className="p-4">
-            <div className="flex items-center justify-end gap-2 mb-4">
-              {locationFeedback && (
-                <span
-                  className={`text-xs px-2 py-1 rounded-full ${locationFeedback.includes("success")
-                    ? "bg-green-100 text-green-700"
-                    : "bg-red-100 text-red-700"
-                    }`}
-                >
-                  {locationFeedback}
-                </span>
-              )}
-              {locationChanged && (
-                <button
-                  type="button"
-                  onClick={handleUpdateLocation}
-                  className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-md text-sm font-medium shadow-sm hover:from-orange-500 hover:to-orange-600 transition cursor-pointer"
-                  aria-pressed="false"
-                  aria-label="Save location changes"
-                >
-                  <Save className="w-4 h-4" strokeWidth={2} />
-                  Save
-                </button>
-              )}
-              <button
-                type="button"
-                onClick={handleResetLocation}
-                className="w-6 h-6 flex items-center justify-center rounded-full border-2 border-gray-600 hover:bg-gray-100 transition-colors"
-                title="Reset to saved values"
-              >
-                <RotateCcw className="w-3 h-3 text-gray-600" strokeWidth={2.5} />
-              </button>
-            </div>
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormSelect
                 label="Country"
@@ -1093,6 +1087,41 @@ const handleDismissEnhanced = () => {
                 error={errors.passportNumber}
               />
             </div>
+
+            {/* Save/Reset section moved to bottom */}
+            <div className="flex items-center justify-end gap-2 mt-8 pt-4 border-t border-gray-200">
+              {locationFeedback && (
+                <span
+                  className={`text-xs px-2 py-1 rounded-full ${
+                    locationFeedback.includes("success")
+                      ? "bg-green-100 text-green-700"
+                      : "bg-red-100 text-red-700"
+                  }`}
+                >
+                  {locationFeedback}
+                </span>
+              )}
+              {locationChanged && !hiddenSaveIds.has("location") && (
+                <button
+                  type="button"
+                  onClick={handleUpdateLocation}
+                  className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-md text-sm font-medium shadow-sm hover:from-orange-500 hover:to-orange-600 transition cursor-pointer"
+                  aria-pressed="false"
+                  aria-label="Save location changes"
+                >
+                  <Save className="w-4 h-4" strokeWidth={2} />
+                  Save
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={handleResetLocation}
+                className="w-6 h-6 flex items-center justify-center rounded-full border-2 border-gray-600 hover:bg-gray-100 transition-colors"
+                title="Reset to saved values"
+              >
+                <RotateCcw className="w-3 h-3 text-gray-600" strokeWidth={2.5} />
+              </button>
+            </div>
           </div>
         )}
       </div>
@@ -1130,34 +1159,6 @@ const handleDismissEnhanced = () => {
           }
           {isEnhancing ? "Enhancing..." : "Enhance with AI"}
         </button>
-
-        {/* Save / Reset */}
-        <div className="flex items-center gap-2">
-          {careerObjectiveFeedback && (
-            <span className={`text-xs px-2 py-1 rounded-full ${careerObjectiveFeedback.includes("success") ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
-              {careerObjectiveFeedback}
-            </span>
-          )}
-          {careerObjectiveChanged && (
-            <button
-              type="button"
-              onClick={handleUpdateCareerObjective}
-              className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-md text-sm font-medium shadow-sm hover:from-orange-500 hover:to-orange-600 transition cursor-pointer"
-              aria-pressed="false"
-              aria-label="Save career objective changes"
-            >
-              <Save className="w-4 h-4" strokeWidth={2} /> Save
-            </button>
-          )}
-          <button
-            type="button"
-            onClick={handleResetCareerObjective}
-            className="w-6 h-6 flex items-center justify-center rounded-full border-2 border-gray-600 hover:bg-gray-100 transition-colors"
-            title="Reset to saved value"
-          >
-            <RotateCcw className="w-3 h-3 text-gray-600" strokeWidth={2.5} />
-          </button>
-        </div>
       </div>
 
       <RichTextEditor
@@ -1235,6 +1236,34 @@ const handleDismissEnhanced = () => {
           </div>
         </div>
       )}
+
+      {/* Save/Reset section moved to bottom */}
+      <div className="flex items-center justify-end gap-2 mt-8 pt-4 border-t border-gray-200">
+        {careerObjectiveFeedback && (
+          <span className={`text-xs px-2 py-1 rounded-full ${careerObjectiveFeedback.includes("success") ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+            {careerObjectiveFeedback}
+          </span>
+        )}
+        {careerObjectiveChanged && !hiddenSaveIds.has("careerObjective") && (
+          <button
+            type="button"
+            onClick={handleUpdateCareerObjective}
+            className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-md text-sm font-medium shadow-sm hover:from-orange-500 hover:to-orange-600 transition cursor-pointer"
+            aria-pressed="false"
+            aria-label="Save career objective changes"
+          >
+            <Save className="w-4 h-4" strokeWidth={2} /> Save
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={handleResetCareerObjective}
+          className="w-6 h-6 flex items-center justify-center rounded-full border-2 border-gray-600 hover:bg-gray-100 transition-colors"
+          title="Reset to saved value"
+        >
+          <RotateCcw className="w-3 h-3 text-gray-600" strokeWidth={2.5} />
+        </button>
+      </div>
     </div>
   )}
 </div>

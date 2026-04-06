@@ -161,6 +161,9 @@ const Template20PDF: React.FC<Template20PDFProps> = ({ data, primaryColor = '#11
           <View style={{ height: 1, backgroundColor: primaryColor, marginTop: 12, marginBottom: 12 }} />
 
         {/* PROFESSIONAL EXPERIENCE row */}
+        {experience.workExperiences.filter((w:any)=>w.enabled).length > 0 && (
+        <>
+        <View style={{ height: 1, backgroundColor: '#ddd', marginTop: 12, marginBottom: 12 }} />
         <View style={{ flexDirection: 'row' }}>
           <View style={{ width: 150 }}><Text style={styles.sectionHeading}>PROFESSIONAL EXPERIENCE</Text></View>
           <View style={{ flex: 1 }}>
@@ -176,10 +179,13 @@ const Template20PDF: React.FC<Template20PDFProps> = ({ data, primaryColor = '#11
             ))}
           </View>
         </View>
-
-        <View style={{ height: 1, backgroundColor: '#ddd', marginTop: 12, marginBottom: 12 }} />
+        </>
+        )}
 
         {/* EDUCATION row */}
+        {(education.higherEducationEnabled || education.preUniversityEnabled || education.sslcEnabled) && (
+        <>
+        <View style={{ height: 1, backgroundColor: '#ddd', marginTop: 12, marginBottom: 12 }} />
         <View style={{ flexDirection: 'row' }}>
           <View style={{ width: 150 }}><Text style={styles.sectionHeading}>EDUCATION</Text></View>
           <View style={{ flex: 1 }}>
@@ -226,10 +232,13 @@ const Template20PDF: React.FC<Template20PDFProps> = ({ data, primaryColor = '#11
             )}
           </View>
         </View>
-
-        <View style={{ height: 1, backgroundColor: '#ddd', marginTop: 12, marginBottom: 12 }} />
+        </>
+        )}
 
         {/* CERTIFICATES row */}
+        {(certifications || []).filter((c:any)=>c.enabled && c.certificateTitle).length > 0 && (
+        <>
+        <View style={{ height: 1, backgroundColor: '#ddd', marginTop: 12, marginBottom: 12 }} />
         <View style={{ flexDirection: 'row' }}>
           <View style={{ width: 140 }}><Text style={styles.sectionHeading}>CERTIFICATES</Text></View>
           <View style={{ flex: 1 }}>
@@ -243,6 +252,8 @@ const Template20PDF: React.FC<Template20PDFProps> = ({ data, primaryColor = '#11
             </View>
           </View>
         </View>
+        </>
+        )}
 
       {/* Footer */}
       <View style={{

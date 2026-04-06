@@ -41,7 +41,7 @@ const Template11Display: React.FC<Template11DisplayProps> = ({
       const aKey = parseYearKey(a.endYear || a.startYear || '');
       const bKey = parseYearKey(b.endYear || b.startYear || '');
 
-      return bKey - aKey;
+      return aKey - bKey;
     });
   }, [education.higherEducation]);
   console.log('skill links', skillsLinks)
@@ -133,7 +133,7 @@ const Template11Display: React.FC<Template11DisplayProps> = ({
 
     return items;
   }, [personal, skillsLinks]);
-
+  console.log("edu", education.preUniversityEnabled, education.preUniversity.instituteName)
   return (
     <div className="w-[210mm] bg-white" style={{ minHeight: '297mm', fontFamily: fontFamily, }}>
       {/* Header Section - Classic Serif look */}
@@ -171,7 +171,7 @@ const Template11Display: React.FC<Template11DisplayProps> = ({
         )}
 
         {/* Experience Section */}
-        {experience.workExperiences.length > 0 && (
+        {experience.workExperiences.filter(exp => exp.enabled).length > 0 && (
           <section style={{ marginBottom: 22 }}>
             <h2
               style={{
@@ -207,24 +207,28 @@ const Template11Display: React.FC<Template11DisplayProps> = ({
         )}
 
         {/* Education Section */}
-        {(education.higherEducationEnabled && education.higherEducation.length > 0) && (
+        {(education.higherEducationEnabled || education.preUniversityEnabled || education.sslcEnabled) && (
           <section style={{ marginBottom: 22 }}>
             <h2 style={{ fontSize: 13, fontWeight: 700, color: primaryColor, letterSpacing: 1.2, marginBottom: 8 }}>EDUCATION</h2>
             <div style={{ height: 1, background: '#333', width: '100%', marginBottom: 12 }} />
-            {sortedHigherEducation.map((edu, idx) => (
-              <div key={idx} style={{ marginBottom: 10 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap' }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: '#000000', flex: 1, marginRight: 8 }}>{edu.instituteName}</div>
-                  <div style={{ fontSize: 10, color: '#000000', fontWeight: 700 }}>{formatMonthYear(edu.startYear)} - {edu.currentlyPursuing ? 'Present' : formatMonthYear(edu.endYear)}</div>
-                </div>
-                <div style={{ fontSize: 11, color: '#000000', fontWeight: 'normal', marginTop: 4 }}>
-                  {getFullDegreeName(edu.degree)}{edu.fieldOfStudy ? ` in ${edu.fieldOfStudy}` : ''}
-                </div>
-              </div>
-            ))}
+            {education.higherEducationEnabled && education.higherEducation.length > 0 && (
+              <>
+                {sortedHigherEducation.map((edu, idx) => (
+                  <div key={idx} style={{ marginBottom: 10 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap' }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: '#000000', flex: 1, marginRight: 8 }}>{edu.instituteName}</div>
+                      <div style={{ fontSize: 10, color: '#000000', fontWeight: 700 }}>{formatMonthYear(edu.startYear)} - {edu.currentlyPursuing ? 'Present' : formatMonthYear(edu.endYear)}</div>
+                    </div>
+                    <div style={{ fontSize: 11, color: '#000000', fontWeight: 'normal', marginTop: 4 }}>
+                      {getFullDegreeName(edu.degree)}{edu.fieldOfStudy ? ` in ${edu.fieldOfStudy}` : ''}
+                    </div>
+                  </div>
+                ))}
+              </>
+            )}
 
             {/* Pre University (PUC/12th) */}
-            {(education.preUniversityEnabled || education.preUniversity.instituteName || education.higherEducation.length > 0) && (
+            {education.preUniversityEnabled && (
               <div style={{ marginBottom: 10 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap' }}>
                   <div style={{ fontSize: 11, fontWeight: 700, color: '#000000', flex: 1, marginRight: 8 }}>{education.preUniversity.instituteName || 'Pre University'}</div>
@@ -240,7 +244,7 @@ const Template11Display: React.FC<Template11DisplayProps> = ({
             )}
 
             {/* SSLC (10th) */}
-            {(education.sslcEnabled || education.sslc.instituteName || education.higherEducation.length > 0) && (
+            {education.sslcEnabled && (
               <div style={{ marginBottom: 10 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap' }}>
                   <div style={{ fontSize: 11, fontWeight: 700, color: '#000000', flex: 1, marginRight: 8 }}>{education.sslc.instituteName || 'SSLC'}</div>
@@ -256,7 +260,7 @@ const Template11Display: React.FC<Template11DisplayProps> = ({
         )}
 
         {/* Projects Section */}
-        {projects && projects.length > 0 && (
+        {projects && projects.filter((proj) => proj.enabled).length > 0 && (
           <section style={{ marginBottom: 22 }}>
             <h2
               style={{
@@ -350,7 +354,7 @@ const Template11Display: React.FC<Template11DisplayProps> = ({
         )}
 
         {/* Certifications Section */}
-        {certifications.length > 0 && (
+        {certifications.filter(c => c.enabled).length > 0 && (
           <section style={{ marginBottom: 22 }}>
             <h2 style={{ fontSize: 13, fontWeight: 700, color: primaryColor, letterSpacing: 1.2, marginBottom: 8 }}>TECHNICAL CERTIFICATIONS</h2>
             <div style={{ height: 1, background: '#333', width: '100%', marginBottom: 12 }} />

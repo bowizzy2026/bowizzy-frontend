@@ -301,6 +301,7 @@ export const ResumeEditor: React.FC = () => {
   );
 
   const previewContentRef = useRef<HTMLDivElement>(null);
+  const formScrollRef = useRef<HTMLDivElement>(null);
   const { markers, totalPages } = usePageMarkers(previewContentRef, [resumeData, selectedTemplate]);
   const DisplayComponent = selectedTemplate?.displayComponent || selectedTemplate?.component;
   // Pagination UI disabled by default to avoid triggering heavy rendering.
@@ -655,6 +656,13 @@ export const ResumeEditor: React.FC = () => {
     return;
   }, [showPreviewModal]);
 
+  // Scroll to top when step changes
+  useEffect(() => {
+    if (formScrollRef.current) {
+      formScrollRef.current.scrollTo(0, 0);
+    }
+  }, [currentStep]);
+
   const handleStepClick = (stepIndex: number) => {
     setCurrentStep(stepIndex);
   };
@@ -842,7 +850,7 @@ export const ResumeEditor: React.FC = () => {
           </div>
 
           <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
-            <div className="flex-1 lg:w-[50%] overflow-auto scrollbar-hide min-w-0">
+            <div className="flex-1 lg:w-[50%] overflow-auto scrollbar-hide min-w-0" ref={formScrollRef}>
               <div className="p-4 md:p-6 w-full max-w-full">
                 <div className="flex items-center justify-between mb-5">
                   <h2 className="text-lg font-semibold text-[#1A1A43]">
