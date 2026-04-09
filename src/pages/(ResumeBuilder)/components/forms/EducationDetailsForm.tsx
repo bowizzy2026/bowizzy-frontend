@@ -1158,7 +1158,7 @@ export const EducationDetailsForm: React.FC<EducationDetailsFormProps> = ({
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-2 items-end">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">
                 Start Year
@@ -1196,7 +1196,7 @@ export const EducationDetailsForm: React.FC<EducationDetailsFormProps> = ({
               )}
             </div>
 
-            <div className="flex items-end pb-1">
+            <div className="flex items-end pb-2">
               <label className="flex items-center gap-2 cursor-pointer text-sm text-gray-700">
                 <input
                   type="checkbox"

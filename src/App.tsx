@@ -32,6 +32,7 @@ import {
   Phone,
   User,
   Video,
+  BrainCircuit
 } from "lucide-react";
 
 import Dashboard from "./pages/Dashboard";
@@ -57,6 +58,8 @@ import InterviewReview from "./pages/(InterviewPrep)/VideoPractise/Components/In
 import TemplateSelection from "./pages/(ResumeBuilder)/TemplateSelection";
 import ResumeEditor from "./pages/(ResumeBuilder)/ResumeEditor";
 import Premium from "./pages/Premium";
+import AiResumeLanding from "./pages/AiResumeLanding";
+import AIBuilder from "./pages/(AIResumeBuilder)/AiBuilder";
 
 const isAuthenticated = () => {
   const raw = localStorage.getItem("user");
@@ -86,11 +89,11 @@ const careerMap = [
     icon: <Video color="#3B3B3B" size={16} />,
     label: "Interview Prep",
   },
-  // {
-  //   href: "/profile",
-  //   icon: <Phone color="#3B3B3B" size={16} />,
-  //   label: "Career guidance",
-  // },
+  {
+    href: "/ai-resume-builder",
+    icon: <BrainCircuit color="#3B3B3B" size={16} />,
+    label: "AI Resume Builder",
+  },
   // {
   //   href: "/linkedin-optimization",
   //   icon: <Linkedin color="#3B3B3B" size={16} />,
@@ -287,6 +290,26 @@ function App() {
         <ProtectedRoute>
           <LayoutWrapper>
             <Profile />
+          </LayoutWrapper>
+        </ProtectedRoute>
+      ),
+    },
+    {
+      path: "ai-resume-builder",
+      Component: () => (
+        <ProtectedRoute>
+          <LayoutWrapper>
+            <AiResumeLanding />
+          </LayoutWrapper>
+        </ProtectedRoute>
+      ),
+    },
+    {
+      path: "ai-resume-builder/chat",
+      Component: () => (
+        <ProtectedRoute>
+          <LayoutWrapper>
+            <AIBuilder />
           </LayoutWrapper>
         </ProtectedRoute>
       ),
