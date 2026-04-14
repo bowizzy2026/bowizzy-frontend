@@ -24,6 +24,7 @@ interface Interview {
 const TakeMockInterview = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [isVerified, setIsVerified] = useState<boolean | null>(null); // null = checking, true/false = known
+  const [hasBankDetails, setHasBankDetails] = useState<boolean | null>(null); // null = checking, true/false = known
   const [selectedInterview, setSelectedInterview] = useState<Interview | null>(null);
   const [viewType, setViewType] = useState<'scheduled' | 'available' | 'saved' | null>(null);
   type FormDataType = {
@@ -222,6 +223,34 @@ const TakeMockInterview = () => {
     checkVerification();
   }, []);
 
+  // Check for bank details
+  useEffect(() => {
+    const checkBankDetails = async () => {
+      try {
+        const parsed = JSON.parse(localStorage.getItem("user") || "{}");
+        const userId = parsed?.user_id;
+        const token = parsed?.token;
+        if (!userId || !token) {
+          setHasBankDetails(false);
+          return;
+        }
+
+        const resp = await api.get(`/users/${userId}/mock-interview/bank-details`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        const payload = resp?.data || {};
+        const hasBankDetails = payload?.hasBankDetails ?? false;
+        setHasBankDetails(!!hasBankDetails);
+      } catch (err) {
+        console.error("Error fetching bank details status:", err);
+        setHasBankDetails(false);
+      }
+    };
+
+    checkBankDetails();
+  }, []);
+
   const handleNext = () => {
     if (currentStep < 5) {
       setCurrentStep(currentStep + 1);
@@ -288,18 +317,22 @@ const TakeMockInterview = () => {
 
       <div className="flex-1 max-h-screen overflow-auto bg-[#F0F0F0] p-2 sm:p-4 lg:p-6">
         <div className="w-full mx-auto">
-          {isVerified === null ? (
+          {hasBankDetails === null ? (
             <div className="p-4 text-center text-gray-500">Checking verification...</div>
-          ) : isVerified ? (
-            selectedInterview ? (
-              <InterviewDetailsView
-                interview={selectedInterview}
-                onBack={handleBack}
-                viewType={viewType}
-                onBook={handleBookInterview}
-              />
+          ) : hasBankDetails ? (
+            isVerified ? (
+              selectedInterview ? (
+                <InterviewDetailsView
+                  interview={selectedInterview}
+                  onBack={handleBack}
+                  viewType={viewType}
+                  onBook={handleBookInterview}
+                />
+              ) : (
+                <VerifiedDashboard onViewDetails={handleViewDetails} />
+              )
             ) : (
-              <VerifiedDashboard onViewDetails={handleViewDetails} />
+              <VerificationSubmitted />
             )
           ) : (
             <>

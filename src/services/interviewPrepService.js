@@ -158,3 +158,26 @@ export const removeSavedInterviewSlot = async (userId, token, savedSlotId) => {
     return response.data;
 };
 
+export const getCandidateSchedules = async (userId, token) => {
+    const response = await api.get(`/users/${userId}/mock-interview/candidate-schedules`, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    });
+    return response.data;
+};
+
+export const cancelInterviewSchedule = async (userId, token, scheduleId) => {
+    const response = await api.put(
+        `/users/${userId}/mock-interview/interview-schedule/${scheduleId}`,
+        { interview_status: 'cancelled' },
+        {
+            headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+            },
+        }
+    );
+    return response.data;
+};
+

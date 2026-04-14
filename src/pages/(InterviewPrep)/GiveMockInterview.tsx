@@ -31,6 +31,7 @@ const GiveMockInterview = () => {
     const [uploadedPreviewUrl, setUploadedPreviewUrl] = useState('');
     const [apiError, setApiError] = useState(null);
     const [bookingError, setBookingError] = useState('');
+    const [hasBankDetails, setHasBankDetails] = useState<boolean | null>(null); // null = checking
     const { slotId } = useParams();
 
     const [planAmount, setPlanAmount] = useState<number | null>(null);
@@ -425,6 +426,28 @@ const GiveMockInterview = () => {
     useEffect(() => {
         fetchPricing();
     }, [fetchPricing]);
+
+    // Check for bank details (applied as interviewer)
+    useEffect(() => {
+        const checkBankDetails = async () => {
+            try {
+                if (!userId || !token) {
+                    setHasBankDetails(false);
+                    return;
+                }
+                const resp = await api.get(`/users/${userId}/mock-interview/bank-details`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                const payload = resp?.data || {};
+                const hasBankDetails = payload?.hasBankDetails ?? false;
+                setHasBankDetails(!!hasBankDetails);
+            } catch (err) {
+                console.error("Error fetching bank details status:", err);
+                setHasBankDetails(false);
+            }
+        };
+        checkBankDetails();
+    }, [userId, token]);
 
 
     // create a preview URL for the uploaded resume (object URL for local File, or cloud url)
@@ -864,6 +887,61 @@ const GiveMockInterview = () => {
                 <DashNav heading="Give Mock Interview" />
                 <div className="flex-1 max-h-screen overflow-auto bg-[#F0F0F0] p-6 flex items-center justify-center">
                     <p className="text-xl text-red-600">{apiError}</p>
+                </div>
+            </div>
+        );
+    }
+
+    // Check if user has bank details (applied as interviewer)
+    if (hasBankDetails === null) {
+        return (
+            <div className="flex flex-col h-screen font-['Baloo_2']">
+                <DashNav heading="Give Mock Interview" />
+                <div className="flex-1 max-h-screen overflow-auto bg-[#F0F0F0] p-6 flex items-center justify-center">
+                    <p className="text-gray-500">Checking eligibility...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (hasBankDetails === true) {
+        return (
+            <div className="flex flex-col h-screen font-['Baloo_2']">
+                <DashNav heading="Give Mock Interview" />
+                <div className="flex-1 max-h-screen overflow-auto bg-[#F0F0F0] p-6 flex items-center justify-center">
+                    <div className="bg-white rounded-lg p-12 max-w-md text-center shadow-lg">
+                        <div className="w-20 h-20 rounded-full bg-orange-100 flex items-center justify-center mx-auto mb-6">
+                            <svg
+                                className="w-10 h-10 text-orange-500"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M12 9v2m0 4v2m0 6v2m0-2a7 7 0 100-14 7 7 0 000 14z"
+                                />
+                            </svg>
+                        </div>
+                        <h2 className="text-2xl font-semibold text-gray-800 mb-3">
+                            Interview as Candidate Not Available
+                        </h2>
+                        <p className="text-gray-600 text-sm mb-6">
+                            You have applied as an interviewer and currently cannot take interviews as a candidate. 
+                            If you'd like to switch roles, please contact support.
+                        </p>
+                        <button
+                            onClick={() => window.history.back()}
+                            className="px-6 py-2 rounded-lg text-white font-medium cursor-pointer"
+                            style={{
+                                background: "linear-gradient(180deg, #FF9D48 0%, #FF8251 100%)",
+                            }}
+                        >
+                            Go Back
+                        </button>
+                    </div>
                 </div>
             </div>
         );

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { updateInterviewSlot, createInterviewSchedule, saveInterviewSlot, getSavedInterviewSlots, removeSavedInterviewSlot } from "@/services/interviewPrepService";
+import { updateInterviewSlot, createInterviewSchedule, saveInterviewSlot, getSavedInterviewSlots, removeSavedInterviewSlot, cancelInterviewSchedule } from "@/services/interviewPrepService";
 import { X } from "lucide-react";
 import SavedInterviewCard from "./SavedInterviewCard";
 import VerifiedDashboardHeader from "./VerifiedDashboardHeader";
@@ -31,7 +31,9 @@ interface Interview {
   saved_slot_id?: string | number;
   interview_slot?: any;
   candidate_id?: string | number;
+  interview_schedule_id?: string | number;
   interview_slot_id?: string | number;
+  meeting_link?: string;
 }
 
 interface InterviewDetailsViewProps {
@@ -69,6 +71,7 @@ const InterviewDetailsView: React.FC<InterviewDetailsViewProps> = ({
   const [bookingLoading, setBookingLoading] = useState(false);
   const [bookingError, setBookingError] = useState<string | null>(null);
   const [saved, setSaved] = useState<boolean>(isInterviewSaved);
+  const [isCancelling, setIsCancelling] = useState(false);
 
   const [savedList, setSavedList] = useState<Interview[]>(savedInterviews || []);
   const [savedLoading, setSavedLoading] = useState<boolean>(false);
@@ -110,12 +113,46 @@ const InterviewDetailsView: React.FC<InterviewDetailsViewProps> = ({
     }
   };
 
+  const handleCancelInterview = async () => {
+    const userData = JSON.parse(localStorage.getItem("user") || "{}");
+    const userId = userData?.user_id;
+    const token = userData?.token;
+
+    if (!userId || !token) {
+      alert("Unable to cancel: Missing user information");
+      return;
+    }
+
+    const scheduleId = interview.interview_schedule_id || interview.id;
+
+    if (!scheduleId) {
+      alert("Unable to cancel: Missing interview schedule ID");
+      return;
+    }
+
+    if (!window.confirm("Are you sure you want to cancel this interview?")) {
+      return;
+    }
+
+    try {
+      setIsCancelling(true);
+      await cancelInterviewSchedule(userId, token, scheduleId);
+      // Go back to the dashboard after successful cancellation
+      onBack?.();
+    } catch (err) {
+      console.error("Failed to cancel interview:", err);
+      alert("Failed to cancel interview. Please try again.");
+    } finally {
+      setIsCancelling(false);
+    }
+  };
+
   const getStartTime = () => {
     if (interview.start_time_utc) return new Date(interview.start_time_utc);
     try {
       const parsed = new Date(`${interview.date} ${interview.time}`);
       if (!isNaN(parsed.getTime())) return parsed;
-    } catch (e) {}
+    } catch (e) { }
     return null;
   };
 
@@ -318,9 +355,9 @@ const InterviewDetailsView: React.FC<InterviewDetailsViewProps> = ({
 
               <div className="flex gap-4 mb-6">
                 {interview.candidateDetails?.avatar && (
-                  <img 
-                    src={interview.candidateDetails.avatar} 
-                    alt="Candidate" 
+                  <img
+                    src={interview.candidateDetails.avatar}
+                    alt="Candidate"
                     className="w-16 h-16 rounded-full object-cover flex-shrink-0"
                   />
                 )}
@@ -428,12 +465,20 @@ const InterviewDetailsView: React.FC<InterviewDetailsViewProps> = ({
               </div>
 
               <div className="flex gap-3">
-                <button className="flex-1 px-6 py-3 rounded-md border-2 border-[#FF8351] text-[#FF8351] font-semibold transition-all hover:bg-[#FFF5F0] cursor-pointer text-sm">
-                  Cancel Interview
+                <button
+                  onClick={handleCancelInterview}
+                  disabled={isCancelling}
+                  className="flex-1 px-6 py-3 rounded-md border-2 border-[#FF8351] text-[#FF8351] font-semibold transition-all hover:bg-[#FFF5F0] cursor-pointer text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isCancelling ? 'Cancelling...' : 'Cancel Interview'}
                 </button>
                 <button
                   onClick={() => {
-                    if (onViewDetails) onViewDetails(interview, 'scheduled');
+                    if (!interview.meeting_link) {
+                      alert('Meeting link not available');
+                      return;
+                    }
+                    window.open(interview.meeting_link, '_blank');
                   }}
                   className="flex-1 px-6 py-3 rounded-md bg-[#4ADE80] text-white font-semibold transition-transform hover:bg-green-500 cursor-pointer text-sm"
                 >
@@ -449,11 +494,11 @@ const InterviewDetailsView: React.FC<InterviewDetailsViewProps> = ({
       return (
         <div className="bg-white rounded-lg shadow-sm p-6">
           <div className="flex items-center justify-between mb-6">
-              <div>
-                <span className="text-lg text-[#FF8351] font-bold">
-                  INTERVIEW ID: #{interview.interview_code ?? interview.interview_slot_id ?? interview.id}
-                </span>
-              </div>
+            <div>
+              <span className="text-lg text-[#FF8351] font-bold">
+                INTERVIEW ID: #{interview.interview_code ?? interview.interview_slot_id ?? interview.id}
+              </span>
+            </div>
           </div>
           <div className="bg-[#E8E8E8] h-[1px] mb-5"></div>
 
@@ -534,8 +579,12 @@ const InterviewDetailsView: React.FC<InterviewDetailsViewProps> = ({
           </p>
 
           <div className="flex gap-4">
-            <button className="flex-1 px-6 py-3 rounded-md border-2 border-[#FF8351] text-[#FF8351] font-semibold transition-all hover:bg-[#FFF5F0] cursor-pointer">
-              Cancel Interview
+            <button
+              onClick={handleCancelInterview}
+              disabled={isCancelling}
+              className="flex-1 px-6 py-3 rounded-md border-2 border-[#FF8351] text-[#FF8351] font-semibold transition-all hover:bg-[#FFF5F0] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isCancelling ? 'Cancelling...' : 'Cancel Interview'}
             </button>
             <button
               className="flex-1 px-6 py-3 rounded-md text-white font-semibold transition-transform cursor-default opacity-95"
@@ -554,28 +603,28 @@ const InterviewDetailsView: React.FC<InterviewDetailsViewProps> = ({
     return (
       <div className="bg-white rounded-lg shadow-sm p-6">
         <div className="flex items-center justify-between mb-6">
-            
-            <div>
-              <span className="text-lg text-[#FF8351] font-bold">
-                INTERVIEW ID: #{interview.interview_code ?? interview.interview_slot_id ?? interview.id}
-              </span>
-            </div>
-              <button
-                onClick={handleSaveToggle}
-                aria-pressed={saved}
-                className={`w-10 h-10 flex items-center justify-center rounded-full transition-shadow focus:outline-none bg-white border border-gray-200 ${saved ? 'shadow-sm' : 'hover:bg-gray-50'}`}
-                title={saved ? 'Saved' : 'Save'}
-              >
-                {saved ? (
-                  <svg className="w-5 h-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                    <path fill="#FF8351" d="M6 2a2 2 0 00-2 2v18l8-4 8 4V4a2 2 0 00-2-2H6z" />
-                  </svg>
-                ) : (
-                  <svg className="w-5 h-5 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                    <path d="M6 2h12a2 2 0 012 2v18l-8-4-8 4V4a2 2 0 012-2z" />
-                  </svg>
-                )}
-              </button>
+
+          <div>
+            <span className="text-lg text-[#FF8351] font-bold">
+              INTERVIEW ID: #{interview.interview_code ?? interview.interview_slot_id ?? interview.id}
+            </span>
+          </div>
+          <button
+            onClick={handleSaveToggle}
+            aria-pressed={saved}
+            className={`w-10 h-10 flex items-center justify-center rounded-full transition-shadow focus:outline-none bg-white border border-gray-200 ${saved ? 'shadow-sm' : 'hover:bg-gray-50'}`}
+            title={saved ? 'Saved' : 'Save'}
+          >
+            {saved ? (
+              <svg className="w-5 h-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path fill="#FF8351" d="M6 2a2 2 0 00-2 2v18l8-4 8 4V4a2 2 0 00-2-2H6z" />
+              </svg>
+            ) : (
+              <svg className="w-5 h-5 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M6 2h12a2 2 0 012 2v18l-8-4-8 4V4a2 2 0 012-2z" />
+              </svg>
+            )}
+          </button>
         </div>
 
         <div className="bg-[#E8E8E8] h-[1px] mb-5"></div>
@@ -620,8 +669,8 @@ const InterviewDetailsView: React.FC<InterviewDetailsViewProps> = ({
               />
             </svg>
             <div>
-                <p className="text-xs text-gray-500">Time</p>
-                <p className="text-sm font-medium">{getStartTime() ? `${getStartTime()!.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: true })}${getEndTime() ? ' - ' + getEndTime()!.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: true }) : ''}` : interview.time}</p>
+              <p className="text-xs text-gray-500">Time</p>
+              <p className="text-sm font-medium">{getStartTime() ? `${getStartTime()!.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: true })}${getEndTime() ? ' - ' + getEndTime()!.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: true }) : ''}` : interview.time}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -642,11 +691,11 @@ const InterviewDetailsView: React.FC<InterviewDetailsViewProps> = ({
 
         <div className="mb-6">
           <h3 className="text-sm font-semibold text-gray-800 mb-3">SKILLS TO EVALUATE</h3>
-            <div className="flex flex-wrap gap-3 mb-4">
-              {(interview.skills && interview.skills.length > 0 ? interview.skills : []).map((s, i) => (
-                <div key={i} className="bg-gray-50 rounded px-3 py-2 text-sm text-gray-700">{s}</div>
-              ))}
-            </div>
+          <div className="flex flex-wrap gap-3 mb-4">
+            {(interview.skills && interview.skills.length > 0 ? interview.skills : []).map((s, i) => (
+              <div key={i} className="bg-gray-50 rounded px-3 py-2 text-sm text-gray-700">{s}</div>
+            ))}
+          </div>
         </div>
 
         <div className="flex items-center justify-between pt-4 border-t border-gray-200">
@@ -662,9 +711,9 @@ const InterviewDetailsView: React.FC<InterviewDetailsViewProps> = ({
           ensure an unbiased evaluation.
         </p>
 
-        <div className="mt-6">
+        <div className="mt-6 flex flex-col gap-3">
           {bookingError && (
-            <p className="text-red-500 text-sm mb-2">{bookingError}</p>
+            <p className="text-red-500 text-sm">{bookingError}</p>
           )}
           <button
             onClick={handleBookInterview}
@@ -676,6 +725,13 @@ const InterviewDetailsView: React.FC<InterviewDetailsViewProps> = ({
           >
             {bookingLoading ? 'Booking...' : 'Book Mock Interview'}
           </button>
+          <button
+            onClick={handleCancelInterview}
+            disabled={isCancelling}
+            className="w-full px-6 py-3 rounded-md border-2 border-[#FF8351] text-[#FF8351] font-semibold transition-all hover:bg-[#FFF5F0] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isCancelling ? 'Cancelling...' : 'Cancel'}
+          </button>
         </div>
       </div>
     );
@@ -684,10 +740,10 @@ const InterviewDetailsView: React.FC<InterviewDetailsViewProps> = ({
   return (
     <>
       <VerifiedDashboardHeader
-      onBack={onBack}
-      title="Take Mock Interview"
-    />
-    <div className="p-3"></div>
+        onBack={onBack}
+        title="Take Mock Interview"
+      />
+      <div className="p-3"></div>
       <div className="flex flex-col lg:flex-row gap-6">
         {/* Main Content */}
         <div className="flex-1">{renderMainContent()}</div>
@@ -695,7 +751,7 @@ const InterviewDetailsView: React.FC<InterviewDetailsViewProps> = ({
         {/* Sidebar */}
         <div className="w-full lg:w-80 space-y-4">
           {/* Credits Card */}
-          <div className="bg-[#FFF9F0] rounded-lg p-4 flex items-center gap-3">
+          {/* <div className="bg-[#FFF9F0] rounded-lg p-4 flex items-center gap-3">
             <div className="w-12 h-12 bg-gradient-to-br from-yellow-400 to-orange-400 rounded-full flex items-center justify-center text-white font-bold text-xl flex-shrink-0">
               W
             </div>
@@ -707,7 +763,7 @@ const InterviewDetailsView: React.FC<InterviewDetailsViewProps> = ({
                 Redeem in store →
               </a>
             </div>
-          </div>
+          </div> */}
 
           {/* Saved Interviews Section */}
           <div className="bg-white rounded-lg shadow-sm">
@@ -720,9 +776,8 @@ const InterviewDetailsView: React.FC<InterviewDetailsViewProps> = ({
                 className="text-gray-400 hover:text-gray-600 transition-colors"
               >
                 <svg
-                  className={`w-4 h-4 transition-transform ${
-                    showAllSaved ? "rotate-0" : "rotate-180"
-                  }`}
+                  className={`w-4 h-4 transition-transform ${showAllSaved ? "rotate-0" : "rotate-180"
+                    }`}
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -806,7 +861,7 @@ const InterviewDetailsView: React.FC<InterviewDetailsViewProps> = ({
           </div>
         </div>
       </div>
-    
+
 
       {/* Booking Success Modal */}
       {showBookingModal && (

@@ -12,7 +12,7 @@ const MockInterview = () => {
     };
 
     const handleTakeInterview = () => {
-        setSelectedMode('take');
+        window.location.href = `/interview-prep/take-mock-interview`;
     };
 
     // Updated handleProceed to use navigation

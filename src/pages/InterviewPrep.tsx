@@ -6,6 +6,7 @@ import {
     getInterviewSlotsByUserId, 
     cancelInterviewSlot,
     getCompletedInterviewsCount,
+    getCandidateSchedules,
 } from "@/services/interviewPrepService";
 
 const InterviewPrep = () => {
@@ -19,6 +20,7 @@ const InterviewPrep = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [completedCount, setCompletedCount] = useState(0);
+    const [candidateSchedules, setCandidateSchedules] = useState([]);
 
     const [showAllUpcoming, setShowAllUpcoming] = useState(false);
     const [showCancelModal, setShowCancelModal] = useState(false);
@@ -100,6 +102,14 @@ const InterviewPrep = () => {
                     setCompletedCount(cnt?.completed_interviews ?? 0);
                 } catch (e) {
                     console.warn('Failed to fetch completed interviews count', e);
+                }
+
+                // fetch candidate schedules for past performance
+                try {
+                    const schedules = await getCandidateSchedules(userId, token);
+                    setCandidateSchedules(Array.isArray(schedules) ? schedules : []);
+                } catch (e) {
+                    console.warn('Failed to fetch candidate schedules', e);
                 }
         } catch (err) {
             console.error("Failed to fetch interview slots:", err);
@@ -342,7 +352,7 @@ const InterviewPrep = () => {
                                     Upcoming Interview(s)
                                 </h2>
                                 <button
-                                    onClick={() => navigate("/interview-prep/select")}
+                                    onClick={() => navigate("/interview-prep/mock-interview")}
                                     className="flex items-center gap-1 px-4 py-2 rounded-lg text-white text-sm font-semibold cursor-pointer"
                                     style={{
                                         background:
@@ -476,42 +486,60 @@ const InterviewPrep = () => {
                             </h2>
 
                             <div className="space-y-3 max-h-[640px] overflow-y-auto pr-2">
-                                {displayedPast.length > 0 ? (
-                                    displayedPast.map((interview) => (
-                                        <div
-                                            key={interview.id}
-                                            className="bg-white border border-[#E5E5E5] rounded-xl overflow-hidden"
-                                        >
-                                            <img
-                                                src={interview.image || "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=600&h=400&fit=crop"}
-                                                alt={interview.job_role || interview.type || "Mock Interview"}
-                                                className="w-full h-28 object-cover"
-                                            />
-                                            <div className="p-3">
-                                                <div className="flex justify-between items-start mb-1">
-                                                    <h3 className="text-[#3A3A3A] font-semibold text-sm">
-                                                        {interview.job_role || interview.type || "Mock Interview"}
-                                                    </h3>
-                                                    {getStatusBadge(interview.status)}
-                                                </div>
-                                                <p className="text-[#7F7F7F] text-xs mb-3">
-                                                    Completed on {interview.completedDate || "N/A"}
-                                                </p>
+                                {candidateSchedules.length > 0 ? (
+                                    [...candidateSchedules].reverse().map((schedule) => {
+                                        const { date, time } = formatDateTime(schedule.start_time_utc);
+                                        const interviewer = schedule.interviewer;
+                                        const slot = schedule.interview_slot;
+                                        const interviewerName = interviewer
+                                            ? `${interviewer.first_name} ${interviewer.last_name}`
+                                            : "Unknown Interviewer";
 
-                                                {(interview.status !== 'cancelled' && interview.status !== 'expired') && (
-                                                    <button className="w-full py-2 bg-white border border-[#FF9D48] text-[#FF9D48] rounded-lg text-xs font-semibold hover:bg-orange-50 cursor-pointer">
-                                                        Review Feedback
-                                                    </button>
-                                                )}
+                                        return (
+                                            <div
+                                                key={schedule.interview_schedule_id}
+                                                className="bg-white border border-[#E5E5E5] rounded-xl overflow-hidden"
+                                            >
+                                                <img
+                                                    src="https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=600&h=400&fit=crop"
+                                                    alt={slot?.job_role || "Mock Interview"}
+                                                    className="w-full h-28 object-cover"
+                                                />
+                                                <div className="p-3">
+                                                    <div className="flex justify-between items-start mb-1">
+                                                        <h3 className="text-[#3A3A3A] font-semibold text-sm">
+                                                            {slot?.job_role || "Mock Interview"}
+                                                        </h3>
+                                                        {getStatusBadge(schedule.interview_status)}
+                                                    </div>
+                                                    <p className="text-[#7F7F7F] text-xs mb-1">
+                                                        {date} at {time}
+                                                    </p>
+                                                    <p className="text-[#7F7F7F] text-xs mb-3">
+                                                        Interviewer: <span className="font-medium text-[#3A3A3A]">{interviewerName}</span>
+                                                    </p>
+
+                                                    {schedule.interview_status !== 'cancelled' && !schedule.isInterviewerFeedbackgiven && (
+                                                        <button
+                                                            onClick={() => navigate(`/interview-prep/interviewer-evaluation/${schedule.interview_schedule_id}`, { state: { schedule } })}
+                                                            className="w-full py-2 bg-white border border-[#FF9D48] text-[#FF9D48] rounded-lg text-xs font-semibold hover:bg-orange-50 cursor-pointer"
+                                                        >
+                                                            Give Feedback
+                                                        </button>
+                                                    )}
+                                                    {schedule.interview_status !== 'cancelled' && schedule.isInterviewerFeedbackgiven && (
+                                                        <div className="w-full py-2 bg-[#f0fdf4] border border-[#86efac] text-[#16a34a] rounded-lg text-xs font-semibold text-center">
+                                                            Feedback Submitted
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </div>
-                                        </div>
-                                    ))
+                                        );
+                                    })
                                 ) : (
-                                    <p className="text-center text-[#7F7F7F] py-2 text-sm">No completed interviews yet.</p>
+                                    <p className="text-center text-[#7F7F7F] py-2 text-sm">No interview history yet.</p>
                                 )}
                             </div>
-
-                            {/* Removed see all / show less toggle — Past Performance is scrollable */}
                         </div>
 
                         

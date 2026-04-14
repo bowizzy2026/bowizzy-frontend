@@ -13,10 +13,24 @@ interface InterviewCardProps {
     end_time_utc?: string;
     credits?: number;
     priority?: string;
+    interview_status?: string;
+    interview_schedule_id?: string | number;
+    meeting_link?: string;
+    candidateFeedbackProvided?: boolean;
+    interviewerFeedbackProvided?: boolean;
   };
   isScheduled: boolean;
-  onViewDetails: () => void;
+  isExpired?: boolean;
+  isPast?: boolean;
+  onViewDetails?: () => void;
+  onGiveFeedback?: () => void;
+  userId?: string | number;
+  token?: string;
+  onCancelSuccess?: () => void;
 }
+
+import { useState } from 'react';
+import { cancelInterviewSchedule } from '@/services/interviewPrepService';
 
 const formatDate = (iso?: string) => {
   if (!iso) return "";
@@ -36,7 +50,9 @@ const formatTime = (iso?: string) => {
 
 // status computation removed — priority badge (HIGH/normal) shown on top-right instead
 
-const InterviewCard = ({ interview, isScheduled, onViewDetails }: InterviewCardProps) => {
+const InterviewCard = ({ interview, isScheduled, isExpired = false, isPast = false, onViewDetails, onGiveFeedback, userId, token, onCancelSuccess }: InterviewCardProps) => {
+  const [isCancelling, setIsCancelling] = useState(false);
+  
   const start = interview.start_time_utc || interview.date;
   const end = interview.end_time_utc;
   const dateStr = formatDate(start) || interview.date || '';
@@ -50,6 +66,45 @@ const InterviewCard = ({ interview, isScheduled, onViewDetails }: InterviewCardP
   })();
 
   const isHigh = ((interview.priority || '').toLowerCase() === 'high') || isStartingSoon;
+  const isCancelled = (interview.interview_status || '').toLowerCase() === 'cancelled';
+
+  const handleCancelInterview = async () => {
+    if (!userId || !token) {
+      alert('Unable to cancel: Missing user information');
+      return;
+    }
+
+    const scheduleId = interview.interview_schedule_id || interview.id;
+    
+    if (!scheduleId) {
+      alert('Unable to cancel: Missing interview schedule ID');
+      return;
+    }
+
+    if (!window.confirm('Are you sure you want to cancel this interview?')) {
+      return;
+    }
+
+    try {
+      setIsCancelling(true);
+      await cancelInterviewSchedule(userId, token, scheduleId);
+      onCancelSuccess?.();
+    } catch (err) {
+      console.error('Failed to cancel interview:', err);
+      alert('Failed to cancel interview. Please try again.');
+    } finally {
+      setIsCancelling(false);
+    }
+  };
+
+  const handleJoinMeeting = () => {
+    if (!interview.meeting_link) {
+      alert('Meeting link not available');
+      return;
+    }
+    // Open the meeting link in a new tab
+    window.open(interview.meeting_link, '_blank');
+  };
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-4">
@@ -76,9 +131,23 @@ const InterviewCard = ({ interview, isScheduled, onViewDetails }: InterviewCardP
             </div>
 
             <div className="flex items-center gap-2">
-              <span className={`px-2 py-0.5 text-xs font-medium rounded ${isHigh ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
-                {isHigh ? 'HIGH' : (interview.priority || 'normal')}
-              </span>
+              {isCancelled ? (
+                <span className="px-2 py-0.5 text-xs font-medium rounded bg-gray-100 text-gray-600">
+                  Cancelled
+                </span>
+              ) : isPast ? (
+                <span className="px-2 py-0.5 text-xs font-medium rounded bg-blue-100 text-blue-600">
+                  Completed
+                </span>
+              ) : isExpired ? (
+                <span className="px-2 py-0.5 text-xs font-medium rounded bg-red-100 text-red-600">
+                  Expired
+                </span>
+              ) : (
+                <span className={`px-2 py-0.5 text-xs font-medium rounded ${isHigh ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
+                  {isHigh ? 'HIGH' : (interview.priority || 'normal')}
+                </span>
+              )}
             </div>
           </div>
 
@@ -95,9 +164,30 @@ const InterviewCard = ({ interview, isScheduled, onViewDetails }: InterviewCardP
           </p>
 
           <div className="flex items-center justify-between">
-            {isScheduled ? (
+            {isCancelled ? (
+              <div className="text-sm text-gray-500">
+                This interview has been cancelled.
+              </div>
+            ) : isPast ? (
               <div className="flex gap-2">
-                <button className="px-4 py-1.5 text-sm font-medium text-white bg-green-500 rounded hover:bg-green-600 transition-colors">
+                <button
+                  onClick={onViewDetails}
+                  className="px-4 py-1.5 text-sm font-medium text-gray-700 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
+                >
+                  View Details
+                </button>
+                {!interview.candidateFeedbackProvided && (
+                  <button
+                    onClick={onGiveFeedback}
+                    className="px-4 py-1.5 text-sm font-medium text-white bg-[#FF8351] rounded hover:bg-[#E67A45] transition-colors"
+                  >
+                    Give Feedback
+                  </button>
+                )}
+              </div>
+            ) : isScheduled ? (
+              <div className="flex gap-2">
+                <button className="px-4 py-1.5 text-sm font-medium text-white bg-green-500 rounded hover:bg-green-600 transition-colors" onClick={handleJoinMeeting}>
                   Join Now
                 </button>
                 <button
@@ -106,14 +196,23 @@ const InterviewCard = ({ interview, isScheduled, onViewDetails }: InterviewCardP
                 >
                   View Details
                 </button>
-                <button className="px-4 py-1.5 text-sm font-medium text-red-500 bg-white border border-gray-200 rounded hover:bg-red-50 transition-colors">
-                  Cancel
+                <button 
+                  className="px-4 py-1.5 text-sm font-medium text-red-500 bg-white border border-gray-200 rounded hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={handleCancelInterview}
+                  disabled={isCancelling}
+                >
+                  {isCancelling ? 'Cancelling...' : 'Cancel'}
                 </button>
               </div>
             ) : (
               <button
                 onClick={onViewDetails}
-                className="px-4 py-1.5 text-sm font-medium text-gray-700 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
+                disabled={isExpired}
+                className={`px-4 py-1.5 text-sm font-medium rounded transition-colors ${
+                  isExpired
+                    ? 'text-gray-400 bg-gray-50 cursor-not-allowed'
+                    : 'text-gray-700 bg-gray-100 hover:bg-gray-200'
+                }`}
               >
                 View Details
               </button>

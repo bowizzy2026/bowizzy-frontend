@@ -46,6 +46,7 @@ import GiveMockInterview from "./pages/(InterviewPrep)/GiveMockInterview";
 import InterviewDetails from "./pages/(InterviewPrep)/InterviewDetails";
 import CandidateInformationConnect from "./pages/(InterviewPrep)/CandidateInformationConnect";
 import InterviewerEvaluation from "./pages/(InterviewPrep)/InterviewerEvaluation";
+import CandidateEvaluation from "./pages/(InterviewPrep)/CandidateEvaluation";
 import TakeMockInterview from "./pages/(InterviewPrep)/TakeMockInterview";
 import ProfileForm from "./pages/(Profile)/ProfileForms";
 import ParsingSteps from "./pages/(Profile)/components/ParsingSteps";
@@ -435,22 +436,32 @@ function App() {
         </ProtectedRoute>
       ),
     },
+    // {
+    //   path: "interview-prep/candidate-information-connect",
+    //   Component: () => (
+    //     <ProtectedRoute>
+    //       <LayoutWrapper>
+    //         <CandidateInformationConnect />
+    //       </LayoutWrapper>
+    //     </ProtectedRoute>
+    //   ),
+    // },
     {
-      path: "interview-prep/candidate-information-connect",
+      path: "interview-prep/interviewer-evaluation/:scheduleId",
       Component: () => (
         <ProtectedRoute>
           <LayoutWrapper>
-            <CandidateInformationConnect />
+            <InterviewerEvaluation />
           </LayoutWrapper>
         </ProtectedRoute>
       ),
     },
     {
-      path: "interview-prep/interviewer-evaluation",
+      path: "interview-prep/candidate-evaluation/:scheduleId",
       Component: () => (
         <ProtectedRoute>
           <LayoutWrapper>
-            <InterviewerEvaluation />
+            <CandidateEvaluation />
           </LayoutWrapper>
         </ProtectedRoute>
       ),
