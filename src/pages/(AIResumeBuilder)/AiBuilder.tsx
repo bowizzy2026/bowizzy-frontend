@@ -54,6 +54,9 @@ export default function AIBuilder() {
   // Tracks which hardcoded question to ask next (per session)
   const [questionIndex, setQuestionIndex] = useState<Record<string, number>>({});
 
+  // Accumulates the user's 4 chat answers keyed by session (about_yourself, additional_projects, additional_experience, additional_education)
+  const [chatAnswers, setChatAnswers] = useState<Record<string, Record<string, string>>>({});
+
   // Fetch sessions on mount
   React.useEffect(() => {
     async function fetchSessions() {
@@ -288,6 +291,24 @@ export default function AIBuilder() {
       const userId = userData?.user_id;
       const authToken = userData?.token;
 
+      // ── Store the user's answer mapped to the question they just answered ──
+      const answerKeyMap: Record<number, string> = {
+        0: "about_yourself",
+        1: "additional_projects",
+        2: "additional_experience",
+        3: "additional_education",
+      };
+      const answerKey = answerKeyMap[currentQIndex];
+      if (answerKey) {
+        setChatAnswers((prev) => ({
+          ...prev,
+          [sessionId]: {
+            ...(prev[sessionId] || {}),
+            [answerKey]: inputValue.trim(),
+          },
+        }));
+      }
+
       await new Promise((r) => setTimeout(r, 600)); // brief natural delay
 
       if (nextQIndex < HARDCODED_QUESTIONS.length) {
@@ -371,33 +392,45 @@ export default function AIBuilder() {
         }
 
       } else {
-        // All hardcoded questions answered — hand off to real API (or mock)
-        // TODO: replace mock below with real API call
-        await new Promise((r) => setTimeout(r, 200));
-        const reply: ChatMessage = {
-          id: `msg-${Date.now() + 1}`,
-          role: "assistant",
-          content: `[Mock] You're in ${
-            mode === "jd" ? "JD Mode" : "General Mode"
-          }.\n\nReplace this with a real API call in handleSend().`,
-          createdAt: new Date().toISOString(),
-        };
+        // All 4 questions answered — call generate-resume API
+        try {
+          const finalAnswers = {
+            ...(chatAnswers[sessionId] || {}),
+            // also capture the last answer (education) which was just typed
+            additional_education: inputValue.trim() || (chatAnswers[sessionId]?.additional_education ?? ""),
+          };
 
-        await createChat(sessionId, reply.content, "assistant", null, token);
+          const generateRes = await fetch("http://localhost:5000/generate-resume", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${authToken}`,
+            },
+            body: JSON.stringify({
+              session_id: sessionId,
+              chat_answers: finalAnswers,
+            }),
+          });
 
-        setChatSessions((prev) =>
-          prev.map((s) =>
-            s.id === sessionId
-              ? {
-                  ...s,
-                  messages: [
-                    ...(Array.isArray(s.messages) ? s.messages : []),
-                    reply,
-                  ],
-                }
-              : s
-          )
-        );
+          if (generateRes.ok) {
+            const botReplyContent =
+              "Great! I've gathered all your details and generated your resume content. Your resume is ready with an enhanced technical summary, project descriptions, and work experience highlights. You can now review and download it.";
+
+            await appendBotMessage(sessionId, botReplyContent);
+          } else {
+            const errData = await generateRes.json().catch(() => ({}));
+            const errorMsg =
+              "I encountered an issue while generating your resume. Please try again or contact support.";
+            await appendBotMessage(sessionId, errorMsg);
+            console.error("generate-resume API error:", errData);
+          }
+        } catch (err) {
+          console.error("Failed to call generate-resume:", err);
+          await appendBotMessage(
+            sessionId,
+            "Something went wrong while generating your resume. Please try again."
+          );
+        }
       }
       // ─────────────────────────────────────────────────────────────────────
     } catch (err) {
