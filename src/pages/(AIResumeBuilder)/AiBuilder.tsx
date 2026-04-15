@@ -25,6 +25,14 @@ function getNextSessionNumber(sessions: ChatSession[]): number {
   return nums.length > 0 ? Math.max(...nums) + 1 : 1;
 }
 
+// ── Hardcoded question queue ──────────────────────────────────────────────────
+const HARDCODED_QUESTIONS = [
+  "Can you give me a brief about yourself?",
+  "Can you tell me about the projects you have worked on?",
+  "Can you tell me about your work experience?",
+  "Can you give me your education details and certifications you have achieved, and from which source?",
+];
+
 export default function AIBuilder() {
   // Get token from localStorage
   let token = "";
@@ -43,6 +51,9 @@ export default function AIBuilder() {
   const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
 
+  // Tracks which hardcoded question to ask next (per session)
+  const [questionIndex, setQuestionIndex] = useState<Record<string, number>>({});
+
   // Fetch sessions on mount
   React.useEffect(() => {
     async function fetchSessions() {
@@ -53,7 +64,7 @@ export default function AIBuilder() {
           id: String(s.id),
           messages: s.messages || [],
           started: s.started ?? false,
-          createdAt: s.createdAt
+          createdAt: s.createdAt,
         }));
         setChatSessions(enrichedSessions);
       } catch (err) {
@@ -71,6 +82,44 @@ export default function AIBuilder() {
   }, [chatSessions, currentSessionId]);
 
   const currentSession = chatSessions.find((s) => s.id === currentSessionId);
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
+
+  /** Appends a bot message to the session and optionally saves it via API */
+  const appendBotMessage = async (
+    sessionId: string,
+    content: string,
+    saveToApi = true
+  ) => {
+    const botMsg: ChatMessage = {
+      id: `msg-${Date.now()}-bot`,
+      role: "assistant",
+      content,
+      createdAt: new Date().toISOString(),
+    };
+
+    setChatSessions((prev) =>
+      prev.map((s) =>
+        s.id === sessionId
+          ? {
+              ...s,
+              messages: [
+                ...(Array.isArray(s.messages) ? s.messages : []),
+                botMsg,
+              ],
+            }
+          : s
+      )
+    );
+
+    if (saveToApi) {
+      try {
+        await createChat(sessionId, content, "assistant", null, token);
+      } catch (err) {
+        console.error("Failed to save bot message", err);
+      }
+    }
+  };
 
   // ── Handlers ──────────────────────────────────────────────────────────────
 
@@ -110,7 +159,7 @@ export default function AIBuilder() {
             ? {
                 ...s,
                 messages: chats,
-                started: (chats && chats.length > 0) ? true : false,
+                started: chats && chats.length > 0 ? true : false,
               }
             : s
         )
@@ -153,13 +202,13 @@ export default function AIBuilder() {
     if (!currentSessionId) return;
 
     try {
-      // Call the API to start the session
       await startAiSession(currentSessionId, token);
 
+      // 1. Auto-send the opening user message
       const openingMsg: ChatMessage = {
         id: `msg-${Date.now()}`,
         role: "user",
-        content: "Hi, I need to build my resume.",
+        content: "Hi, I need help to build my resume.",
         createdAt: new Date().toISOString(),
       };
 
@@ -173,11 +222,23 @@ export default function AIBuilder() {
                   ...(Array.isArray(s.messages) ? s.messages : []),
                   openingMsg,
                 ],
-                title: "Hi, I need to build my resume.",
+                title: "Hi, I need help to build my resume.",
               }
             : s
         )
       );
+
+      await createChat(
+        currentSessionId,
+        openingMsg.content,
+        "user",
+        null,
+        token
+      );
+
+      // 2. Fire first hardcoded question
+      setQuestionIndex((prev) => ({ ...prev, [currentSessionId]: 0 }));
+      await appendBotMessage(currentSessionId, HARDCODED_QUESTIONS[0]);
     } catch (err) {
       console.error("Failed to start session", err);
     }
@@ -215,34 +276,130 @@ export default function AIBuilder() {
     setIsLoading(true);
 
     try {
-      // Send user message to API
-      await createChat(currentSessionId, inputValue, "user", null, token);
+      await createChat(currentSessionId!, inputValue, "user", null, token);
 
-      // TODO: replace with real API call
-      // const reply = await apiSendMessage(currentSessionId, userMsg.content, mode);
+      // ── Hardcoded question queue logic ────────────────────────────────────
+      const sessionId = currentSessionId!;
+      const currentQIndex = questionIndex[sessionId] ?? 0;
+      const nextQIndex = currentQIndex + 1;
 
-      // ── Mock response — remove once API is wired ──
-      await new Promise((r) => setTimeout(r, 800));
-      const reply: ChatMessage = {
-        id: `msg-${Date.now() + 1}`,
-        role: "assistant",
-        content: `[Mock] You're in ${
-          mode === "jd" ? "JD Mode" : "General Mode"
-        }.\n\nReplace this with a real API call in handleSend().`,
-        createdAt: new Date().toISOString(),
-      };
-      // ─────────────────────────────────────────────
+      // ── Auth from localStorage ─────────────────────────────────────────
+      const userData = JSON.parse(localStorage.getItem("user") || "null");
+      const userId = userData?.user_id;
+      const authToken = userData?.token;
 
-      // Send assistant message to API
-      await createChat(currentSessionId, reply.content, "assistant", null, token);
+      await new Promise((r) => setTimeout(r, 600)); // brief natural delay
 
-      setChatSessions((prev) =>
-        prev.map((s) =>
-          s.id === currentSessionId
-            ? { ...s, messages: [...(Array.isArray(s.messages) ? s.messages : []), reply] }
-            : s
-        )
-      );
+      if (nextQIndex < HARDCODED_QUESTIONS.length) {
+        // ── Q index 1: projects question — fetch & enrich ──────────────────
+        if (nextQIndex === 1) {
+          let botContent = HARDCODED_QUESTIONS[1];
+          try {
+            if (userId && authToken) {
+              const res = await fetch(
+                `http://localhost:5000/users/${userId}/projects`,
+                { headers: { Authorization: `Bearer ${authToken}` } }
+              );
+              if (res.ok) {
+                const projects: Array<{ project_title: string }> = await res.json();
+                if (Array.isArray(projects) && projects.length > 0) {
+                  const titles = projects.map((p) => p.project_title).join(", ");
+                  botContent = `Are these the projects you have worked on — ${titles}? If you want to add more, please mention them in a detailed format.`;
+                }
+              }
+            }
+          } catch (err) {
+            console.error("Failed to fetch projects", err);
+          }
+          setQuestionIndex((prev) => ({ ...prev, [sessionId]: nextQIndex }));
+          await appendBotMessage(sessionId, botContent);
+
+        // ── Q index 2: work experience question — fetch & enrich ───────────
+        } else if (nextQIndex === 2) {
+          let botContent = HARDCODED_QUESTIONS[2];
+          try {
+            if (userId && authToken) {
+              const res = await fetch(
+                `http://localhost:5000/users/${userId}/work-experience`,
+                { headers: { Authorization: `Bearer ${authToken}` } }
+              );
+              if (res.ok) {
+                const data: { experiences?: Array<{ job_title: string; company_name: string }> } = await res.json();
+                if (data.experiences && Array.isArray(data.experiences) && data.experiences.length > 0) {
+                  const list = data.experiences
+                    .map((e) => `${e.job_title} at ${e.company_name}`)
+                    .join(", ");
+                  botContent = `Here's the work experience we have on file for you — ${list}. Does this look correct, or would you like to update or add anything?`;
+                }
+              }
+            }
+          } catch (err) {
+            console.error("Failed to fetch work experience", err);
+          }
+          setQuestionIndex((prev) => ({ ...prev, [sessionId]: nextQIndex }));
+          await appendBotMessage(sessionId, botContent);
+
+        // ── Q index 3: education question — fetch & enrich ─────────────────
+        } else if (nextQIndex === 3) {
+          let botContent = HARDCODED_QUESTIONS[3];
+          try {
+            if (userId && authToken) {
+              const res = await fetch(
+                `http://localhost:5000/users/${userId}/education`,
+                { headers: { Authorization: `Bearer ${authToken}` } }
+              );
+              if (res.ok) {
+                const educations: Array<{ education_type: string; institution_name: string }> = await res.json();
+                if (Array.isArray(educations) && educations.length > 0) {
+                  const list = educations
+                    .map((e) => `${e.education_type} at ${e.institution_name}`)
+                    .join(", ");
+                  botContent = `Here's the education we have on file for you — ${list}. Does this look correct, or would you like to update or add certifications and other details?`;
+                }
+              }
+            }
+          } catch (err) {
+            console.error("Failed to fetch education", err);
+          }
+          setQuestionIndex((prev) => ({ ...prev, [sessionId]: nextQIndex }));
+          await appendBotMessage(sessionId, botContent);
+
+        // ── All other questions — plain hardcoded ──────────────────────────
+        } else {
+          setQuestionIndex((prev) => ({ ...prev, [sessionId]: nextQIndex }));
+          await appendBotMessage(sessionId, HARDCODED_QUESTIONS[nextQIndex]);
+        }
+
+      } else {
+        // All hardcoded questions answered — hand off to real API (or mock)
+        // TODO: replace mock below with real API call
+        await new Promise((r) => setTimeout(r, 200));
+        const reply: ChatMessage = {
+          id: `msg-${Date.now() + 1}`,
+          role: "assistant",
+          content: `[Mock] You're in ${
+            mode === "jd" ? "JD Mode" : "General Mode"
+          }.\n\nReplace this with a real API call in handleSend().`,
+          createdAt: new Date().toISOString(),
+        };
+
+        await createChat(sessionId, reply.content, "assistant", null, token);
+
+        setChatSessions((prev) =>
+          prev.map((s) =>
+            s.id === sessionId
+              ? {
+                  ...s,
+                  messages: [
+                    ...(Array.isArray(s.messages) ? s.messages : []),
+                    reply,
+                  ],
+                }
+              : s
+          )
+        );
+      }
+      // ─────────────────────────────────────────────────────────────────────
     } catch (err) {
       console.error("Send message failed:", err);
     } finally {
