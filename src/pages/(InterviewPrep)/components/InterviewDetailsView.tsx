@@ -34,6 +34,30 @@ interface Interview {
   interview_schedule_id?: string | number;
   interview_slot_id?: string | number;
   meeting_link?: string;
+  candidate_name?: string;
+  interview_mode?: string;
+  candidate_review?: {
+    candidate_review_id?: number;
+    interview_schedule_id?: number;
+    communication_skills?: string;
+    technical_knowledge?: string;
+    problem_solving_analytical_skills?: string;
+    relevant_experience_skills?: string;
+    adaptability_learning_ability?: string;
+    cultural_team_fit?: string;
+    overall_impression?: string;
+    final_comments?: string;
+    final_recommendation?: string;
+    communication_skills_rating?: string;
+    technical_knowledge_rating?: string;
+    problem_solving_analytical_skills_rating?: string;
+    relevant_experience_skills_rating?: string;
+    adaptability_learning_ability_rating?: string;
+    cultural_team_fit_rating?: string;
+    overall_impression_rating?: string;
+  } | null;
+  candidateFeedbackProvided?: boolean;
+  interviewerFeedbackProvided?: boolean;
 }
 
 interface InterviewDetailsViewProps {
@@ -343,6 +367,7 @@ const InterviewDetailsView: React.FC<InterviewDetailsViewProps> = ({
 
       // Show different view when interview has started
       if (started) {
+        const isEnded = endTime ? endTime.getTime() <= Date.now() : false;
         return (
           <div className="space-y-6">
             {/* Top Section - Interview Header with Candidate Profile */}
@@ -354,23 +379,18 @@ const InterviewDetailsView: React.FC<InterviewDetailsViewProps> = ({
               </div>
 
               <div className="flex gap-4 mb-6">
-                {interview.candidateDetails?.avatar && (
-                  <img
-                    src={interview.candidateDetails.avatar}
-                    alt="Candidate"
-                    className="w-16 h-16 rounded-full object-cover flex-shrink-0"
-                  />
-                )}
+                <div className="w-16 h-16 rounded-full bg-[#FFF5F0] flex items-center justify-center flex-shrink-0">
+                  <span className="text-2xl font-bold text-[#FF8351]">
+                    {(interview.candidate_name || interview.candidateDetails?.name || 'C').charAt(0).toUpperCase()}
+                  </span>
+                </div>
                 <div className="flex-1">
                   <h3 className="text-lg font-semibold text-gray-800">
-                    {interview.candidateDetails?.name || 'Candidate'}
+                    {interview.candidate_name || interview.candidateDetails?.name || 'Candidate'}
                   </h3>
                   <p className="text-sm text-gray-600">
-                    {interview.candidateDetails?.title || 'Professional'}
+                    {interview.job_role || interview.title}
                   </p>
-                  {interview.candidateDetails?.email && (
-                    <p className="text-xs text-gray-500 mt-1">{interview.candidateDetails.email}</p>
-                  )}
                 </div>
               </div>
 
@@ -456,35 +476,103 @@ const InterviewDetailsView: React.FC<InterviewDetailsViewProps> = ({
                 )}
               </div>
 
-              <div className="flex items-center justify-between pt-4 border-t border-gray-200 mb-6">
+              {interview.interview_mode && (
+                <>
+                  <div className="bg-[#E8E8E8] h-[1px] mb-4"></div>
+                  <div className="mb-6">
+                    <h3 className="text-xs font-semibold text-gray-800 uppercase tracking-wide mb-3">
+                      INTERVIEW MODE
+                    </h3>
+                    <span className="bg-blue-50 text-blue-700 rounded px-3 py-1 text-xs font-medium">
+                      {interview.interview_mode}
+                    </span>
+                  </div>
+                </>
+              )}
+
+              {interview.candidate_review && (
+                <>
+                  <div className="bg-[#E8E8E8] h-[1px] mb-4"></div>
+                  <div className="mb-6">
+                    <h3 className="text-xs font-semibold text-gray-800 uppercase tracking-wide mb-3">
+                      CANDIDATE REVIEW
+                    </h3>
+                    <div className="space-y-4">
+                      {/* Ratings */}
+                      <div className="grid grid-cols-2 gap-3">
+                        {[
+                          { label: 'Communication Skills', rating: interview.candidate_review.communication_skills_rating, comment: interview.candidate_review.communication_skills },
+                          { label: 'Technical Knowledge', rating: interview.candidate_review.technical_knowledge_rating, comment: interview.candidate_review.technical_knowledge },
+                          { label: 'Problem Solving', rating: interview.candidate_review.problem_solving_analytical_skills_rating, comment: interview.candidate_review.problem_solving_analytical_skills },
+                          { label: 'Relevant Experience', rating: interview.candidate_review.relevant_experience_skills_rating, comment: interview.candidate_review.relevant_experience_skills },
+                          { label: 'Adaptability', rating: interview.candidate_review.adaptability_learning_ability_rating, comment: interview.candidate_review.adaptability_learning_ability },
+                          { label: 'Cultural & Team Fit', rating: interview.candidate_review.cultural_team_fit_rating, comment: interview.candidate_review.cultural_team_fit },
+                          { label: 'Overall Impression', rating: interview.candidate_review.overall_impression_rating, comment: interview.candidate_review.overall_impression },
+                        ].map((item, idx) => (
+                          <div key={idx} className="bg-gray-50 rounded-lg p-3">
+                            <div className="flex items-center justify-between mb-1">
+                              <p className="text-xs font-medium text-gray-700">{item.label}</p>
+                              <span className="text-xs font-bold text-[#FF8351]">{item.rating}/5</span>
+                            </div>
+                            {item.comment && (
+                              <p className="text-xs text-gray-500">{item.comment}</p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Final Recommendation */}
+                      {interview.candidate_review.final_recommendation && (
+                        <div className="bg-gray-50 rounded-lg p-3">
+                          <p className="text-xs font-medium text-gray-700 mb-1">Final Recommendation</p>
+                          <span className={`inline-block px-2 py-0.5 rounded text-xs font-semibold ${
+                            interview.candidate_review.final_recommendation === 'recommend'
+                              ? 'bg-green-100 text-green-700'
+                              : interview.candidate_review.final_recommendation === 'not_recommend'
+                              ? 'bg-red-100 text-red-700'
+                              : 'bg-yellow-100 text-yellow-700'
+                          }`}>
+                            {interview.candidate_review.final_recommendation === 'recommend' ? 'Recommended' : interview.candidate_review.final_recommendation === 'not_recommend' ? 'Not Recommended' : interview.candidate_review.final_recommendation}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Final Comments */}
+                      {interview.candidate_review.final_comments && (
+                        <div className="bg-gray-50 rounded-lg p-3">
+                          <p className="text-xs font-medium text-gray-700 mb-1">Final Comments</p>
+                          <p className="text-xs text-gray-600">{interview.candidate_review.final_comments}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* <div className="flex items-center justify-between pt-4 border-t border-gray-200 mb-6">
                 <div className="text-right">
                   <p className="text-2xl font-bold text-gray-800">
                     {interview.credits} Credits
                   </p>
                 </div>
-              </div>
+              </div> */}
 
-              <div className="flex gap-3">
-                <button
-                  onClick={handleCancelInterview}
-                  disabled={isCancelling}
-                  className="flex-1 px-6 py-3 rounded-md border-2 border-[#FF8351] text-[#FF8351] font-semibold transition-all hover:bg-[#FFF5F0] cursor-pointer text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isCancelling ? 'Cancelling...' : 'Cancel Interview'}
-                </button>
-                <button
-                  onClick={() => {
-                    if (!interview.meeting_link) {
-                      alert('Meeting link not available');
-                      return;
-                    }
-                    window.open(interview.meeting_link, '_blank');
-                  }}
-                  className="flex-1 px-6 py-3 rounded-md bg-[#4ADE80] text-white font-semibold transition-transform hover:bg-green-500 cursor-pointer text-sm"
-                >
-                  Join Now
-                </button>
-              </div>
+              {!isEnded && (
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => {
+                      if (!interview.meeting_link) {
+                        alert('Meeting link not available');
+                        return;
+                      }
+                      window.open(interview.meeting_link, '_blank');
+                    }}
+                    className="flex-1 px-6 py-3 rounded-md bg-[#4ADE80] text-white font-semibold transition-transform hover:bg-green-500 cursor-pointer text-sm"
+                  >
+                    Join Now
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         );
@@ -501,6 +589,22 @@ const InterviewDetailsView: React.FC<InterviewDetailsViewProps> = ({
             </div>
           </div>
           <div className="bg-[#E8E8E8] h-[1px] mb-5"></div>
+
+          {interview.candidate_name && (
+            <div className="flex gap-4 mb-6">
+              <div className="w-12 h-12 rounded-full bg-[#FFF5F0] flex items-center justify-center flex-shrink-0">
+                <span className="text-lg font-bold text-[#FF8351]">
+                  {interview.candidate_name.charAt(0).toUpperCase()}
+                </span>
+              </div>
+              <div className="flex-1">
+                <h3 className="text-base font-semibold text-gray-800">
+                  {interview.candidate_name}
+                </h3>
+                <p className="text-sm text-gray-500">Candidate</p>
+              </div>
+            </div>
+          )}
 
           <h2 className="text-2xl font-bold text-gray-800 mb-2">
             {interview.job_role || interview.title}
@@ -547,7 +651,13 @@ const InterviewDetailsView: React.FC<InterviewDetailsViewProps> = ({
                 <p className="text-sm font-medium">{timeStr}</p>
               </div>
             </div>
-            <div />
+            {interview.interview_mode && (
+              <div className="flex items-center gap-2">
+                <span className="bg-blue-50 text-blue-700 rounded px-3 py-1 text-xs font-medium">
+                  {interview.interview_mode}
+                </span>
+              </div>
+            )}
           </div>
 
           <div className="bg-[#E8E8E8] h-[1px] mb-5"></div>
@@ -565,6 +675,24 @@ const InterviewDetailsView: React.FC<InterviewDetailsViewProps> = ({
             </div>
           </div>
 
+          {interview.resume_url && (
+            <>
+              <div className="bg-[#E8E8E8] h-[1px] mb-5"></div>
+              <div className="mb-6">
+                <h3 className="text-sm font-semibold text-gray-800 mb-3">
+                  RESUME
+                </h3>
+                <div className="bg-gray-50 rounded-lg overflow-hidden border border-gray-200">
+                  <iframe
+                    src={`${interview.resume_url}#toolbar=0`}
+                    className="w-full h-96 border-none"
+                    title="Resume"
+                  />
+                </div>
+              </div>
+            </>
+          )}
+
           <div className="flex items-center justify-between pt-4 border-t border-gray-200 mb-4">
             <div className="text-right">
               <p className="text-2xl font-bold text-gray-800">
@@ -579,13 +707,6 @@ const InterviewDetailsView: React.FC<InterviewDetailsViewProps> = ({
           </p>
 
           <div className="flex gap-4">
-            <button
-              onClick={handleCancelInterview}
-              disabled={isCancelling}
-              className="flex-1 px-6 py-3 rounded-md border-2 border-[#FF8351] text-[#FF8351] font-semibold transition-all hover:bg-[#FFF5F0] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isCancelling ? 'Cancelling...' : 'Cancel Interview'}
-            </button>
             <button
               className="flex-1 px-6 py-3 rounded-md text-white font-semibold transition-transform cursor-default opacity-95"
               style={{
@@ -724,13 +845,6 @@ const InterviewDetailsView: React.FC<InterviewDetailsViewProps> = ({
             disabled={bookingLoading}
           >
             {bookingLoading ? 'Booking...' : 'Book Mock Interview'}
-          </button>
-          <button
-            onClick={handleCancelInterview}
-            disabled={isCancelling}
-            className="w-full px-6 py-3 rounded-md border-2 border-[#FF8351] text-[#FF8351] font-semibold transition-all hover:bg-[#FFF5F0] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isCancelling ? 'Cancelling...' : 'Cancel'}
           </button>
         </div>
       </div>

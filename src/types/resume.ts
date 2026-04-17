@@ -54,6 +54,7 @@ export interface HigherEducation {
   currentlyPursuing?: boolean;
   resultFormat: string;
   result: string;
+  enabled: boolean;
 }
 
 export interface EducationDetails {
@@ -64,7 +65,6 @@ export interface EducationDetails {
   preUniversityEnabled: boolean;
 
   higherEducation: HigherEducation[];
-  higherEducationEnabled: boolean;
 }
 
 export interface WorkExperience {
@@ -215,7 +215,6 @@ export const initialResumeData: ResumeData = {
     preUniversityEnabled: true,
 
     higherEducation: [],
-    higherEducationEnabled: true,
   },
 
   experience: {

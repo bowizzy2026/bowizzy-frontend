@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { ChevronDown, RotateCcw, Trash2, Plus, Save } from "lucide-react";
+import { ChevronDown, Trash2, Plus, Save } from "lucide-react";
 import {
   updateExperienceDetails,
   saveExperienceDetails,
@@ -767,16 +767,6 @@ export default function ExperienceDetailsForm({
                 strokeWidth={2.5}
               />
             </button>
-            <button
-              type="button"
-              onClick={() => resetExperience(index)}
-              className="w-5 h-5 flex items-center justify-center rounded-full border-2 border-gray-600 hover:bg-gray-100 transition-colors"
-            >
-              <RotateCcw
-                className="w-3 h-3 text-gray-600 cursor-pointer"
-                strokeWidth={2.5}
-              />
-            </button>
             {showDelete && (
               <button
                 type="button"
@@ -1124,16 +1114,6 @@ export default function ExperienceDetailsForm({
                     strokeWidth={2.5}
                   />
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setJobRole(initialJobRole.current)} // Revert to initial state
-                  className="w-5 h-5 flex items-center justify-center rounded-full border-2 border-gray-600 hover:bg-gray-100 transition-colors"
-                >
-                  <RotateCcw
-                    className="w-3 h-3 text-gray-600 cursor-pointer"
-                    strokeWidth={2.5}
-                  />
-                </button>
               </div>
             </div>
 
@@ -1168,36 +1148,80 @@ export default function ExperienceDetailsForm({
                       className={`w-full px-3 py-2 sm:py-2.5 border rounded-lg focus:outline-none ${errors.jobRole ? 'border-red-300 ring-2 ring-red-100' : 'border-gray-300 focus:ring-2 focus:ring-orange-400 focus:border-transparent'} text-xs sm:text-sm appearance-none bg-white pr-8`}
                     >
                       <option value="">Select Job Role</option>
-                      <option value="Software Engineer">Software Engineer</option>
-                      <option value="Software Developer">Software Developer</option>
-                      <option value="Senior Software Engineer">Senior Software Engineer</option>
-                      <option value="Full Stack Developer">Full Stack Developer</option>
-                      <option value="Frontend Developer">Frontend Developer</option>
-                      <option value="Backend Developer">Backend Developer</option>
-                      <option value="DevOps Engineer">DevOps Engineer</option>
-                      <option value="Data Scientist">Data Scientist</option>
-                      <option value="Product Manager">Product Manager</option>
-                      <option value="UI/UX Designer">UI/UX Designer</option>
-                      <option value="Business Analyst">Business Analyst</option>
-                      <option value="QA Engineer">QA Engineer</option>
-                      <option value="Test Engineer">Test Engineer</option>
-                      <option value="System Administrator">System Administrator</option>
-                      <option value="Database Administrator">Database Administrator</option>
-                      <option value="Cloud Architect">Cloud Architect</option>
-                      <option value="Machine Learning Engineer">Machine Learning Engineer</option>
-                      <option value="AI Engineer">AI Engineer</option>
-                      <option value="Mobile App Developer">Mobile App Developer</option>
-                      <option value="iOS Developer">iOS Developer</option>
-                      <option value="Android Developer">Android Developer</option>
-                      <option value="Technical Lead">Technical Lead</option>
-                      <option value="Solution Architect">Solution Architect</option>
-                      <option value="IT Manager">IT Manager</option>
-                      <option value="Network Engineer">Network Engineer</option>
-                      <option value="Security Analyst">Security Analyst</option>
-                      <option value="Scrum Master">Scrum Master</option>
-                      <option value="Project Coordinator">Project Coordinator</option>
-                      <option value="Technical Writer">Technical Writer</option>
-                      <option value="Support Engineer">Support Engineer</option>
+                      <optgroup label="Software Engineering">
+                        <option value="Software Engineer">Software Engineer</option>
+                        <option value="Software Developer">Software Developer</option>
+                        <option value="Senior Software Engineer">Senior Software Engineer</option>
+                        <option value="Full Stack Developer">Full Stack Developer</option>
+                        <option value="Frontend Developer">Frontend Developer</option>
+                        <option value="Backend Developer">Backend Developer</option>
+                        <option value="Mobile App Developer">Mobile App Developer</option>
+                        <option value="iOS Developer">iOS Developer</option>
+                        <option value="Android Developer">Android Developer</option>
+                        <option value="Embedded Systems Engineer">Embedded Systems Engineer</option>
+                      </optgroup>
+                      <optgroup label="Data & AI">
+                        <option value="Data Scientist">Data Scientist</option>
+                        <option value="Data Analyst">Data Analyst</option>
+                        <option value="Data Engineer">Data Engineer</option>
+                        <option value="Machine Learning Engineer">Machine Learning Engineer</option>
+                        <option value="AI Engineer">AI Engineer</option>
+                        <option value="Deep Learning Engineer">Deep Learning Engineer</option>
+                        <option value="NLP Engineer">NLP Engineer</option>
+                        <option value="Business Intelligence Analyst">Business Intelligence Analyst</option>
+                      </optgroup>
+                      <optgroup label="Infrastructure & DevOps">
+                        <option value="DevOps Engineer">DevOps Engineer</option>
+                        <option value="Site Reliability Engineer">Site Reliability Engineer</option>
+                        <option value="Cloud Engineer">Cloud Engineer</option>
+                        <option value="Cloud Architect">Cloud Architect</option>
+                        <option value="System Administrator">System Administrator</option>
+                        <option value="Network Engineer">Network Engineer</option>
+                        <option value="Database Administrator">Database Administrator</option>
+                        <option value="Platform Engineer">Platform Engineer</option>
+                      </optgroup>
+                      <optgroup label="Security">
+                        <option value="Security Analyst">Security Analyst</option>
+                        <option value="Cybersecurity Engineer">Cybersecurity Engineer</option>
+                        <option value="Penetration Tester">Penetration Tester</option>
+                        <option value="Security Architect">Security Architect</option>
+                        <option value="SOC Analyst">SOC Analyst</option>
+                      </optgroup>
+                      <optgroup label="Quality Assurance">
+                        <option value="QA Engineer">QA Engineer</option>
+                        <option value="Test Engineer">Test Engineer</option>
+                        <option value="Automation Test Engineer">Automation Test Engineer</option>
+                        <option value="Performance Test Engineer">Performance Test Engineer</option>
+                        <option value="SDET">SDET</option>
+                      </optgroup>
+                      <optgroup label="Design">
+                        <option value="UI/UX Designer">UI/UX Designer</option>
+                        <option value="Product Designer">Product Designer</option>
+                        <option value="Graphic Designer">Graphic Designer</option>
+                        <option value="Interaction Designer">Interaction Designer</option>
+                      </optgroup>
+                      <optgroup label="Product & Management">
+                        <option value="Product Manager">Product Manager</option>
+                        <option value="Technical Lead">Technical Lead</option>
+                        <option value="Engineering Manager">Engineering Manager</option>
+                        <option value="Solution Architect">Solution Architect</option>
+                        <option value="IT Manager">IT Manager</option>
+                        <option value="Scrum Master">Scrum Master</option>
+                        <option value="Project Manager">Project Manager</option>
+                        <option value="Project Coordinator">Project Coordinator</option>
+                      </optgroup>
+                      <optgroup label="Business & Analytics">
+                        <option value="Business Analyst">Business Analyst</option>
+                        <option value="Systems Analyst">Systems Analyst</option>
+                        <option value="ERP Consultant">ERP Consultant</option>
+                        <option value="Salesforce Developer">Salesforce Developer</option>
+                      </optgroup>
+                      <optgroup label="Other">
+                        <option value="Technical Writer">Technical Writer</option>
+                        <option value="Support Engineer">Support Engineer</option>
+                        <option value="IT Consultant">IT Consultant</option>
+                        <option value="Research Engineer">Research Engineer</option>
+                      </optgroup>
                     </select>
                     {errors.jobRole && <p className="mt-1 text-xs text-red-500">{errors.jobRole}</p>}
                     <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
@@ -1209,16 +1233,16 @@ export default function ExperienceDetailsForm({
         )}
 
         {/* Experience Level Section */}
-        <div className="bg-white border border-gray-200 rounded-xl mb-4 md:mb-5 overflow-hidden">
+        {/* <div className="bg-white border border-gray-200 rounded-xl mb-4 md:mb-5 overflow-hidden"> */}
           {/* Header */}
-          <div className="px-4 sm:px-5 md:px-6 py-3 md:py-4 border-b border-gray-200">
+          {/* <div className="px-4 sm:px-5 md:px-6 py-3 md:py-4 border-b border-gray-200">
             <h3 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900">
               Experience Level
             </h3>
-          </div>
+          </div> */}
 
           {/* Content */}
-          <div className="p-4 sm:p-5 md:p-6">
+          {/* <div className="p-4 sm:p-5 md:p-6">
             <p className="text-xs sm:text-sm text-gray-600 mb-4">
               Select your experience level to determine whether work experience details are needed.
             </p>
@@ -1257,8 +1281,8 @@ export default function ExperienceDetailsForm({
                 <span className="text-xs sm:text-sm text-gray-700">Experienced</span>
               </label>
             </div>
-          </div>
-        </div>
+          </div> */}
+        {/* </div> */}
 
         {/* Work Experience Cards - Only show for Intern and Experienced */}
         {(experienceLevel === "intern" || experienceLevel === "experienced") && (

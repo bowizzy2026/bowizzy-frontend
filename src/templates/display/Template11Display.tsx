@@ -34,7 +34,7 @@ const Template11Display: React.FC<Template11DisplayProps> = ({
       return y * 100 + m;
     };
 
-    return [...(education.higherEducation || [])].sort((a, b) => {
+    return [...(education.higherEducation || [])].filter(edu => edu.enabled).sort((a, b) => {
       if (a.currentlyPursuing && !b.currentlyPursuing) return -1;
       if (!a.currentlyPursuing && b.currentlyPursuing) return 1;
 
@@ -207,11 +207,11 @@ const Template11Display: React.FC<Template11DisplayProps> = ({
         )}
 
         {/* Education Section */}
-        {(education.higherEducationEnabled || education.preUniversityEnabled || education.sslcEnabled) && (
+        {(education.higherEducation.some(edu => edu.enabled) || education.preUniversityEnabled || education.sslcEnabled) && (
           <section style={{ marginBottom: 22 }}>
             <h2 style={{ fontSize: 13, fontWeight: 700, color: primaryColor, letterSpacing: 1.2, marginBottom: 8 }}>EDUCATION</h2>
             <div style={{ height: 1, background: '#333', width: '100%', marginBottom: 12 }} />
-            {education.higherEducationEnabled && education.higherEducation.length > 0 && (
+            {education.higherEducation.some(edu => edu.enabled) && (
               <>
                 {sortedHigherEducation.map((edu, idx) => (
                   <div key={idx} style={{ marginBottom: 10 }}>

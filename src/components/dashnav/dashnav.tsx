@@ -178,16 +178,16 @@ export default function DashNav({ heading }: { heading: string }) {
 
             <div className="flex items-center gap-2">
                 {/* Search */}
-                <button className="w-9 h-9 flex items-center justify-center rounded-full border border-gray-200 bg-white hover:bg-gray-100 transition">
+                {/* <button className="w-9 h-9 flex items-center justify-center rounded-full border border-gray-200 bg-white hover:bg-gray-100 transition">
                     <Search size={18} />
-                </button>
+                </button> */}
 
                 {/* Bell */}
                 <div className="relative">
-                    <button className="w-9 h-9 flex items-center justify-center rounded-full border border-gray-200 bg-white hover:bg-gray-100 transition">
+                    {/* <button className="w-9 h-9 flex items-center justify-center rounded-full border border-gray-200 bg-white hover:bg-gray-100 transition">
                         <Bell size={18} />
-                    </button>
-                    <span className="absolute top-1 right-1 w-2 h-2 bg-orange-500 rounded-full border-2 border-white" />
+                    </button> */}
+                    {/* <span className="absolute top-1 right-1 w-2 h-2 bg-orange-500 rounded-full border-2 border-white" /> */}
                 </div>
 
                 {/* Profile pill + dropdown */}

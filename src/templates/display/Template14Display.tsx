@@ -71,15 +71,20 @@ const Template14Display: React.FC<Template14DisplayProps> = ({
           <div style={{ marginTop: 6, fontSize: 11, color: '#6b7280' }}>
             {(() => {
               const contactParts = [personal.address && String(personal.address).split(',')[0], personal.email, personal.mobileNumber].filter(Boolean);
-              const linkedin = (skillsLinks && (skillsLinks as any).links && (skillsLinks as any).links.linkedinProfile) || (personal as any).linkedinProfile;
-              const github = (skillsLinks && (skillsLinks as any).links && (skillsLinks as any).links.githubProfile) || (personal as any).githubProfile;
+              const links = skillsLinks && (skillsLinks as any).links;
+              const linkedin = links?.linkedinEnabled !== false && (links?.linkedinProfile || (personal as any).linkedinProfile);
+              const github = links?.githubEnabled !== false && (links?.githubProfile || (personal as any).githubProfile);
+              const portfolio = links?.portfolioEnabled && links?.portfolioUrl;
+              const extraLinks = [linkedin, github, portfolio].filter(Boolean);
               return (
                 <>
                   <span>{contactParts.join(' | ')}</span>
-                  {(linkedin || github) && <span> | </span>}
-                  {linkedin && <a href={(skillsLinks as any).links?.linkedinProfile || (personal as any).linkedinProfile} target="_blank" rel="noreferrer" style={{ color: '#0a66c2', textDecoration: 'none' }}>{linkedin}</a>}
-                  {linkedin && github && <span> | </span>}
-                  {github && <a href={(skillsLinks as any).links?.githubProfile || (personal as any).githubProfile} target="_blank" rel="noreferrer" style={{ color: '#111', textDecoration: 'none' }}>{github}</a>}
+                  {extraLinks.length > 0 && <span> | </span>}
+                  {linkedin && <a href={links?.linkedinProfile || (personal as any).linkedinProfile} target="_blank" rel="noreferrer" style={{ color: '#0a66c2', textDecoration: 'none' }}>{linkedin}</a>}
+                  {linkedin && (github || portfolio) && <span> | </span>}
+                  {github && <a href={links?.githubProfile || (personal as any).githubProfile} target="_blank" rel="noreferrer" style={{ color: '#111', textDecoration: 'none' }}>{github}</a>}
+                  {github && portfolio && <span> | </span>}
+                  {portfolio && <a href={links?.portfolioUrl} target="_blank" rel="noreferrer" style={{ color: '#111', textDecoration: 'none' }}>{portfolio}</a>}
                 </>
               );
             })()}
@@ -90,6 +95,7 @@ const Template14Display: React.FC<Template14DisplayProps> = ({
       <div style={{ padding: '0 36px 36px 36px' }}>
         <section style={{ display: 'block', gap: '0 16px' }}>
 
+          {experience.workExperiences.some(exp => exp.enabled) && (<>
           <div style={{ marginTop: 16 }}>
             <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.5, color: primaryColor, fontWeight: 700 }}>Work Experience</div>
             <div style={{ height: 1.5, background: '#999', marginTop: 4, width: '100%' }} />
@@ -113,7 +119,9 @@ const Template14Display: React.FC<Template14DisplayProps> = ({
               </div>
             ))}
           </div>
+          </>)}
 
+          {projects.some(p => p.enabled) && (<>
           <div style={{ marginTop: 16 }}>
             <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.5, color: primaryColor, fontWeight: 700 }}>Projects</div>
             <div style={{ height: 1.5, background: '#999', marginTop: 4, width: '100%' }} />
@@ -137,6 +145,7 @@ const Template14Display: React.FC<Template14DisplayProps> = ({
               </div>
             ))}
           </div>
+          </>)}
 
           <div style={{ marginTop: 16 }}>
             <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.5, color: primaryColor, fontWeight: 700 }}>Education</div>
@@ -144,7 +153,7 @@ const Template14Display: React.FC<Template14DisplayProps> = ({
           </div>
 
           <div style={{ marginTop: 8 }}>
-            {education.higherEducationEnabled && education.higherEducation.slice().sort((a: any,b: any) => {
+            {education.higherEducation.filter(edu => edu.enabled).sort((a: any,b: any) => {
               const pa = a.degree ? a.degree.toLowerCase() : '';
               const pb = b.degree ? b.degree.toLowerCase() : '';
               return pa.localeCompare(pb);
@@ -182,17 +191,21 @@ const Template14Display: React.FC<Template14DisplayProps> = ({
             )}
           </div>
 
+          {skillsLinks.skills.some(s => s.enabled && s.skillName) && (<>
           <div style={{ marginTop: 16 }}>
             <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.5, color: primaryColor, fontWeight: 700 }}>Skills</div>
             <div style={{ height: 1.5, background: '#999', marginTop: 4, width: '100%' }} />
           </div>
           <div style={{ marginTop: 8, color: '#2b2a2a' }}>{skillsLinks.skills.filter(s => s.enabled && s.skillName).map((s,i) => <span key={i} style={{ marginRight: 6 }}>{s.skillName}{i < skillsLinks.skills.filter(s => s.enabled && s.skillName).length - 1 ? ',' : ''}</span>)}</div>
+          </>)}
 
+          {certifications.some(c => c.enabled && c.certificateTitle) && (<>
           <div style={{ marginTop: 16 }}>
             <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.5, color: primaryColor, fontWeight: 700 }}>Certifications</div>
             <div style={{ height: 1.5, background: '#999', marginTop: 4, width: '100%' }} />
           </div>
           <div style={{ marginTop: 8, color: '#2b2a2a' }}>{certifications.filter(c => c.enabled && c.certificateTitle).map((c,i) => <span key={i} style={{ marginRight: 6 }}>{c.certificateTitle}{i < certifications.filter(c => c.enabled && c.certificateTitle).length - 1 ? ',' : ''}</span>)}</div>
+          </>)}
         
         </section>
       </div>

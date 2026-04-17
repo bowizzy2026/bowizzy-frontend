@@ -141,7 +141,7 @@ const Template4Display: React.FC<Template4DisplayProps> = ({ data }) => {
           )}
 
           {/* Experience */}
-          {experience.workExperiences.length > 0 && (
+          {experience.workExperiences.some(exp => exp.enabled) && (
             <section style={{ marginBottom: 18 }}>
               <h2 style={{ fontSize: 12, fontWeight: 700, color: '#2d3748', letterSpacing: '2px', marginBottom: 8 }}>EXPERIENCE</h2>
               {experience.workExperiences.filter(w => w.enabled).map((w, i) => (
@@ -183,10 +183,10 @@ const Template4Display: React.FC<Template4DisplayProps> = ({ data }) => {
           )}
 
           {/* Education */}
-          {education.higherEducationEnabled && education.higherEducation.length > 0 && (
+          {education.higherEducation.some(edu => edu.enabled) && (
             <section style={{ marginBottom: 18 }}>
               <h2 style={{ fontSize: 12, fontWeight: 700, color: '#2d3748', letterSpacing: '2px', marginBottom: 8 }}>EDUCATION</h2>
-              {education.higherEducation.map((edu, idx) => (
+              {education.higherEducation.filter(edu => edu.enabled).map((edu, idx) => (
                  <div key={idx} className="avoid-break">
                   <div style={{ fontSize: 12, fontWeight: 700 }}>{edu.instituteName}</div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -220,7 +220,7 @@ const Template4Display: React.FC<Template4DisplayProps> = ({ data }) => {
           )}
 
           {/* Skills */}
-          {skillsLinks.skills.length > 0 && (
+          {skillsLinks.skills.some(s => s.enabled && s.skillName) && (
             <section style={{ marginBottom: 18 }}>
               <h2 style={{ fontSize: 12, fontWeight: 700, color: '#2d3748', letterSpacing: '2px', marginBottom: 8 }}>SKILLS</h2>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>

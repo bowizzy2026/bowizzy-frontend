@@ -102,6 +102,7 @@ const Template16Display: React.FC<Template16DisplayProps> = ({
             )}
           </div>
 
+          {experience.workExperiences.some(exp => exp.enabled) && (<>
           <div style={{ marginTop: 12 }}>
             <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.2, color: primaryColor, fontWeight: 700 }}>Experience</div>
             <div style={{ height: 1, background: '#ddd', marginTop: 4, width: '100%' }} />
@@ -122,6 +123,7 @@ const Template16Display: React.FC<Template16DisplayProps> = ({
               </div>
             ))}
           </div>
+          </>)}
 
           {/* Projects - moved directly after Experience */}
           {projects.filter((p: any) => p.enabled).length > 0 && (
@@ -154,7 +156,7 @@ const Template16Display: React.FC<Template16DisplayProps> = ({
           </div>
 
           <div style={{ marginTop: 8 }}>
-            {education.higherEducationEnabled && education.higherEducation.slice().map((edu, i) => (
+            {education.higherEducation.filter(edu => edu.enabled).map((edu, i) => (
               <div key={`he-${i}`} style={{ marginBottom: 8 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <div style={{ fontWeight: 700 }}>{edu.instituteName}</div>
@@ -207,11 +209,13 @@ const Template16Display: React.FC<Template16DisplayProps> = ({
             </div>
           ))}</div>
 
+          {certifications.some(c => c.enabled && c.certificateTitle) && (<>
           <div style={{ marginTop: 12 }}>
             <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.2, color: primaryColor, fontWeight: 700 }}>Achievements / Certifications</div>
             <div style={{ height: 1, background: '#ddd', marginTop: 4, width: '100%' }} />
           </div>
           <div style={{ marginTop: 6 }}>{certifications.filter(c => c.enabled && c.certificateTitle).map((c,i) => <div key={i} style={{ marginBottom: 6 }}>{c.certificateTitle}{c.providedBy ? ` — ${c.providedBy}` : ''}</div>)}</div>
+          </>)}
 
 
 

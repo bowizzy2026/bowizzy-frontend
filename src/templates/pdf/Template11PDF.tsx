@@ -326,14 +326,14 @@ const Template11PDF: React.FC<Template11PDFProps> = ({ data, primaryColor = '#11
           )}
 
           {/* Education */}
-          {(education.higherEducationEnabled || education.preUniversityEnabled || education.sslcEnabled) && (
+          {(education.higherEducation.some(edu => edu.enabled) || education.preUniversityEnabled || education.sslcEnabled) && (
             <View style={{ marginBottom: 12 }}>
               <Text style={{ fontSize: 13, fontFamily: pdfFontFamilyBold, color: primaryColor, letterSpacing: 1.2, marginBottom: 4 }}>EDUCATION</Text>
               <View style={{ height: 1, backgroundColor: '#333333', width: '100%', marginBottom: 8 }} />
 
-              {education.higherEducationEnabled && education.higherEducation.length > 0 && (
+              {education.higherEducation.some(edu => edu.enabled) && (
                 <>
-                  {[...education.higherEducation].sort((a: any, b: any) => {
+                  {[...education.higherEducation].filter((edu: any) => edu.enabled).sort((a: any, b: any) => {
                     const parseYearKey = (val: string) => {
                       if (!val) return -Infinity;
                       const parts = val.split('-');

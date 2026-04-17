@@ -136,7 +136,7 @@ const Template8PDF: React.FC<Template8PDFProps> = ({ data }) => {
         )}
 
         {/* Work Experience */}
-        {experience.workExperiences.length > 0 && (
+        {experience.workExperiences.some(exp => exp.enabled) && (
           <View style={[styles.sectionRow, styles.hrSection]}>
             <View style={styles.labelCol}>
               <Text style={styles.label}>Work Experience</Text>
@@ -163,13 +163,13 @@ const Template8PDF: React.FC<Template8PDFProps> = ({ data }) => {
         )}
 
         {/* Education */}
-        {education.higherEducationEnabled && education.higherEducation.length > 0 && (
+        {education.higherEducation.some(edu => edu.enabled) && (
           <View style={[styles.sectionRow, styles.hrSection]}>
             <View style={styles.labelCol}>
               <Text style={styles.label}>Education</Text>
             </View>
             <View style={styles.contentCol}>
-              {education.higherEducation.map((edu, i) => (
+              {education.higherEducation.filter(edu => edu.enabled).map((edu, i) => (
                 <View key={i} style={{ marginBottom: 8 }}>
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                     <Text style={styles.itemTitle}>{edu.degree}</Text>
@@ -207,7 +207,7 @@ const Template8PDF: React.FC<Template8PDFProps> = ({ data }) => {
         
 
         {/* Key Skills */}
-        {skillsLinks.skills.length > 0 && (
+        {skillsLinks.skills.some(s => s.enabled && s.skillName) && (
           <View style={[styles.sectionRow, styles.hrSection]}>
             <View style={styles.labelCol}>
               <Text style={styles.label}>Key Skills</Text>

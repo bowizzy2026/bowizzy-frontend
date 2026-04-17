@@ -9,7 +9,7 @@ import {
     confirmInterviewSlotPayment
 } from "@/services/interviewPrepService";
 import { getResumeTemplates, getResumeTemplateById } from '@/services/resumeServices';
-import { getSkillsByUserId } from "@/services/skillsLinksService";
+import { getSkillsByUserId, saveSkillsDetails } from "@/services/skillsLinksService";
 import { getExperienceByUserId } from "@/services/experienceService";
 import { uploadToCloudinary } from "@/utils/uploadToCloudinary";
 import { deleteFromCloudinary } from "@/utils/deleteFromCloudinary";
@@ -43,6 +43,10 @@ const GiveMockInterview = () => {
     const [resumeTemplates, setResumeTemplates] = useState([]);
     const [loadingResumes, setLoadingResumes] = useState(false);
     const [selectedTemplateDetail, setSelectedTemplateDetail] = useState(null);
+
+    const [showAddSkillPopup, setShowAddSkillPopup] = useState(false);
+    const [newSkillName, setNewSkillName] = useState('');
+    const [savingSkill, setSavingSkill] = useState(false);
 
     const resolveTemplateId = (t) => {
         if (!t) return null;
@@ -142,7 +146,9 @@ const GiveMockInterview = () => {
         '10:00 AM', '11:00 AM',
         '12:00 PM', '1:00 PM',
         '2:00 PM', '3:00 PM',
-        '4:00 PM', '5:00 PM'
+        '4:00 PM', '5:00 PM',
+        '6:00 PM', '7:00 PM',
+        '8:00 PM'
     ];
 
     const [currentScreen, setCurrentScreen] = useState('form');
@@ -163,33 +169,22 @@ const GiveMockInterview = () => {
 
     const dates = initialDates;
 
-    const isTimeSlotDisabled = (selectedDateObj, timeStr) => {
-        const now = new Date();
-        const selectedDate = new Date(selectedDateObj.fullDate);
-
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
-        selectedDate.setHours(0, 0, 0, 0);
-
-        if (selectedDate.getTime() > today.getTime()) {
-            return false;
-        }
-
+    const parseSlotTime = (selectedDateObj, timeStr) => {
         const [time, period] = timeStr.split(' ');
         let [hour, minute] = time.split(':').map(Number);
+        if (period === 'PM' && hour < 12) hour += 12;
+        else if (period === 'AM' && hour === 12) hour = 0;
 
-        if (period === 'PM' && hour < 12) {
-            hour += 12;
-        } else if (period === 'AM' && hour === 12) {
-            hour = 0;
-        }
+        const slotDate = new Date(selectedDateObj.fullDate);
+        slotDate.setHours(hour, minute, 0, 0);
+        return slotDate;
+    };
 
-        const slotTime = new Date();
-        slotTime.setFullYear(now.getFullYear(), now.getMonth(), now.getDate());
-        slotTime.setHours(hour, minute, 0, 0);
-
-        return slotTime.getTime() <= now.getTime();
+    const isTimeSlotDisabled = (selectedDateObj, timeStr) => {
+        const now = new Date();
+        const minBookingTime = new Date(now.getTime() + 4 * 60 * 60 * 1000); // 4 hours from now
+        const slotTime = parseSlotTime(selectedDateObj, timeStr);
+        return slotTime.getTime() <= minBookingTime.getTime();
     };
 
 
@@ -280,22 +275,16 @@ const GiveMockInterview = () => {
             const role = expResponse?.job_role || 'No Role Found';
             const fetchedSkills = skillResponse.map(skill => skill.skill_name) || [];
 
-            const initialYears = 3;
-            const initialMonths = 3;
-            const yearsArray = Array.from({ length: initialYears }, (_, i) => i + 1);
-            const monthsArray = Array.from({ length: initialMonths }, (_, i) => i + 1);
-            const experienceString = calculateExperienceString(yearsArray, monthsArray);
-
             setUserRole(role);
             setAllBackendSkills(fetchedSkills);
 
             setBookingData(prev => ({
                 ...prev,
                 role: role,
-                experience: experienceString,
+                experience: '0 years 0 months',
                 selectedSkills: fetchedSkills.slice(0, 5),
-                yearsExp: yearsArray,
-                monthsExp: monthsArray,
+                yearsExp: [],
+                monthsExp: [],
                 selectedDate: dates[0],
                 selectedTime: flatTimeSlots.find(time => !isTimeSlotDisabled(dates[0], time)) || flatTimeSlots[0],
                 resumeUrl: `DEFAULT_RESUME_0`,
@@ -560,31 +549,12 @@ const GiveMockInterview = () => {
             return;
         }
 
-        try {
-            setLoading(true);
-            const payload = prepareAPIPayload();
-
-            const response = await createInterviewSlot(userId, token, payload, sessionMode);
-
-            const interviewId = response?.interview_slot_id || 'N/A';
-
-            setBookingData(prev => ({ ...prev, interviewId: interviewId }));
-            setCurrentScreen('payment');
-
-        } catch (error) {
-            console.error('Booking API Error:', error);
-            const serverMsg = error?.response?.data?.message || error?.response?.data?.error || error?.response?.data?.detail;
-            const displayMsg = serverMsg || error?.message || 'Server error';
-            const friendlyMsg = mapBookingErrorMessage(displayMsg);
-            setBookingError(friendlyMsg);
-        } finally {
-            setLoading(false);
-        }
+        setCurrentScreen('payment');
     };
 
 
     const handlePayAndConfirm = async () => {
-        if (loading || !bookingData.interviewId) return;
+        if (loading) return;
 
         if (planAmount == null) {
             alert('Price not loaded yet. Please wait a moment and try again.');
@@ -653,16 +623,24 @@ const GiveMockInterview = () => {
                 handler: async function (response) {
                     try {
                         // verify payment on backend
-                        const verifyResp = await api.post('/payment/verify', { ...response, order_id: orderId, interview_id: bookingData.interviewId }, token ? { headers: { Authorization: `Bearer ${token}` } } : undefined);
+                        const verifyResp = await api.post('/payment/verify', { ...response, order_id: orderId }, token ? { headers: { Authorization: `Bearer ${token}` } } : undefined);
                         const verifyData = verifyResp?.data ?? verifyResp;
 
-                        // if verification successful, confirm interview slot and go to success
+                        // if verification successful, create interview slot and confirm payment
                         const ok = verifyData?.success || verifyData?.status === 'success' || String(verifyData?.message || '').toLowerCase().includes('success');
                         if (ok) {
                             try {
-                                await confirmInterviewSlotPayment(userId, token, bookingData.interviewId, orderAmount);
+                                // Create interview slot after successful payment
+                                let interviewId = bookingData.interviewId;
+                                if (!interviewId) {
+                                    const payload = prepareAPIPayload();
+                                    const slotResponse = await createInterviewSlot(userId, token, payload, sessionMode);
+                                    interviewId = slotResponse?.interview_slot_id || 'N/A';
+                                    setBookingData(prev => ({ ...prev, interviewId: interviewId }));
+                                }
+                                await confirmInterviewSlotPayment(userId, token, interviewId, orderAmount);
                             } catch (e) {
-                                console.warn('confirmInterviewSlotPayment failed, continuing to success screen', e);
+                                console.warn('Post-payment slot creation/confirmation failed', e);
                             }
                             setCurrentScreen('success');
                         } else {
@@ -698,7 +676,10 @@ const GiveMockInterview = () => {
 
         } catch (error) {
             console.error('Payment Error:', error);
-            alert('Failed to initiate payment. Please try again.');
+            const serverMsg = error?.response?.data?.message || error?.response?.data?.error || error?.response?.data?.detail;
+            const displayMsg = serverMsg || error?.message || 'Server error';
+            const friendlyMsg = mapBookingErrorMessage(displayMsg);
+            setBookingError(friendlyMsg);
             setLoading(false);
         }
     };
@@ -808,6 +789,31 @@ const GiveMockInterview = () => {
         }
         return msg;
     };
+    const handleAddNewSkill = async () => {
+        const trimmed = newSkillName.trim();
+        if (!trimmed) return;
+        if (allBackendSkills.includes(trimmed)) {
+            alert('This skill already exists.');
+            return;
+        }
+        try {
+            setSavingSkill(true);
+            await saveSkillsDetails(userId, token, [{ skill_name: trimmed }]);
+            setAllBackendSkills(prev => [...prev, trimmed]);
+            setBookingData(prev => ({
+                ...prev,
+                selectedSkills: [...prev.selectedSkills, trimmed]
+            }));
+            setNewSkillName('');
+            setShowAddSkillPopup(false);
+        } catch (err) {
+            console.error('Failed to add skill:', err);
+            alert('Failed to add skill. Please try again.');
+        } finally {
+            setSavingSkill(false);
+        }
+    };
+
     // ---------- SIDEBAR ----------
     const NoteSidebar = ({ notes }) => (
         <div className="bg-white rounded-lg p-6 shadow-sm sticky top-4 min-h-[720px]">
@@ -826,7 +832,6 @@ const GiveMockInterview = () => {
 
 
     const notes = [
-        "The job role and experience for your interview will be based on your profile. To schedule an interview for a different role, please create a new role in your profile section.",
         "Once your payment is complete, your interview request will be forwarded to our professionals, who will conduct the interview according to the available time slots.",
         "You will receive a notification 2 hours before your interview and a reminder 30 minutes prior.",
         "If you cancel the interview 3–4 hours in advance, you are eligible for a 50% refund. Cancellations made within 3 hours of the interview are non-refundable."
@@ -956,10 +961,93 @@ const GiveMockInterview = () => {
 
                 <div className="lg:col-span-3 space-y-5">
 
-                    <div className="bg-white rounded-[20px] pt-5 px-5 pb-0">
+                    <div className="bg-white rounded-[20px] pt-5 px-5 pb-4">
 
                         <div className="flex items-center justify-between">
-                            <h2 className="text-[#3A3A3A] text-2xl font-bold">Job Role : {bookingData.role}</h2>
+                            <div className="flex items-center gap-3 w-full">
+                                <h2 className="text-[#3A3A3A] text-2xl font-bold whitespace-nowrap">Job Role :</h2>
+                                <select
+                                    value={bookingData.role}
+                                    onChange={(e) => setBookingData(prev => ({ ...prev, role: e.target.value }))}
+                                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent text-sm appearance-none bg-white"
+                                >
+                                    <option value="">Select Job Role</option>
+                                    <optgroup label="Software Engineering">
+                                        <option value="Software Engineer">Software Engineer</option>
+                                        <option value="Software Developer">Software Developer</option>
+                                        <option value="Senior Software Engineer">Senior Software Engineer</option>
+                                        <option value="Full Stack Developer">Full Stack Developer</option>
+                                        <option value="Frontend Developer">Frontend Developer</option>
+                                        <option value="Backend Developer">Backend Developer</option>
+                                        <option value="Mobile App Developer">Mobile App Developer</option>
+                                        <option value="iOS Developer">iOS Developer</option>
+                                        <option value="Android Developer">Android Developer</option>
+                                        <option value="Embedded Systems Engineer">Embedded Systems Engineer</option>
+                                    </optgroup>
+                                    <optgroup label="Data & AI">
+                                        <option value="Data Scientist">Data Scientist</option>
+                                        <option value="Data Analyst">Data Analyst</option>
+                                        <option value="Data Engineer">Data Engineer</option>
+                                        <option value="Machine Learning Engineer">Machine Learning Engineer</option>
+                                        <option value="AI Engineer">AI Engineer</option>
+                                        <option value="Deep Learning Engineer">Deep Learning Engineer</option>
+                                        <option value="NLP Engineer">NLP Engineer</option>
+                                        <option value="Business Intelligence Analyst">Business Intelligence Analyst</option>
+                                    </optgroup>
+                                    <optgroup label="Infrastructure & DevOps">
+                                        <option value="DevOps Engineer">DevOps Engineer</option>
+                                        <option value="Site Reliability Engineer">Site Reliability Engineer</option>
+                                        <option value="Cloud Engineer">Cloud Engineer</option>
+                                        <option value="Cloud Architect">Cloud Architect</option>
+                                        <option value="System Administrator">System Administrator</option>
+                                        <option value="Network Engineer">Network Engineer</option>
+                                        <option value="Database Administrator">Database Administrator</option>
+                                        <option value="Platform Engineer">Platform Engineer</option>
+                                    </optgroup>
+                                    <optgroup label="Security">
+                                        <option value="Security Analyst">Security Analyst</option>
+                                        <option value="Cybersecurity Engineer">Cybersecurity Engineer</option>
+                                        <option value="Penetration Tester">Penetration Tester</option>
+                                        <option value="Security Architect">Security Architect</option>
+                                        <option value="SOC Analyst">SOC Analyst</option>
+                                    </optgroup>
+                                    <optgroup label="Quality Assurance">
+                                        <option value="QA Engineer">QA Engineer</option>
+                                        <option value="Test Engineer">Test Engineer</option>
+                                        <option value="Automation Test Engineer">Automation Test Engineer</option>
+                                        <option value="Performance Test Engineer">Performance Test Engineer</option>
+                                        <option value="SDET">SDET</option>
+                                    </optgroup>
+                                    <optgroup label="Design">
+                                        <option value="UI/UX Designer">UI/UX Designer</option>
+                                        <option value="Product Designer">Product Designer</option>
+                                        <option value="Graphic Designer">Graphic Designer</option>
+                                        <option value="Interaction Designer">Interaction Designer</option>
+                                    </optgroup>
+                                    <optgroup label="Product & Management">
+                                        <option value="Product Manager">Product Manager</option>
+                                        <option value="Technical Lead">Technical Lead</option>
+                                        <option value="Engineering Manager">Engineering Manager</option>
+                                        <option value="Solution Architect">Solution Architect</option>
+                                        <option value="IT Manager">IT Manager</option>
+                                        <option value="Scrum Master">Scrum Master</option>
+                                        <option value="Project Manager">Project Manager</option>
+                                        <option value="Project Coordinator">Project Coordinator</option>
+                                    </optgroup>
+                                    <optgroup label="Business & Analytics">
+                                        <option value="Business Analyst">Business Analyst</option>
+                                        <option value="Systems Analyst">Systems Analyst</option>
+                                        <option value="ERP Consultant">ERP Consultant</option>
+                                        <option value="Salesforce Developer">Salesforce Developer</option>
+                                    </optgroup>
+                                    <optgroup label="Other">
+                                        <option value="Technical Writer">Technical Writer</option>
+                                        <option value="Support Engineer">Support Engineer</option>
+                                        <option value="IT Consultant">IT Consultant</option>
+                                        <option value="Research Engineer">Research Engineer</option>
+                                    </optgroup>
+                                </select>
+                            </div>
                         </div>
                     </div>
                     <div className="bg-white rounded-[20px] pt-5 px-5 pb-0">
@@ -968,14 +1056,16 @@ const GiveMockInterview = () => {
                         <div className="mb-4">
                             <span className="text-[#3A3A3A] text-base font-medium block mb-3">INTERVIEW MODE</span>
                             <div className="flex gap-4 max-w-sm mx-auto">
-                                <button disabled={true} className={`flex-1 text-center px-4 py-2 rounded-lg border text-sm font-semibold cursor-default ${bookingData.mode === 'ONLINE' ? 'bg-[#FFF0E3] border-[#F26D3A] text-[#F26D3A]' : 'bg-[#EDEDED] border-[#CACACA] text-[#A0A0A0]'
-                                    }`}>
-                                    ONLINE
-                                </button>
-                                <button disabled={true} className={`flex-1 text-center px-4 py-2 rounded-lg border text-sm font-semibold cursor-default ${bookingData.mode === 'OFFLINE' ? 'bg-[#FFF0E3] border-[#F26D3A] text-[#F26D3A]' : 'bg-[#EDEDED] border-[#CACACA] text-[#A0A0A0]'
-                                    }`}>
-                                    OFFLINE
-                                </button>
+                                {bookingData.mode === 'ONLINE' && (
+                                    <button disabled={true} className="flex-1 text-center px-4 py-2 rounded-lg border text-sm font-semibold cursor-default bg-[#FFF0E3] border-[#F26D3A] text-[#F26D3A]">
+                                        ONLINE
+                                    </button>
+                                )}
+                                {bookingData.mode === 'OFFLINE' && (
+                                    <button disabled={true} className="flex-1 text-center px-4 py-2 rounded-lg border text-sm font-semibold cursor-default bg-[#FFF0E3] border-[#F26D3A] text-[#F26D3A]">
+                                        OFFLINE
+                                    </button>
+                                )}
                             </div>
                         </div>
 
@@ -1027,7 +1117,7 @@ const GiveMockInterview = () => {
                                                 ? 'bg-[#E0E0E0] border-[#C0C0C0] text-[#A0A0A0] cursor-not-allowed'
                                                 : bookingData.selectedTime === time
                                                     ? 'bg-[#FFF0E3] border-[#F26D3A] text-[#3A3A3A]'
-                                                    : 'bg-[#EDEDED] border-[#CACACA] text-[#3A3A3A]'
+                                                    : 'bg-green-50 border-green-400 text-green-700'
                                                 }`}
                                             disabled={loading || isDisabled}
                                         >
@@ -1070,6 +1160,13 @@ const GiveMockInterview = () => {
                                     {allBackendSkills.length === 0 && (
                                         <p className="text-sm text-[#7F7F7F] col-span-full">No skills available for your current role. Please update your profile or create a new role.</p>
                                     )}
+                                    <button
+                                        onClick={() => setShowAddSkillPopup(true)}
+                                        className="py-2 px-3 rounded-lg text-sm border border-dashed border-[#F26D3A] text-[#F26D3A] hover:bg-[#FFF0E3] flex items-center gap-1 cursor-pointer"
+                                        disabled={loading}
+                                    >
+                                        <span className="text-lg leading-none">+</span> Add Skill
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -1639,6 +1736,41 @@ const GiveMockInterview = () => {
                                 }}
                             >
                                 Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showAddSkillPopup && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center">
+                    <div className="absolute inset-0 bg-black opacity-30" onClick={() => { setShowAddSkillPopup(false); setNewSkillName(''); }} />
+                    <div className="bg-white rounded-lg p-6 z-60 w-full max-w-sm mx-4 shadow-lg">
+                        <h3 className="text-lg font-semibold mb-4">Add New Skill</h3>
+                        <input
+                            type="text"
+                            value={newSkillName}
+                            onChange={(e) => setNewSkillName(e.target.value)}
+                            onKeyDown={(e) => { if (e.key === 'Enter') handleAddNewSkill(); }}
+                            placeholder="Enter skill name"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent text-sm mb-4"
+                            autoFocus
+                        />
+                        <div className="flex justify-end gap-3">
+                            <button
+                                onClick={() => { setShowAddSkillPopup(false); setNewSkillName(''); }}
+                                className="px-4 py-2 rounded-lg text-sm font-semibold border border-gray-300 text-gray-700 hover:bg-gray-50 cursor-pointer"
+                                disabled={savingSkill}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleAddNewSkill}
+                                disabled={savingSkill || !newSkillName.trim()}
+                                className="px-4 py-2 rounded-lg text-sm font-semibold text-white cursor-pointer disabled:opacity-50"
+                                style={{ background: "linear-gradient(180deg, #FF9D48 0%, #FF8251 100%)" }}
+                            >
+                                {savingSkill ? 'Saving...' : 'Save'}
                             </button>
                         </div>
                     </div>

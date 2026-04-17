@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Plus, Trash2, ChevronDown, RotateCcw, X, Save } from "lucide-react";
+import { Plus, Trash2, ChevronDown, X, Save } from "lucide-react";
 import {
   updateSkillDetails,
   saveSkillsDetails,
@@ -201,13 +201,7 @@ export default function SkillsLinksDetailsForm({
       return "Please enter a valid GitHub URL";
     }
 
-    if (
-      type === "Portfolio" &&
-      value &&
-      !value.toLowerCase().includes("portfolio")
-    ) {
-      return "Please enter a valid Portfolio URL";
-    }
+
 
     return "";
   };
@@ -424,12 +418,6 @@ export default function SkillsLinksDetailsForm({
         ...prev,
         [`link-${linkIndex}-githubProfile`]: error,
       }));
-    } else if (field === "portfolioUrl") {
-      const error = validateUrl(value, "Portfolio");
-      setErrors((prev) => ({
-        ...prev,
-        [`link-${linkIndex}-portfolioUrl`]: error,
-      }));
     } else if (field === "publicationUrl") {
       const error = validateUrl(value, "Publication");
       setErrors((prev) => ({
@@ -453,6 +441,8 @@ export default function SkillsLinksDetailsForm({
   };
 
   // Handler for saving all changed link fields (PUT/POST/DELETE)
+  const cleanUrl = (url: string) => url.replace(/^https?:\/\//i, '').replace(/^www\./i, '');
+
   const handleSaveAllLinks = async () => {
     const link = links[0];
     const changes = linkChanges[link.id];
@@ -488,7 +478,11 @@ export default function SkillsLinksDetailsForm({
     ];
 
     for (const { field, dbId, apiType, descField } of fieldsToSync) {
-      const url = link[field as keyof Link] as string;
+      let url = link[field as keyof Link] as string;
+      if (url) {
+        url = cleanUrl(url);
+        link[field as keyof Link] = url;
+      }
       const dbIdValue = link[dbId as keyof Link];
       const description = descField ? link[descField as keyof Link] : null;
       const linkIndex = 0;
@@ -823,16 +817,6 @@ export default function SkillsLinksDetailsForm({
                   strokeWidth={2.5}
                 />
               </button>
-              <button
-                type="button"
-                onClick={resetSkills}
-                className="w-5 h-5 flex items-center justify-center rounded-full border-2 border-gray-600 hover:bg-gray-100 transition-colors"
-              >
-                <RotateCcw
-                  className="w-3 h-3 text-gray-600 cursor-pointer"
-                  strokeWidth={2.5}
-                />
-              </button>
             </div>
           </div>
 
@@ -1004,16 +988,6 @@ export default function SkillsLinksDetailsForm({
                   <ChevronDown
                     className={`w-3 h-3 text-gray-600 cursor-pointer transition-transform ${!linksExpanded ? "rotate-180" : ""
                       }`}
-                    strokeWidth={2.5}
-                  />
-                </button>
-                <button
-                  type="button"
-                  onClick={resetLinks}
-                  className="w-5 h-5 flex items-center justify-center rounded-full border-2 border-gray-600 hover:bg-gray-100 transition-colors"
-                >
-                  <RotateCcw
-                    className="w-3 h-3 text-gray-600 cursor-pointer"
                     strokeWidth={2.5}
                   />
                 </button>

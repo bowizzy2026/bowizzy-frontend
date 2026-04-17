@@ -164,6 +164,7 @@ const Template16PDF: React.FC<Template16PDFProps> = ({ data, primaryColor = '#11
           <Text key={idx} style={{ fontSize: 10, color: '#444', marginTop: idx === 0 ? 6 : 4 }}>{ln}</Text>
         )) : null}
 
+        {experience.workExperiences.some((exp: any) => exp.enabled) && (<>
         <View style={{ marginTop: 12 }}>
           <Text style={{ ...styles.sectionHeading, fontFamily: pdfFontFamilyBold, color: primaryColor }}>Experience</Text>
           <View style={{ height: 1, backgroundColor: primaryColor, width: '100%', marginTop: 4, marginBottom: 0 }} />
@@ -180,6 +181,7 @@ const Template16PDF: React.FC<Template16PDFProps> = ({ data, primaryColor = '#11
             </View>
           ))}
         </View>
+        </>)}
 
         {/* Projects - moved directly after Experience */}
         {projects.filter((p: any) => p.enabled).length > 0 && (
@@ -208,7 +210,7 @@ const Template16PDF: React.FC<Template16PDFProps> = ({ data, primaryColor = '#11
         </View>
 
         <View style={{ marginTop: 8 }}>
-          {education.higherEducationEnabled && education.higherEducation.slice().map((edu: any, i: number) => (
+          {education.higherEducation.filter(edu => edu.enabled).map((edu: any, i: number) => (
             <View key={`he-${i}`} style={{ marginBottom: 8 }}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                 <Text style={styles.itemTitle}>{edu.instituteName}</Text>
@@ -271,11 +273,13 @@ const Template16PDF: React.FC<Template16PDFProps> = ({ data, primaryColor = '#11
           </View>
         ))}</View>
 
+        {(certifications || []).some((c: any) => c.enabled && c.certificateTitle) && (<>
         <View style={{ marginTop: 12 }}>
           <Text style={styles.sectionHeading}>Achievements / Certifications</Text>
           <View style={{ height: 1, backgroundColor: '#ddd', width: '100%', marginTop: 4, marginBottom: 0 }} />
         </View>
         <View style={{ marginTop: 6 }}>{(certifications || []).filter((c: any) => c.enabled && c.certificateTitle).map((c: any, i: number) => <Text key={i} style={{ fontSize: 10, color: '#444', marginBottom: 4 }}>{c.certificateTitle}{c.providedBy ? ` — ${c.providedBy}` : ''}</Text>)}</View>
+        </>)}
 
       {/* Footer */}
       <View style={{

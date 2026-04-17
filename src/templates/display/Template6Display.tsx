@@ -62,7 +62,7 @@ const Template6Display: React.FC<Template6DisplayProps> = ({ data }) => {
         )}
 
         {/* Technical skills / Key skills - 3 column layout like the image */}
-        {skillsLinks.skills.length > 0 && (
+        {skillsLinks.skills.some(s => s.enabled && s.skillName) && (
           <section style={{ marginBottom: 14 }}>
             <SectionTitle>Technical Skills</SectionTitle>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px 20px', marginTop: 8 }}>
@@ -74,7 +74,7 @@ const Template6Display: React.FC<Template6DisplayProps> = ({ data }) => {
         )}
 
         {/* Professional experience */}
-        {experience.workExperiences.length > 0 && (
+        {experience.workExperiences.some(exp => exp.enabled) && (
           <section style={{ marginBottom: 14 }}>
             <SectionTitle>Professional Experience</SectionTitle>
             <div style={{ marginTop: 8 }}>
@@ -136,11 +136,11 @@ const Template6Display: React.FC<Template6DisplayProps> = ({ data }) => {
         )}
 
         {/* Education */}
-        {education.higherEducationEnabled && education.higherEducation.length > 0 && (
+        {education.higherEducation.some(edu => edu.enabled) && (
           <section style={{ marginBottom: 14 }}>
             <SectionTitle>Education</SectionTitle>
             <div style={{ marginTop: 8 }}>
-              {education.higherEducation.map((edu, i) => (
+              {education.higherEducation.filter(edu => edu.enabled).map((edu, i) => (
                 <div key={i} style={{ marginBottom: 8 }}>
                   <div style={{ fontSize: 13, fontWeight: 700 }}>{edu.instituteName}</div>
                   <div style={{ fontSize: 12, color: '#555' }}>{edu.degree} • {edu.startYear} - {edu.currentlyPursuing ? 'Present' : edu.endYear}</div>

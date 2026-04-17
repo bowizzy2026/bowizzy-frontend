@@ -248,14 +248,13 @@ export const Template2PDF: React.FC<Template2PDFProps> = ({ data }) => {
 								)}
 						</View>
 
-						{(education.higherEducationEnabled ||
+						{(education.higherEducation.some(edu => edu.enabled) ||
 							education.preUniversityEnabled ||
 							education.sslcEnabled) && (
 							<View style={styles.section}>
 								<Text style={styles.sectionTitle}>EDUCATION</Text>
-								{education.higherEducationEnabled &&
-									education.higherEducation.length > 0 &&
-									education.higherEducation.map((edu, idx) => (
+								{education.higherEducation.some(edu => edu.enabled) &&
+									education.higherEducation.filter(edu => edu.enabled).map((edu, idx) => (
 										<View key={idx} style={styles.educationItem}>
 											<Text style={styles.educationTitle}>
 												{edu.instituteName?.toUpperCase()}
@@ -298,7 +297,7 @@ export const Template2PDF: React.FC<Template2PDFProps> = ({ data }) => {
 							</View>
 						)}
 
-						{skillsLinks.skills.length > 0 && (
+						{skillsLinks.skills.some(s => s.enabled && s.skillName) && (
 							<View style={styles.section}>
 								<Text style={styles.sectionTitle}>SKILLS</Text>
 								{skillsLinks.skills
@@ -351,7 +350,7 @@ export const Template2PDF: React.FC<Template2PDFProps> = ({ data }) => {
 							</View>
 						)}
 
-						{experience.workExperiences.length > 0 && (
+						{experience.workExperiences.some(exp => exp.enabled) && (
 							<View style={styles.section}>
 								<Text style={styles.sectionTitle}>WORK EXPERIENCE</Text>
 								{experience.workExperiences

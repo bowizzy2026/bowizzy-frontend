@@ -122,13 +122,13 @@ const Template9PDF: React.FC<Template9PDFProps> = ({ data }) => {
           </View>
 
           <View style={styles.right}>
-            {education.higherEducationEnabled && education.higherEducation.length>0 && (
+            {education.higherEducation.some(edu => edu.enabled) && (
               <View style={styles.section}>
                 <View style={styles.labelRow}>
                   <Text style={styles.labelText}>Education</Text>
                   <View style={styles.labelBar} />
                 </View>
-                {education.higherEducation.map((edu,i)=>(
+                {education.higherEducation.filter(edu => edu.enabled).map((edu,i)=>(
                   <View key={i} style={{marginBottom:6}}>
                     <Text style={{fontSize:10,fontWeight:'bold'}}>{edu.degree}</Text>
                     <Text style={{fontSize:9,color:'#666'}}>{edu.startYear} - {edu.currentlyPursuing ? 'Present' : edu.endYear}</Text>
@@ -155,7 +155,7 @@ const Template9PDF: React.FC<Template9PDFProps> = ({ data }) => {
               </View>
             )}
 
-            {experience.workExperiences.length>0 && (
+            {experience.workExperiences.some(exp => exp.enabled) && (
               <View style={styles.section}>
                 <View style={styles.labelRow}>
                   <Text style={styles.labelText}>Experience</Text>

@@ -17,9 +17,7 @@ export const filterResumeData = (fullResumeData: any) => {
       preUniversity: fullResumeData.education?.preUniversityEnabled
         ? fullResumeData.education?.preUniversity || {}
         : {},
-      higherEducation: fullResumeData.education?.higherEducationEnabled
-        ? fullResumeData.education?.higherEducation || []
-        : [],
+      higherEducation: (fullResumeData.education?.higherEducation || []).filter((edu: any) => edu.enabled),
     },
     experience: {
       jobRole: fullResumeData.experience?.jobRole || "",

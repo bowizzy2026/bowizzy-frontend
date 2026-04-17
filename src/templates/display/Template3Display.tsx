@@ -32,7 +32,7 @@ export const Template3Display: React.FC<Template3DisplayProps> = ({
 
   // Show education if any of the education subsections have data
   const hasEducation = (
-    (education.higherEducationEnabled && education.higherEducation.length > 0) ||
+    (education.higherEducation.some(edu => edu.enabled)) ||
     (education.sslcEnabled && !!education.sslc?.instituteName) ||
     (education.preUniversityEnabled && !!education.preUniversity?.instituteName)
   );
@@ -204,7 +204,7 @@ export const Template3Display: React.FC<Template3DisplayProps> = ({
           )}
 
           {/* Skills Section */}
-          {skillsLinks.skills.length > 0 && skillsLinks.skills.some(s => s.enabled && s.skillName) && (
+          {skillsLinks.skills.some(s => s.enabled && s.skillName) && skillsLinks.skills.some(s => s.enabled && s.skillName) && (
             <div className="resume-section" style={{ marginBottom: '32px' }}>
               <div style={{ 
                 display: 'flex', 
@@ -292,7 +292,7 @@ export const Template3Display: React.FC<Template3DisplayProps> = ({
                 backgroundColor: accentColor
               }}></div>
               
-              {education.higherEducation.map((edu, idx) => (
+              {education.higherEducation.filter(edu => edu.enabled).map((edu, idx) => (
                 <div key={idx} className="education-item" style={{ marginBottom: '20px', position: 'relative' }}>
                   <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
                     <div style={{
@@ -442,7 +442,7 @@ export const Template3Display: React.FC<Template3DisplayProps> = ({
         )}
         
         {/* Experience Section */}
-        {experience.workExperiences.length > 0 && experience.workExperiences.some(exp => exp.enabled) && (
+        {experience.workExperiences.some(exp => exp.enabled) && experience.workExperiences.some(exp => exp.enabled) && (
           <div className="resume-section" style={{ marginBottom: '35px' }}>
             <div style={{ 
               display: 'flex', 

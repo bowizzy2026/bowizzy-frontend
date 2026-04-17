@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api";
 import { checkCoupon } from "../services/couponService";
@@ -28,6 +28,27 @@ export default function Register() {
   const [showConfirm, setShowConfirm] = useState(false);
   
   const [loading, setLoading] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [countdown, setCountdown] = useState(3);
+  const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    if (showSuccess) {
+      countdownRef.current = setInterval(() => {
+        setCountdown((prev) => {
+          if (prev <= 1) {
+            clearInterval(countdownRef.current!);
+            navigate("/login");
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => {
+      if (countdownRef.current) clearInterval(countdownRef.current);
+    };
+  }, [showSuccess, navigate]);
 
   type RegisterErrors = {
     firstName?: string;
@@ -178,15 +199,30 @@ export default function Register() {
         coupon_code: coupon,
       });
 
-      navigate("/login");
+      setLoading(false);
+      setShowSuccess(true);
     } catch (err) {
       setFormError(err?.response?.data?.message || "Signup error");
-    } finally {
       setLoading(false);
     }
   };
 
   return (
+    <>
+    {showSuccess && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+        <div className="bg-white rounded-2xl shadow-xl p-8 max-w-sm w-full mx-4 text-center">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-green-100 flex items-center justify-center">
+            <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <h3 className="text-xl font-semibold text-gray-800 mb-2">Account Created Successfully!</h3>
+          <p className="text-gray-500">Redirecting to login in</p>
+          <p className="text-3xl font-bold text-orange-600 mt-2">{countdown}</p>
+        </div>
+      </div>
+    )}
     <div className="min-h-screen grid grid-cols-1 md:grid-cols-[700px_1fr] font-['Baloo_2']">
       {/* LEFT SIDE */}
       <div className="hidden md:flex flex-col justify-between bg-[#FFE9D6] p-12 sticky top-0 h-screen">
@@ -545,5 +581,6 @@ export default function Register() {
         </div>
       </div>
     </div>
+    </>
   );
 }

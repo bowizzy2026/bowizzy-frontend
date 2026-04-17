@@ -146,6 +146,9 @@ const [enhancedSummaryVersions, setEnhancedSummaryVersions] = useState<{ atsFrie
     if (/^\d+$/.test(value.trim())) {
       return "Skill cannot be only numbers";
     }
+    if (value.replace(/\s/g, "").length > 12) {
+      return "Max 12 characters (excluding spaces)";
+    }
 
     return "";
   };
@@ -176,8 +179,9 @@ const [enhancedSummaryVersions, setEnhancedSummaryVersions] = useState<{ atsFrie
 
     if (
       type === "Portfolio" &&
-      value &&
-      !value.toLowerCase().includes("portfolio")
+      value 
+      // &&
+      // !value.toLowerCase().includes("portfolio")
     )
       return "Please enter a valid Portfolio URL";
 
@@ -304,6 +308,8 @@ const [enhancedSummaryVersions, setEnhancedSummaryVersions] = useState<{ atsFrie
   };
 
   // Handler for saving all links
+  const cleanUrl = (url: string) => url.replace(/^https?:\/\//i, '').replace(/^www\./i, '');
+
   const handleSaveAllLinks = async () => {
     if (!linkChanges) {
       setLinkFeedback("No changes to save.");
@@ -338,7 +344,12 @@ const [enhancedSummaryVersions, setEnhancedSummaryVersions] = useState<{ atsFrie
     ];
 
     for (const { field, dbId, apiType, descField } of fieldsToSync) {
-      const url = link[field as keyof typeof link] as string;
+      let url = link[field as keyof typeof link] as string;
+      if (url) {
+        url = cleanUrl(url);
+        (link as any)[field] = url;
+        onChange({ ...data, links: { ...link } });
+      }
       const dbIdValue = link[dbId as keyof typeof link];
       const description = descField
         ? (link[descField as keyof typeof link] as string)
@@ -505,17 +516,19 @@ const [enhancedSummaryVersions, setEnhancedSummaryVersions] = useState<{ atsFrie
   };
 
   const updateSkill = (id: string, field: string, value: string | boolean) => {
+    if (field === "skillName") {
+      const strValue = value as string;
+      if (strValue.replace(/\s/g, "").length > 12) return;
+      const error = validateSkillName(strValue);
+      setErrors((prev) => ({ ...prev, [`skill-${id}-skillName`]: error }));
+    }
+
     onChange({
       ...data,
       skills: data.skills.map((skill) =>
         skill.id === id ? { ...skill, [field]: value } : skill
       ),
     });
-
-    if (field === "skillName") {
-      const error = validateSkillName(value as string);
-      setErrors((prev) => ({ ...prev, [`skill-${id}-skillName`]: error }));
-    }
   };
 
   const addSkill = () => {
@@ -771,9 +784,7 @@ const hasSkillChanges = Object.keys(skillChanges).length > 0;
       {/* LINKS SECTION */}
       <FormSection
         title="Links"
-        showToggle={true}
-        enabled={data.linksEnabled}
-        onToggle={(enabled) => onChange({ ...data, linksEnabled: enabled })}
+        showToggle={false}
         showActions={true}
         isCollapsed={linksCollapsed}
         onCollapseToggle={() => setLinksCollapsed(!linksCollapsed)}

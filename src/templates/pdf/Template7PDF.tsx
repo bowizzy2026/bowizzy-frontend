@@ -166,10 +166,10 @@ const Template7PDF: React.FC<Template7PDFProps> = ({ data }) => {
           )}
 
           {/* Education */}
-          {education.higherEducationEnabled && education.higherEducation.length > 0 && (
+          {education.higherEducation.some(edu => edu.enabled) && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Education</Text>
-              {education.higherEducation.map((edu, i) => (
+              {education.higherEducation.filter(edu => edu.enabled).map((edu, i) => (
                 <View key={i} style={styles.educationItem}>
                   <Text style={styles.itemTitle}>{edu.instituteName}</Text>
                   <Text style={styles.itemSubtitle}>{edu.degree}</Text>
@@ -202,7 +202,7 @@ const Template7PDF: React.FC<Template7PDFProps> = ({ data }) => {
           )}
 
           {/* Experience */}
-          {experience.workExperiences.length > 0 && (
+          {experience.workExperiences.some(exp => exp.enabled) && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Experience</Text>
               {experience.workExperiences.filter(w => w.enabled).map((w, i) => (
@@ -233,7 +233,7 @@ const Template7PDF: React.FC<Template7PDFProps> = ({ data }) => {
           )}
 
           {/* Skills */}
-          {skillsLinks.skills.length > 0 && (
+          {skillsLinks.skills.some(s => s.enabled && s.skillName) && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Skills</Text>
               {skillsLinks.skills.filter(s => s.enabled && s.skillName).map((s, i) => (

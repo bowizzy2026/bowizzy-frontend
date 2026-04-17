@@ -63,7 +63,7 @@ const Template6PDF: React.FC<Template6PDFProps> = ({ data }) => {
             </View>
           ) : null}
 
-          {skillsLinks.skills.length > 0 && (
+          {skillsLinks.skills.some(s => s.enabled && s.skillName) && (
             <View style={styles.section}>
               <View style={styles.pillTitle}><Text style={styles.pillTitleText}>Technical Skills</Text></View>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginTop: 6, gap: 8 }}>
@@ -76,7 +76,7 @@ const Template6PDF: React.FC<Template6PDFProps> = ({ data }) => {
             </View>
           )}
 
-          {experience.workExperiences.length > 0 && (
+          {experience.workExperiences.some(exp => exp.enabled) && (
             <View style={styles.section}>
               <View style={styles.pillTitle}><Text style={styles.pillTitleText}>Professional Experience</Text></View>
               <View style={{ marginTop: 6 }}>
@@ -131,11 +131,11 @@ const Template6PDF: React.FC<Template6PDFProps> = ({ data }) => {
               </View>
             )}
 
-          {education.higherEducationEnabled && education.higherEducation.length > 0 && (
+          {education.higherEducation.some(edu => edu.enabled) && (
             <View style={styles.section}>
               <View style={styles.pillTitle}><Text style={styles.pillTitleText}>Education</Text></View>
               <View style={{ marginTop: 6 }}>
-                {education.higherEducation.map((edu, i) => (
+                {education.higherEducation.filter(edu => edu.enabled).map((edu, i) => (
                   <View key={i} style={{ marginBottom: 6 }}>
                     <Text style={{ fontSize: 11, fontWeight: 'bold' }}>{edu.instituteName}</Text>
                     <Text style={styles.text}>{edu.degree} • {edu.startYear} - {edu.currentlyPursuing ? 'Present' : edu.endYear}</Text>

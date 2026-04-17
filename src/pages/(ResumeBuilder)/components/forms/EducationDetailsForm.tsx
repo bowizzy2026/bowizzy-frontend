@@ -61,10 +61,29 @@ const degrees = [
   { value: "B.Sc", label: "B.Sc" },
   { value: "B.A", label: "B.A" },
   { value: "B.Com", label: "B.Com" },
+  { value: "BBA", label: "BBA" },
+  { value: "BCA", label: "BCA" },
+  { value: "B.Arch", label: "B.Arch" },
+  { value: "B.Des", label: "B.Des" },
+  { value: "B.Pharm", label: "B.Pharm" },
+  { value: "B.Ed", label: "B.Ed" },
+  { value: "MBBS", label: "MBBS" },
+  { value: "BDS", label: "BDS" },
+  { value: "LLB", label: "LLB" },
+  { value: "BHM", label: "BHM" },
   { value: "M.Tech", label: "M.Tech" },
   { value: "M.Sc", label: "M.Sc" },
+  { value: "M.A", label: "M.A" },
+  { value: "M.Com", label: "M.Com" },
+  { value: "MCA", label: "MCA" },
   { value: "MBA", label: "MBA" },
+  { value: "M.Arch", label: "M.Arch" },
+  { value: "M.Des", label: "M.Des" },
+  { value: "M.Pharm", label: "M.Pharm" },
+  { value: "M.Ed", label: "M.Ed" },
+  { value: "LLM", label: "LLM" },
   { value: "Diploma", label: "Diploma" },
+  { value: "PG Diploma", label: "PG Diploma" },
   { value: "PhD", label: "PhD" },
 ];
 
@@ -160,6 +179,152 @@ export const branchesByDegree: Record<string, string[]> = {
     "Arts",
     "Commerce",
   ],
+
+  BBA: [
+    "General Management",
+    "Finance",
+    "Marketing",
+    "HR",
+    "International Business",
+    "Entrepreneurship",
+  ],
+
+  BCA: [
+    "Computer Applications",
+    "Data Science",
+    "Cloud Computing",
+    "Cybersecurity",
+  ],
+
+  "B.Arch": [
+    "Architecture",
+    "Urban Planning",
+    "Interior Design",
+    "Landscape Architecture",
+  ],
+
+  "B.Des": [
+    "Fashion Design",
+    "Graphic Design",
+    "Product Design",
+    "Interior Design",
+    "UI/UX Design",
+  ],
+
+  "B.Pharm": [
+    "Pharmaceutics",
+    "Pharmacology",
+    "Pharmaceutical Chemistry",
+    "Clinical Pharmacy",
+  ],
+
+  "B.Ed": [
+    "Primary Education",
+    "Secondary Education",
+    "Special Education",
+    "Physical Education",
+  ],
+
+  MBBS: [
+    "General Medicine",
+    "Surgery",
+    "Pediatrics",
+    "Obstetrics & Gynecology",
+    "Orthopedics",
+  ],
+
+  BDS: [
+    "Oral Medicine",
+    "Orthodontics",
+    "Prosthodontics",
+    "Oral Surgery",
+  ],
+
+  LLB: [
+    "Corporate Law",
+    "Criminal Law",
+    "Constitutional Law",
+    "Intellectual Property Law",
+    "International Law",
+  ],
+
+  BHM: [
+    "Hotel Management",
+    "Hospitality",
+    "Food & Beverage",
+    "Travel & Tourism",
+  ],
+
+  "M.A": [
+    "English",
+    "History",
+    "Economics",
+    "Political Science",
+    "Psychology",
+    "Sociology",
+    "Journalism",
+  ],
+
+  "M.Com": [
+    "Accounting",
+    "Finance",
+    "Taxation",
+    "Banking",
+    "Business Management",
+  ],
+
+  MCA: [
+    "Computer Applications",
+    "Data Science",
+    "Cloud Computing",
+    "Cybersecurity",
+    "Software Engineering",
+  ],
+
+  "M.Arch": [
+    "Architecture",
+    "Urban Design",
+    "Sustainable Architecture",
+    "Interior Architecture",
+  ],
+
+  "M.Des": [
+    "Industrial Design",
+    "Communication Design",
+    "Fashion Design",
+    "UI/UX Design",
+  ],
+
+  "M.Pharm": [
+    "Pharmaceutics",
+    "Pharmacology",
+    "Pharmaceutical Chemistry",
+    "Clinical Pharmacy",
+  ],
+
+  "M.Ed": [
+    "Educational Administration",
+    "Curriculum & Instruction",
+    "Special Education",
+    "Educational Psychology",
+  ],
+
+  LLM: [
+    "Corporate Law",
+    "Criminal Law",
+    "Constitutional Law",
+    "International Law",
+    "Intellectual Property Law",
+  ],
+
+  "PG Diploma": [
+    "Data Science",
+    "Business Analytics",
+    "Digital Marketing",
+    "Financial Management",
+    "HR Management",
+    "Supply Chain Management",
+  ],
 };
 
 const buildYear = (val: string | null | undefined): string | number | null => {
@@ -190,8 +355,9 @@ export const EducationDetailsForm: React.FC<EducationDetailsFormProps> = ({
 }) => {
   const [sslcCollapsed, setSslcCollapsed] = useState(false);
   const [preUniversityCollapsed, setPreUniversityCollapsed] = useState(false);
-  const [higherEducationCollapsed, setHigherEducationCollapsed] =
-    useState(false);
+  const [expandedEducationIds, setExpandedEducationIds] = useState<Set<string>>(
+    () => new Set(data.higherEducation.map((e) => e.id))
+  );
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
@@ -266,6 +432,27 @@ export const EducationDetailsForm: React.FC<EducationDetailsFormProps> = ({
   const hasAnyHigherEduChanged = useCallback(() => {
     return data.higherEducation.some(getHigherEduChangedStatus);
   }, [data.higherEducation, getHigherEduChangedStatus]);
+
+  const toggleHigherEducation = (id: string, enabled: boolean) => {
+    onChange({
+      ...data,
+      higherEducation: data.higherEducation.map((edu) =>
+        edu.id === id ? { ...edu, enabled } : edu
+      ) as HigherEducation[],
+    });
+  };
+
+  const toggleCollapseEducation = (id: string) => {
+    setExpandedEducationIds((prev) => {
+      const updated = new Set(prev);
+      if (updated.has(id)) {
+        updated.delete(id);
+      } else {
+        updated.add(id);
+      }
+      return updated;
+    });
+  };
 
   const getCurrentMonth = () => {
     const now = new Date();
@@ -985,8 +1172,9 @@ export const EducationDetailsForm: React.FC<EducationDetailsFormProps> = ({
   };
 
   const addHigherEducation = () => {
+    const newId = Date.now().toString();
     const newEdu: HigherEducation = {
-      id: Date.now().toString(),
+      id: newId,
       degree: "",
       fieldOfStudy: "",
       instituteName: "",
@@ -997,12 +1185,13 @@ export const EducationDetailsForm: React.FC<EducationDetailsFormProps> = ({
       result: "",
       currentlyPursuing: false,
       education_id: null,
+      enabled: true,
     };
     onChange({
       ...data,
       higherEducation: [...data.higherEducation, newEdu],
     });
-    setHigherEducationCollapsed(false);
+    setExpandedEducationIds((prev) => new Set([...prev, newId]));
   };
 
   const removeHigherEducation = async (id: string) => {
@@ -1075,41 +1264,32 @@ export const EducationDetailsForm: React.FC<EducationDetailsFormProps> = ({
     const hasChanged = getHigherEduChangedStatus(education);
     const feedback = higherEduFeedback[id];
     const isNewCard = !education.education_id;
+    const isExpanded = expandedEducationIds.has(id);
+    const isEnabled = education.enabled !== undefined ? education.enabled : true;
+
+    const title = education.degree
+      ? education.fieldOfStudy
+        ? `${education.degree} - ${education.fieldOfStudy}`
+        : education.degree
+      : `Education ${index + 1}`;
 
     return (
-      <div
+      <FormSection
         key={id}
-        className={`${index > 0 ? "mt-6 pt-6 border-t border-gray-200" : ""}`}
+        title={title}
+        required={index === 0}
+        showToggle={true}
+        enabled={isEnabled}
+        onToggle={(enabled) => toggleHigherEducation(id, enabled)}
+        onRemove={
+          data.higherEducation.length > 1
+            ? () => removeHigherEducation(id)
+            : undefined
+        }
+        showActions={true}
+        isCollapsed={!isExpanded}
+        onCollapseToggle={() => toggleCollapseEducation(id)}
       >
-        {data.higherEducation.length > 1 && (
-          <div className="flex justify-between items-center mb-4">
-            <span className="text-sm font-medium text-gray-700">
-              Education {index + 1}
-            </span>
-            <button
-              type="button"
-              onClick={() => removeHigherEducation(id)}
-              className="text-red-500 text-sm hover:text-red-600 flex items-center gap-1"
-            >
-              <Trash2 className="w-4 h-4" />
-              Remove
-            </button>
-          </div>
-        )}
-
-        <div className="flex items-center justify-end gap-2 mb-4">
-          <h4 className="text-sm font-medium text-gray-900">
-            {education.degree && education.fieldOfStudy
-              ? `${education.degree} in ${education.fieldOfStudy}`
-              : education.degree || `Education #${index + 1}`}
-          </h4>
-          <span className="text-xs text-gray-500">
-            {education.instituteName &&
-              education.instituteName !== "undefined" &&
-              education.instituteName}
-          </span>
-        </div>
-
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormSelect
@@ -1232,7 +1412,7 @@ export const EducationDetailsForm: React.FC<EducationDetailsFormProps> = ({
             />
           </div>
 
-          <div className='flex items-center justify-end gap-2 mt-8 pt-4 border-t border-gray-200'>
+          <div className="flex items-center justify-end gap-2 mt-8 pt-4 border-t border-gray-200">
             {feedback && (
               <span
                 className={`text-xs px-2 py-1 rounded-full ${
@@ -1269,7 +1449,7 @@ export const EducationDetailsForm: React.FC<EducationDetailsFormProps> = ({
             </button>
           </div>
         </div>
-      </div>
+      </FormSection>
     );
   };
 
@@ -1476,23 +1656,9 @@ export const EducationDetailsForm: React.FC<EducationDetailsFormProps> = ({
         </div>
       </FormSection>
 
-      <FormSection
-        title={"Degree"}
-        required={true}
-        enabled={data.higherEducationEnabled}
-        onToggle={(enabled) =>
-          onChange({ ...data, higherEducationEnabled: enabled })
-        }
-        showActions={true}
-        isCollapsed={higherEducationCollapsed}
-        onCollapseToggle={() =>
-          setHigherEducationCollapsed(!higherEducationCollapsed)
-        }
-      >
-        {data.higherEducation.map((edu, index) =>
-          renderEducationCard(edu as HigherEducation, index)
-        )}
-      </FormSection>
+      {data.higherEducation.map((edu, index) =>
+        renderEducationCard(edu as HigherEducation, index)
+      )}
 
       <div className="bg-white border border-gray-200 rounded-xl">
         <AddButton onClick={addHigherEducation} label="Add Education" />

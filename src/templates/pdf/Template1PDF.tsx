@@ -383,13 +383,12 @@ export const Template1PDF: React.FC<Template1PDFProps> = ({ data }) => {
           {/* Left Column */}
           <View style={styles.leftColumn}>
             {/* Education */}
-            {education.higherEducationEnabled &&
-              education.higherEducation.length > 0 && (
+            {education.higherEducation.some(edu => edu.enabled) && (
                 <View style={styles.section}>
                   <Text style={styles.sectionTitle}>EDUCATION</Text>
 
                           {/* Higher Education */}
-                          {education.higherEducation.map((edu, idx) => (
+                          {education.higherEducation.filter(edu => edu.enabled).map((edu, idx) => (
                     <View key={idx} style={styles.educationItem}>
                       <Text style={styles.itemTitle}>{edu.instituteName}</Text>
                       <Text style={styles.itemSubtitle}>{edu.degree}</Text>
@@ -429,7 +428,7 @@ export const Template1PDF: React.FC<Template1PDFProps> = ({ data }) => {
               )}
 
             {/* Skills (render directly below Education) */}
-            {skillsLinks.skills.length > 0 &&
+            {skillsLinks.skills.some(s => s.enabled && s.skillName) &&
               skillsLinks.skills.some((s) => s.enabled && s.skillName) && (
                 <View style={styles.section}>
                   <Text style={styles.sectionTitle}>SKILLS</Text>
@@ -477,7 +476,7 @@ export const Template1PDF: React.FC<Template1PDFProps> = ({ data }) => {
           {/* Right Column */}
           <View style={styles.rightColumn}>
             {/* Professional Experience */}
-            {experience.workExperiences.length > 0 &&
+            {experience.workExperiences.some(exp => exp.enabled) &&
               experience.workExperiences.some((exp) => exp.enabled) && (
                 <View style={styles.section}>
                   <Text style={styles.sectionTitle}>

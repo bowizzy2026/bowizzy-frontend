@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useLocation } from "react-router-dom";
+import { useParams, useLocation, useNavigate } from "react-router-dom";
 import DashNav from "@/components/dashnav/dashnav";
 import api from "@/api";
 
@@ -74,6 +74,7 @@ const RatingSection = React.memo(
 const CandidateEvaluation = () => {
   const { scheduleId } = useParams<{ scheduleId: string }>();
   const location = useLocation();
+  const navigate = useNavigate();
   const passedInterview = (location.state as any)?.interview;
 
   const [interviewData, setInterviewData] = useState({
@@ -284,28 +285,7 @@ const CandidateEvaluation = () => {
 
       console.log("Candidate Evaluation submitted successfully:", response.data);
       alert("Candidate Evaluation submitted successfully!");
-      
-      // Reset form after successful submission
-      setRatings({
-        communication: 0,
-        technicalKnowledge: 0,
-        problemSolving: 0,
-        relevantExperience: 0,
-        adaptability: 0,
-        culturalFit: 0,
-        overall: 0,
-      });
-      setComments({
-        communication: "",
-        technicalKnowledge: "",
-        problemSolving: "",
-        relevantExperience: "",
-        adaptability: "",
-        culturalFit: "",
-        overall: "",
-        final: "",
-      });
-      setRecommendation("");
+      navigate(-1);
     } catch (err) {
       console.error("Failed to submit candidate evaluation:", err);
       setValidationError(
@@ -320,27 +300,7 @@ const CandidateEvaluation = () => {
 
   const handleCancel = () => {
     if (confirm("Are you sure you want to cancel? All unsaved changes will be lost.")) {
-      setRatings({
-        communication: 0,
-        technicalKnowledge: 0,
-        problemSolving: 0,
-        relevantExperience: 0,
-        adaptability: 0,
-        culturalFit: 0,
-        overall: 0,
-      });
-      setComments({
-        communication: "",
-        technicalKnowledge: "",
-        problemSolving: "",
-        relevantExperience: "",
-        adaptability: "",
-        culturalFit: "",
-        overall: "",
-        final: "",
-      });
-      setRecommendation("");
-      setValidationError(null);
+      navigate(-1);
     }
   };
 
@@ -571,13 +531,6 @@ const CandidateEvaluation = () => {
               </div>
             </div>
             <div className="flex justify-end gap-3 pt-2">
-              <button
-                onClick={handleCancel}
-                disabled={isSubmitting}
-                className="px-8 py-2 border border-solid border-[#CACACA] text-[#3A3A3A] rounded text-base font-medium hover:bg-gray-50 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Cancel
-              </button>
               <button
                 onClick={handleSubmit}
                 disabled={isSubmitting}

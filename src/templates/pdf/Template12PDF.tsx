@@ -15,14 +15,14 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 12,
   },
-  name: { fontSize: 28, marginBottom: 6 },
+  name: { fontSize: 22, marginBottom: 6 },
   summary: { fontSize: 10, color: '#333', marginBottom: 6 },
   contact: { fontSize: 10, color: '#2b2a2a' },
   divider: { height: 1, backgroundColor: '#333', marginVertical: 12 },
 
   grid: { flexDirection: 'row' },
   leftCol: { width: 120, paddingRight: 12 },
-  sectionHeading: { fontSize: 11, letterSpacing: 1.2, textTransform: 'uppercase', color: '#111827' },
+  sectionHeading: { fontSize: 9, letterSpacing: 0.9, textTransform: 'uppercase', color: '#111827' },
   rightCol: { flex: 1 },
 
   sectionTitle: { fontSize: 11, marginBottom: 6 },
@@ -65,9 +65,9 @@ const renderBulletedParagraph = (html?: string) => {
     .replace(/&gt;/g, '>')
     .replace(/&amp;/g, '&')
     .trim();
-  
+
   const lines = text.split('\n').filter((l) => l.trim());
-  
+
   return (
     <View style={{ marginTop: 2 }}>
       {lines.map((line, idx) => (
@@ -86,7 +86,7 @@ const renderBulletedParagraph = (html?: string) => {
 
 const formatMonthYear = (s?: string) => {
   if (!s) return '';
-  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
   try {
     const str = String(s).trim();
     const ymd = str.match(/^(\d{4})-(\d{2})(?:-\d{2})?$/);
@@ -114,33 +114,37 @@ const Template12PDF: React.FC<Template12PDFProps> = ({ data, primaryColor = '#11
   const getPdfFontFamily = (cssFont?: string): string => {
     if (!cssFont) return 'Times-Roman';
     const fontLower = cssFont.toLowerCase();
-    
+
     if (fontLower.includes('arial')) return 'Helvetica';
     if (fontLower.includes('times')) return 'Times-Roman';
     if (fontLower.includes('georgia')) return 'Times-Roman';
     if (fontLower.includes('calibri')) return 'Helvetica';
     if (fontLower.includes('roboto')) return 'Helvetica';
     if (fontLower.includes('inter')) return 'Helvetica';
-    
+
     return 'Times-Roman';
   };
 
   const getPdfFontFamilyBold = (cssFont?: string): string => {
     if (!cssFont) return 'Times-Bold';
     const fontLower = cssFont.toLowerCase();
-    
+
     if (fontLower.includes('arial')) return 'Helvetica-Bold';
     if (fontLower.includes('times')) return 'Times-Bold';
     if (fontLower.includes('georgia')) return 'Times-Bold';
     if (fontLower.includes('calibri')) return 'Helvetica-Bold';
     if (fontLower.includes('roboto')) return 'Helvetica-Bold';
     if (fontLower.includes('inter')) return 'Helvetica-Bold';
-    
+
     return 'Times-Bold';
   };
 
   const pdfFontFamily = getPdfFontFamily(fontFamily);
   const pdfFontFamilyBold = getPdfFontFamilyBold(fontFamily);
+
+  const hasEducation = education.higherEducation.some(edu => edu.enabled) || (education.preUniversityEnabled && education.preUniversity.instituteName) || (education.sslcEnabled && education.sslc.instituteName);
+  const hasSkills = skillsLinks.skills.some((s: any) => s.enabled && s.skillName);
+  const hasCerts = certifications.some((c: any) => c.enabled && c.certificateTitle);
 
   return (
     <Document>
@@ -153,47 +157,53 @@ const Template12PDF: React.FC<Template12PDFProps> = ({ data, primaryColor = '#11
 
         <View style={{ ...styles.divider, backgroundColor: primaryColor }} />
 
-        <View style={styles.grid}>
-          <View style={styles.leftCol}>
-            <Text style={{ ...styles.sectionHeading, fontFamily: pdfFontFamilyBold, color: primaryColor }}>WORK EXPERIENCE</Text>
-          </View>
-          <View style={styles.rightCol}>
-            {experience.workExperiences.filter(w => w.enabled).map((w: any, i: number) => (
-              <View key={i} style={{ marginBottom: 8 }}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                  <Text style={{ ...styles.itemTitle, fontFamily: pdfFontFamilyBold }}>{w.jobTitle} — {w.companyName}</Text>
-                  <Text style={{ ...styles.itemSub, fontFamily: pdfFontFamilyBold }}>{formatMonthYear(w.startDate)} — {w.currentlyWorking ? 'Present' : formatMonthYear(w.endDate)}</Text>
+        {experience.workExperiences.some((exp: any) => exp.enabled) && (<>
+          <View style={styles.grid}>
+            <View style={styles.leftCol}>
+              <Text style={{ ...styles.sectionHeading, fontFamily: pdfFontFamilyBold, color: primaryColor }}>WORK</Text>
+              <Text style={{ ...styles.sectionHeading, fontFamily: pdfFontFamilyBold, color: primaryColor }}>EXPERIENCE</Text>
+            </View>
+            <View style={styles.rightCol}>
+              {experience.workExperiences.filter(w => w.enabled).map((w: any, i: number) => (
+                <View key={i} style={{ marginBottom: 8 }}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                    <Text style={{ ...styles.itemTitle, fontFamily: pdfFontFamilyBold }}>{w.jobTitle} — {w.companyName}</Text>
+                    <Text style={{ ...styles.itemSub, fontFamily: pdfFontFamilyBold }}>{formatMonthYear(w.startDate)} — {w.currentlyWorking ? 'Present' : formatMonthYear(w.endDate)}</Text>
+                  </View>
+                  {w.description && (
+                    <View style={{ color: '#2b2a2a' }}>{renderBulletedParagraph(w.description)}</View>
+                  )}
                 </View>
-                {w.description && (
-                  <View style={{ color: '#2b2a2a' }}>{renderBulletedParagraph(w.description)}</View>
-                )}
-              </View>
-            ))}
+              ))}
+            </View>
           </View>
-        </View>
 
-        {/* divider after work experience */}
-        <View style={{ height: 1, backgroundColor: '#aaa', width: '100%', marginVertical: 12 }} />
+          {/* divider after work experience, only if projects exist */}
+          {projects.some((p: any) => p.enabled) && <View style={{ height: 1, backgroundColor: '#aaa', width: '100%', marginVertical: 12 }} />}
+        </>)}
 
         {/* Projects Section */}
-        <View style={{ height: 12 }} />
-        <View style={styles.grid}>
-          <View style={styles.leftCol}>
-            <Text style={{ ...styles.sectionHeading, fontFamily: pdfFontFamilyBold, color: primaryColor }}>PROJECTS</Text>
-          </View>
-          <View style={styles.rightCol}>
-            {projects && projects.filter((p: any) => p.enabled).map((p: any, i: number) => (
-              <View key={i} style={{ marginBottom: 8 }}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                  <Text style={{ ...styles.itemTitle, fontFamily: pdfFontFamilyBold }}>{p.projectTitle}</Text>
-                  <Text style={{ ...styles.itemSub, fontFamily: pdfFontFamilyBold }}>{formatMonthYear(p.startDate)} — {p.currentlyWorking ? 'Present' : formatMonthYear(p.endDate)}</Text>
+        {projects.some((p: any) => p.enabled) && (<>
+          <View style={{ height: 12 }} />
+          <View style={styles.grid}>
+            <View style={styles.leftCol}>
+              <Text style={{ ...styles.sectionHeading, fontFamily: pdfFontFamilyBold, color: primaryColor }}>PROJECTS</Text>
+            </View>
+            <View style={styles.rightCol}>
+              {projects && projects.filter((p: any) => p.enabled).map((p: any, i: number) => (
+                <View key={i} style={{ marginBottom: 8 }}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                    <Text style={{ ...styles.itemTitle, fontFamily: pdfFontFamilyBold }}>{p.projectTitle}</Text>
+                    <Text style={{ ...styles.itemSub, fontFamily: pdfFontFamilyBold }}>{formatMonthYear(p.startDate)} — {p.currentlyWorking ? 'Present' : formatMonthYear(p.endDate)}</Text>
+                  </View>
+                  {p.description && renderBulletedParagraph(p.description)}
                 </View>
-                {p.description && renderBulletedParagraph(p.description)}
-              </View>
-            ))}
+              ))}
+            </View>
           </View>
-        </View>
+        </>)}
 
+        {hasEducation && (<>
         {/* divider before education */}
         <View style={{ height: 1, backgroundColor: '#333', width: '100%', marginVertical: 12 }} />
 
@@ -201,10 +211,10 @@ const Template12PDF: React.FC<Template12PDFProps> = ({ data, primaryColor = '#11
         <View style={{ height: 12 }} />
         <View style={styles.grid}>
           <View style={styles.leftCol}>
-            <Text style={{ ...styles.sectionHeading, fontFamily: pdfFontFamilyBold, color: primaryColor }}>EDUCATION</Text>
+              <Text style={{ ...styles.sectionHeading, fontFamily: pdfFontFamilyBold, color: primaryColor }}>EDUCATION</Text>
           </View>
           <View style={styles.rightCol}>
-            {education.higherEducationEnabled && education.higherEducation.map((edu: any, i: number) => (
+            {education.higherEducation.filter(edu => edu.enabled).map((edu: any, i: number) => (
               <View key={i} style={{ marginBottom: 8 }}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                   <Text style={{ ...styles.itemTitle, fontFamily: pdfFontFamilyBold }}>{edu.degree}</Text>
@@ -244,42 +254,46 @@ const Template12PDF: React.FC<Template12PDFProps> = ({ data, primaryColor = '#11
             )}
           </View>
         </View>
+        </>)}
 
+        {hasSkills && (<>
         {/* divider before skills */}
         <View style={{ height: 1, backgroundColor: '#333', width: '100%', marginVertical: 12 }} />
 
-        {/* Other sections */}
         <View style={{ height: 12 }} />
         <View style={styles.grid}>
-          <View style={styles.leftCol}><Text style={{ ...styles.sectionHeading, fontFamily: pdfFontFamilyBold, color: primaryColor }}>SKILLS</Text></View>
+          <View style={styles.leftCol}><Text style={{ ...styles.sectionHeading, fontSize: 10, fontFamily: pdfFontFamilyBold, color: primaryColor }}>SKILLS</Text></View>
           <View style={styles.rightCol}><Text style={{ color: '#2b2a2a' }}>{skillsLinks.skills.filter((s: any) => s.enabled && s.skillName).map((s: any) => s.skillName).join(', ')}</Text></View>
         </View>
+        </>)}
 
-        <View style={{ height: 8 }} />
+        {hasCerts && (<>
+        <View style={{ height: 1, backgroundColor: '#333', width: '100%', marginVertical: 12 }} />
         <View style={styles.grid}>
-          <View style={styles.leftCol}><Text style={{ ...styles.sectionHeading, fontFamily: pdfFontFamilyBold, color: primaryColor }}>CERTIFICATIONS</Text></View>
+          <View style={styles.leftCol}><Text style={{ ...styles.sectionHeading, fontSize: 10, fontFamily: pdfFontFamilyBold, color: primaryColor }}>CERTIFICATIONS</Text></View>
           <View style={styles.rightCol}><Text style={{ color: '#2b2a2a' }}>{certifications.filter((c: any) => c.enabled && c.certificateTitle).map((c: any) => c.certificateTitle).join(', ')}</Text></View>
         </View>
+        </>)}
 
-      {/* Footer */}
-      <View style={{
-        position: 'absolute',
-        left: 0,
-        right: 0,
-        bottom: 12,
-        paddingHorizontal: 36,
-        paddingVertical: 8,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        fontSize: 10,
-        color: '#B0B0B0',
-      }} fixed>
-        <Text style={{ color: '#B0B0B0', fontSize: 10, letterSpacing: 0.5 }}>bowizzy.com</Text>
-        <Text style={{ color: '#B0B0B0', fontSize: 10, letterSpacing: 0.5 }}>Powered by Wizzybox</Text>
-      </View>
-    </Page>
-  </Document>
+        {/* Footer */}
+        <View style={{
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          bottom: 12,
+          paddingHorizontal: 36,
+          paddingVertical: 8,
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          fontSize: 10,
+          color: '#B0B0B0',
+        }} fixed>
+          <Text style={{ color: '#B0B0B0', fontSize: 10, letterSpacing: 0.5 }}>bowizzy.com</Text>
+          <Text style={{ color: '#B0B0B0', fontSize: 10, letterSpacing: 0.5 }}>Powered by Wizzybox</Text>
+        </View>
+      </Page>
+    </Document>
   );
 };
 

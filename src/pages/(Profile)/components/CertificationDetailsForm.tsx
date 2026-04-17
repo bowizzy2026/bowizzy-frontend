@@ -3,7 +3,6 @@ import {
   Plus,
   Trash2,
   ChevronDown,
-  RotateCcw,
   X,
   Save,
   Upload,
@@ -625,13 +624,6 @@ export default function CertificationDetailsForm({
                 }`}
                 strokeWidth={2.5}
               />
-            </button>
-            <button
-              type="button"
-              onClick={() => resetCertificate(index)}
-              className="w-5 h-5 flex items-center justify-center rounded-full border-2 border-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
-            >
-              <RotateCcw className="w-3 h-3 text-gray-600 cursor-pointer" strokeWidth={2.5} />
             </button>
             {certificates.length > 1 && (
               <button

@@ -140,11 +140,7 @@ export default function Profile() {
   };
 
   const handleAddDetailsMyself = () => {
-    setActiveButton("add");
-    setShowUploadSection(false);
-    setSelectedFile(null);
-    setFileError("");
-    console.log("Add details myself clicked");
+    navigate("/profile/form");
   };
 
   const handleEnterDataManually = () => {
@@ -419,19 +415,7 @@ export default function Profile() {
                   </div>
                 )}
 
-                {/* Enter Data Manually Button */}
-                {activeButton === "add" && (
-                  <button
-                    onClick={handleEnterDataManually}
-                    style={{
-                      background:
-                        "linear-gradient(180deg, #FF9D48 0%, #FF8251 100%)",
-                    }}
-                    className="mt-2 px-6 sm:px-8 py-3.5 text-white rounded-2xl font-medium text-sm sm:text-[15px] transition-all duration-300 shadow-sm cursor-pointer hover:opacity-90"
-                  >
-                    Enter Data Manually
-                  </button>
-                )}
+
               </div>
             </div>
           </div>

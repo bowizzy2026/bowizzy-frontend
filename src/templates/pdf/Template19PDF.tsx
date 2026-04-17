@@ -120,7 +120,7 @@ const Template19PDF: React.FC<Template19PDFProps> = ({ data, primaryColor = '#11
             <Text style={{ fontFamily: pdfFontFamilyBold, fontSize: 10, marginBottom: 6, color: primaryColor }}>SUMMARY</Text>
             <View style={{ height: 1, backgroundColor: primaryColor, width: '100%' }} />
           </View>
-          {personal.aboutCareerObjective ? <Text style={{ marginTop: 12, color: '#444', textAlign: 'justify' }}>{htmlToPlainText(personal.aboutCareerObjective)}</Text> : null}
+          {personal.aboutCareerObjective ? <Text style={{ marginTop: 12, color: '#444', textAlign: 'justify' }}>{htmlToPlainText(personal.aboutCareerObjective).trim()}</Text> : null}
 
           <View style={{ flexDirection: 'row', marginTop: 12 }}>
             {/* Left sidebar */}
@@ -132,7 +132,7 @@ const Template19PDF: React.FC<Template19PDFProps> = ({ data, primaryColor = '#11
               <View style={{ marginTop: 12 }}>
                 <Text style={styles.sectionHeading}>Education</Text>
                 <View style={{ ...styles.divider, backgroundColor: '#999' }} />
-                <View style={{ marginTop: 8 }}>{education.higherEducationEnabled && education.higherEducation.slice().map((edu:any,i:number)=>(
+                <View style={{ marginTop: 8 }}>{education.higherEducation.filter(edu => edu.enabled).map((edu:any,i:number)=>(
                   <View key={i} style={{ marginBottom: 8 }}>
                     <Text style={{ fontSize: 10, fontFamily: 'Times-Bold' }}>{edu.universityBoard || edu.instituteName}</Text>
                     <Text style={{ color: '#151616', marginTop: 4 }}>{edu.degree}{edu.fieldOfStudy ? ` (${edu.fieldOfStudy})` : ''}</Text>
@@ -173,6 +173,7 @@ const Template19PDF: React.FC<Template19PDFProps> = ({ data, primaryColor = '#11
 
             {/* Right main content */}
             <View style={styles.leftCol}>
+              {experience.workExperiences.some((exp: any) => exp.enabled) && (<>
               <Text style={styles.sectionHeading}>Professional Experience</Text>
               <View style={{ ...styles.divider, backgroundColor: '#999' }} />
 
@@ -224,6 +225,7 @@ const Template19PDF: React.FC<Template19PDFProps> = ({ data, primaryColor = '#11
                   </View>
                 ))}
               </View>
+              </>)}
 
             </View>
           </View>

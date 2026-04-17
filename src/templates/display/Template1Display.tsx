@@ -127,7 +127,7 @@ export const Template1Display: React.FC<Template1DisplayProps> = ({
         {/* Left Column */}
         <div style={{ width: '48%', paddingRight: '24px' }}>
           {/* Education Section */}
-          {(education.higherEducationEnabled && education.higherEducation.length > 0) && (
+          {(education.higherEducation.some(edu => edu.enabled)) && (
             <div className="resume-section" style={{ marginBottom: '24px' }}>
               <h2 style={{ 
                 fontSize: '13px', 
@@ -188,7 +188,7 @@ export const Template1Display: React.FC<Template1DisplayProps> = ({
           )}
 
           {/* Skills Section */}
-          {skillsLinks.skills.length > 0 && skillsLinks.skills.some(s => s.enabled && s.skillName) && (
+          {skillsLinks.skills.some(s => s.enabled && s.skillName) && skillsLinks.skills.some(s => s.enabled && s.skillName) && (
             <div className="resume-section" style={{ marginBottom: '24px' }}>
               <h2 style={{ 
                 fontSize: '13px', 
@@ -260,7 +260,7 @@ export const Template1Display: React.FC<Template1DisplayProps> = ({
         {/* Right Column */}
         <div style={{ width: '48%', borderLeft: '1px solid #e5e7eb', paddingLeft: '24px' }}>
           {/* Professional Experience Section */}
-          {experience.workExperiences.length > 0 && experience.workExperiences.some(exp => exp.enabled) && (
+          {experience.workExperiences.some(exp => exp.enabled) && experience.workExperiences.some(exp => exp.enabled) && (
             <div className="resume-section" style={{ marginBottom: '24px' }}>
               <h2 style={{ 
                 fontSize: '13px', 
@@ -468,13 +468,13 @@ const PaginatedResume: React.FC<{ data: ResumeData; supportsPhoto?: boolean; onP
     const rightBlocks: HTMLDivElement[] = [];
 
     // Education
-    if (education.higherEducationEnabled && education.higherEducation.length) {
+    if (education.higherEducation.some(edu => edu.enabled) && education.higherEducation.length) {
       const sec = document.createElement('div');
       sec.className = 'measure-block measure-section';
       sec.setAttribute('data-column', 'left');
       sec.innerHTML = `<h2 style="font-size:13px;font-weight:bold;color:#2d3748;letter-spacing:2px;margin-bottom:12px;padding-bottom:4px;border-bottom:1px solid #cbd5e0">EDUCATION</h2>`;
       leftBlocks.push(sec);
-      education.higherEducation.forEach((edu) => {
+      education.higherEducation.filter(edu => edu.enabled).forEach((edu) => {
         const item = document.createElement('div');
         item.className = 'measure-block measure-education-item';
         item.setAttribute('data-column', 'left');
@@ -508,7 +508,7 @@ const PaginatedResume: React.FC<{ data: ResumeData; supportsPhoto?: boolean; onP
     }
 
     // Skills
-    if (skillsLinks.skills.length > 0 && skillsLinks.skills.some(s => s.enabled && s.skillName)) {
+    if (skillsLinks.skills.some(s => s.enabled && s.skillName) && skillsLinks.skills.some(s => s.enabled && s.skillName)) {
       const sec = document.createElement('div');
       sec.className = 'measure-block measure-section';
       sec.setAttribute('data-column', 'left');
@@ -542,7 +542,7 @@ const PaginatedResume: React.FC<{ data: ResumeData; supportsPhoto?: boolean; onP
     }
 
     // Experience
-    if (experience.workExperiences.length > 0 && experience.workExperiences.some(exp => exp.enabled)) {
+    if (experience.workExperiences.some(exp => exp.enabled) && experience.workExperiences.some(exp => exp.enabled)) {
       const sec = document.createElement('div');
       sec.className = 'measure-block measure-section';
       sec.setAttribute('data-column', 'right');

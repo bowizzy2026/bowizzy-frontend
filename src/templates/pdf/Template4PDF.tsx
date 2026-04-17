@@ -158,7 +158,7 @@ const Template4PDF: React.FC<Template4PDFProps> = ({ data }) => {
             </View>
           )}
 
-          {experience.workExperiences.length > 0 && (
+          {experience.workExperiences.some(exp => exp.enabled) && (
             <View style={{ marginBottom: 10 }}>
               <Text style={styles.sectionTitle}>EXPERIENCE</Text>
               {experience.workExperiences.filter(w => w.enabled).map((w, i) => (
@@ -206,10 +206,10 @@ const Template4PDF: React.FC<Template4PDFProps> = ({ data }) => {
             </View>
           )}
 
-          {education.higherEducationEnabled && education.higherEducation.length > 0 && (
+          {education.higherEducation.some(edu => edu.enabled) && (
             <View style={{ marginBottom: 10 }}>
               <Text style={styles.sectionTitle}>EDUCATION</Text>
-              {education.higherEducation.map((edu, idx) => (
+              {education.higherEducation.filter(edu => edu.enabled).map((edu, idx) => (
                 <View key={idx} style={{ marginBottom: 6 }}>
                   <Text style={{ fontSize: 10, fontFamily: 'Times-Bold', color: '#2d3748' }}>{edu.instituteName}</Text>
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -242,7 +242,7 @@ const Template4PDF: React.FC<Template4PDFProps> = ({ data }) => {
             </View>
           )}
 
-          {skillsLinks.skills.length > 0 && (
+          {skillsLinks.skills.some(s => s.enabled && s.skillName) && (
             <View style={{ marginBottom: 10 }}>
               <Text style={styles.sectionTitle}>SKILLS</Text>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>

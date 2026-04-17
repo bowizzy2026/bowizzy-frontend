@@ -163,12 +163,12 @@ const Template10PDF: React.FC<Template10PDFProps> = ({ data }) => {
             </View>
 
             {/* Education */}
-            {education.higherEducationEnabled && education.higherEducation.length > 0 && (
+            {education.higherEducation.some(edu => edu.enabled) && (
               <View style={styles.section}>
                 <View style={styles.pill}>
                   <Text style={styles.pillText}>Education</Text>
                 </View>
-                {education.higherEducation.map((edu, i) => (
+                {education.higherEducation.filter(edu => edu.enabled).map((edu, i) => (
                   <View key={i} style={{ marginBottom: 10 }}>
                     <Text style={styles.heading}>{edu.degree}</Text>
                     {edu.instituteName && <Text style={styles.subtext}>{edu.instituteName}</Text>}
@@ -196,7 +196,7 @@ const Template10PDF: React.FC<Template10PDFProps> = ({ data }) => {
             )}
 
             {/* Skills */}
-            {skillsLinks.skills.length > 0 && (
+            {skillsLinks.skills.some(s => s.enabled && s.skillName) && (
               <View style={styles.section}>
                 <View style={styles.pill}>
                   <Text style={styles.pillText}>Skills</Text>
@@ -218,7 +218,7 @@ const Template10PDF: React.FC<Template10PDFProps> = ({ data }) => {
             </View>
 
             {/* Work Experience */}
-            {experience.workExperiences.length > 0 && (
+            {experience.workExperiences.some(exp => exp.enabled) && (
               <View style={styles.section}>
                 <Text style={styles.rightSectionLabel}>WORK EXPERIENCE</Text>
                 {experience.workExperiences.filter((w: any) => w.enabled).map((w: any, i: number) => (

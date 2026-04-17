@@ -201,6 +201,7 @@ const Template13PDF: React.FC<Template13PDFProps> = ({ data, primaryColor = '#11
           {personal.aboutCareerObjective ? <Text style={[styles.objective, { marginTop: 0, marginBottom: 0, color: '#2b2a2a' }]}>{htmlToPlainText(personal.aboutCareerObjective)}</Text> : null}
         </View>
 
+        {experience.workExperiences.some((exp: any) => exp.enabled) && (<>
         <View style={{ marginTop: 8 }}>
           <Text style={{ ...styles.sectionHeading, fontFamily: pdfFontFamilyBold, color: primaryColor }}>EXPERIENCE</Text>
           <View style={{ height: 1, backgroundColor: primaryColor, width: '100%', marginTop: 0, marginBottom: 6 }} />
@@ -216,7 +217,9 @@ const Template13PDF: React.FC<Template13PDFProps> = ({ data, primaryColor = '#11
               </View>
             ))}
         </View>
+        </>)}
 
+        {projects.some((p: any) => p.enabled) && (<>
         <View style={{ marginTop: 12 }}>
           <Text style={{ ...styles.sectionHeading, fontFamily: pdfFontFamilyBold, color: primaryColor }}>PROJECTS</Text>
           <View style={{ height: 1, backgroundColor: primaryColor, width: '100%', marginTop: 0, marginBottom: 6 }} />
@@ -232,13 +235,14 @@ const Template13PDF: React.FC<Template13PDFProps> = ({ data, primaryColor = '#11
               </View>
             ))}
         </View>
+        </>)}
 
         <View style={{ marginTop: 12 }}>
           <Text style={{ ...styles.sectionHeading, fontFamily: pdfFontFamilyBold, color: primaryColor }}>EDUCATION</Text>
           <View style={{ height: 1, backgroundColor: primaryColor, width: '100%', marginTop: 0, marginBottom: 6 }} />
         </View>
         <View>
-            {education.higherEducationEnabled && education.higherEducation.slice().sort((a: any, b: any) => educationPriority(a.degree) - educationPriority(b.degree)).map((edu: any, i: number) => (
+            {education.higherEducation.filter(edu => edu.enabled).sort((a: any, b: any) => educationPriority(a.degree) - educationPriority(b.degree)).map((edu: any, i: number) => (
               <View key={`he-${i}`} style={{ marginBottom: 12 }}>
                 <Text style={{ ...styles.itemTitle, fontFamily: pdfFontFamilyBold }}>{edu.instituteName}</Text>
                 <Text style={{ ...styles.itemSub, fontFamily: pdfFontFamilyBold }}>{edu.degree} — {edu.currentlyPursuing ? 'Present' : formatYear(edu.endYear)}</Text>
@@ -263,18 +267,22 @@ const Template13PDF: React.FC<Template13PDFProps> = ({ data, primaryColor = '#11
             )}
         </View>
 
+        {skillsLinks.skills.some((s: any) => s.enabled && s.skillName) && (<>
         <View style={{ marginTop: 12 }}>
           <Text style={{ ...styles.sectionHeading, fontFamily: pdfFontFamilyBold, color: primaryColor }}>SKILLS</Text>
           <View style={{ height: 1, backgroundColor: primaryColor, width: '100%', marginTop: 0, marginBottom: 6 }} />
         </View>
         <View><Text style={{ fontSize: 10, color: '#2b2a2a' }}>{skillsLinks.skills.filter((s: any) => s.enabled && s.skillName).map((s: any) => s.skillName).join(', ')}</Text></View>
+        </>)}
 
+        {certifications.some((c: any) => c.enabled && c.certificateTitle) && (<>
         <View style={{ height: 4 }} />
         <View style={{ marginTop: 12 }}>
           <Text style={{ ...styles.sectionHeading, fontFamily: pdfFontFamilyBold, color: primaryColor }}>CERTIFICATIONS</Text>
           <View style={{ height: 1, backgroundColor: primaryColor, width: '100%', marginTop: 0, marginBottom: 6 }} />
         </View>
         <View><Text style={{ fontSize: 10, color: '#2b2a2a' }}>{certifications.filter((c: any) => c.enabled && c.certificateTitle).map((c: any) => c.certificateTitle).join(', ')}</Text></View>
+        </>)}
 
       {/* Footer */}
       <View style={{

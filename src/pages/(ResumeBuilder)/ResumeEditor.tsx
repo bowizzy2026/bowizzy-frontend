@@ -103,8 +103,8 @@ const mapEducationApiToLocal = (apiData: any[]) => {
           : "",
         result: item.result?.toString() || "",
         currentlyPursuing: item.currently_working_here || false,
+        enabled: true,
       });
-      educationData.higherEducationEnabled = true;
     }
   });
 
@@ -372,8 +372,9 @@ export const ResumeEditor: React.FC = () => {
         resultFormat: it.result_format || "",
         result: it.result || "",
         currentlyPursuing: it.currently_pursuing || false,
+        enabled: true,
       }));
-      newResume.education = { ...newResume.education, higherEducation: higher, higherEducationEnabled: true };
+      newResume.education = { ...newResume.education, higherEducation: higher };
     }
 
     if (Array.isArray(imp.projects) && imp.projects.length > 0) {

@@ -15,6 +15,7 @@ import { deleteFromCloudinary } from "@/utils/deleteFromCloudinary";
 import { updatePersonalDetails } from "@/services/personalService";
 import { filterResumeData, getEnabledSkills, getEnabledWorkExperiences,getEnabledProjects } from "@/utils/filterResumeData";
 import { enhanceCareerObjective } from "@/utils/enhancecareerobjective";
+import { fetchCountries, fetchStates, fetchCities } from "@/services/locationService";
 interface PersonalDetailsFormProps {
   data: PersonalDetails;
   fullResumeData: any;
@@ -24,25 +25,6 @@ interface PersonalDetailsFormProps {
   personalDetailsId: string | null;
   supportsPhoto?: boolean;
 }
-
-const countries = [
-  { value: "India", label: "India" },
-  { value: "USA", label: "United States" },
-  { value: "UK", label: "United Kingdom" },
-  { value: "Canada", label: "Canada" },
-  { value: "Australia", label: "Australia" },
-];
-
-const indianStates = [
-  { value: "Karnataka", label: "Karnataka" },
-  { value: "Maharashtra", label: "Maharashtra" },
-  { value: "Tamil Nadu", label: "Tamil Nadu" },
-  { value: "Delhi", label: "Delhi" },
-  { value: "Gujarat", label: "Gujarat" },
-  { value: "Rajasthan", label: "Rajasthan" },
-  { value: "Uttar Pradesh", label: "Uttar Pradesh" },
-  { value: "West Bengal", label: "West Bengal" },
-];
 
 const genders = [
   { value: "Male", label: "Male" },
@@ -120,6 +102,14 @@ export const PersonalDetailsForm: React.FC<PersonalDetailsFormProps> = ({
   const [locationFeedback, setLocationFeedback] = useState("");
   const [careerObjectiveFeedback, setCareerObjectiveFeedback] = useState("");
   const [hiddenSaveIds, setHiddenSaveIds] = useState<Set<string>>(new Set());
+
+  // Dynamic location options
+  const [countryOptions, setCountryOptions] = useState<{ value: string; label: string }[]>([]);
+  const [stateOptions, setStateOptions] = useState<{ value: string; label: string }[]>([]);
+  const [cityOptions, setCityOptions] = useState<{ value: string; label: string }[]>([]);
+  const [loadingCountries, setLoadingCountries] = useState(false);
+  const [loadingStates, setLoadingStates] = useState(false);
+  const [loadingCities, setLoadingCities] = useState(false);
 
 const [isEnhancing, setIsEnhancing] = useState(false);
 const [enhanceError, setEnhanceError] = useState("");
@@ -202,6 +192,75 @@ const [enhancedVersions, setEnhancedVersions] = useState<{ professional: string;
     };
   }, [showLanguageSuggestions, newLanguage]);
 
+  // Fetch countries on mount
+  useEffect(() => {
+    setLoadingCountries(true);
+    fetchCountries()
+      .then((data: any[]) => {
+        setCountryOptions((data || []).map((c) => ({ value: c.name, label: c.name, isoCode: c.isoCode })));
+      })
+      .catch(() => setCountryOptions([]))
+      .finally(() => setLoadingCountries(false));
+  }, []);
+
+  // Load initial states when countries are ready and a country is already selected
+  useEffect(() => {
+    if (!data.country || countryOptions.length === 0 || stateOptions.length > 0) return;
+    const selected = (countryOptions as any[]).find((c) => c.value === data.country || c.isoCode === data.country);
+    if (!selected) return;
+    setLoadingStates(true);
+    fetchStates(selected.isoCode)
+      .then((res: any[]) => setStateOptions((res || []).map((s) => ({ value: s.name, label: s.name, isoCode: s.isoCode }))))
+      .catch(() => setStateOptions([]))
+      .finally(() => setLoadingStates(false));
+  }, [countryOptions]);
+
+  // Load initial cities when states are ready and a state is already selected
+  useEffect(() => {
+    if (!data.state || stateOptions.length === 0 || cityOptions.length > 0) return;
+    const selectedCountry = (countryOptions as any[]).find((c) => c.value === data.country || c.isoCode === data.country);
+    const selectedState = (stateOptions as any[]).find((s) => s.value === data.state || s.isoCode === data.state);
+    if (!selectedCountry || !selectedState) return;
+    setLoadingCities(true);
+    fetchCities(selectedCountry.isoCode, selectedState.isoCode)
+      .then((res: any[]) => setCityOptions((res || []).map((c) => ({ value: c.name, label: c.name }))))
+      .catch(() => setCityOptions([]))
+      .finally(() => setLoadingCities(false));
+  }, [stateOptions]);
+
+  // Fetch states when country changes
+  useEffect(() => {
+    if (!data.country || countryOptions.length === 0) {
+      setStateOptions([]);
+      setCityOptions([]);
+      return;
+    }
+    const selected = (countryOptions as any[]).find((c) => c.value === data.country || c.isoCode === data.country);
+    if (!selected) return;
+    setLoadingStates(true);
+    fetchStates(selected.isoCode)
+      .then((res: any[]) => setStateOptions((res || []).map((s) => ({ value: s.name, label: s.name, isoCode: s.isoCode }))))
+      .catch(() => setStateOptions([]))
+      .finally(() => setLoadingStates(false));
+    setCityOptions([]);
+  }, [data.country, countryOptions]);
+
+  // Fetch cities when state changes
+  useEffect(() => {
+    if (!data.country || !data.state || countryOptions.length === 0 || stateOptions.length === 0) {
+      setCityOptions([]);
+      return;
+    }
+    const selectedCountry = (countryOptions as any[]).find((c) => c.value === data.country || c.isoCode === data.country);
+    const selectedState = (stateOptions as any[]).find((s) => s.value === data.state || s.isoCode === data.state);
+    if (!selectedCountry || !selectedState) return;
+    setLoadingCities(true);
+    fetchCities(selectedCountry.isoCode, selectedState.isoCode)
+      .then((res: any[]) => setCityOptions((res || []).map((c) => ({ value: c.name, label: c.name }))))
+      .catch(() => setCityOptions([]))
+      .finally(() => setLoadingCities(false));
+  }, [data.state, data.country, countryOptions, stateOptions]);
+
 
   // useEffect(() => {
   //   // In your component:
@@ -275,21 +334,20 @@ const handleDismissEnhanced = () => {
   };
 
   const handleAddLanguage = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && newLanguage.trim()) {
-      e.preventDefault();
-
-      const exactMatch = filteredSuggestions.find(
-        (lang) => lang.toLowerCase() === newLanguage.trim().toLowerCase()
-      );
-
-      if (exactMatch && !data.languagesKnown.includes(exactMatch)) {
-        onChange({ ...data, languagesKnown: [...data.languagesKnown, exactMatch] });
+    if ((e.key === "Enter" || e.key === "Tab") && newLanguage.trim()) {
+      if (filteredSuggestions.length > 0) {
+        e.preventDefault();
+        const match = filteredSuggestions[0];
+        if (!data.languagesKnown.includes(match)) {
+          onChange({ ...data, languagesKnown: [...data.languagesKnown, match] });
+        }
         setNewLanguage("");
-      } else if (newLanguage.trim() && filteredSuggestions.length === 0) {
+        setShowLanguageSuggestions(false);
+      } else if (e.key === "Enter") {
+        e.preventDefault();
         setNewLanguage("");
+        setShowLanguageSuggestions(false);
       }
-
-      setShowLanguageSuggestions(false);
     }
   };
 
@@ -398,9 +456,7 @@ const handleDismissEnhanced = () => {
         break;
 
       case "address":
-        if (value && !/(?=.*[A-Za-z])(?=.*\d)/.test(value)) {
-          error = "Address must include both letters and numbers";
-        } else if (value && value.trim().length < 5) {
+        if (value && value.trim().length < 5) {
           error = "Address is too short";
         }
         break;
@@ -1025,33 +1081,27 @@ const handleDismissEnhanced = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormSelect
                 label="Country"
-                placeholder="Select Country"
+                placeholder={loadingCountries ? "Loading..." : "Select Country"}
                 value={data.country}
-                onChange={(v) => updateField("country", v)}
-                options={countries}
+                onChange={(v) => { updateField("country", v); updateField("state", ""); updateField("city", ""); }}
+                options={countryOptions}
               />
               <FormSelect
                 label="State"
-                placeholder="Select State"
+                placeholder={loadingStates ? "Loading..." : "Select State"}
                 value={data.state}
-                onChange={(v) => updateField("state", v)}
-                options={indianStates}
+                onChange={(v) => { updateField("state", v); updateField("city", ""); }}
+                options={stateOptions}
               />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
               <FormSelect
                 label="City"
-                placeholder="Select City"
+                placeholder={loadingCities ? "Loading..." : "Select City"}
                 value={data.city}
                 onChange={(v) => updateField("city", v)}
-                options={[
-                  { value: "Bengaluru", label: "Bengaluru" },
-                  { value: "Mumbai", label: "Mumbai" },
-                  { value: "Delhi", label: "Delhi" },
-                  { value: "Chennai", label: "Chennai" },
-                  { value: "Hyderabad", label: "Hyderabad" },
-                ]}
+                options={cityOptions}
               />
               <FormInput
                 label="Pincode"

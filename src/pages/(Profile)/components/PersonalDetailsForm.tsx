@@ -340,6 +340,17 @@ export default function PersonalDetailsForm({
         }
         break;
 
+      case "dateOfBirth":
+        if (value) {
+          const dob = new Date(value);
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          if (dob >= today) {
+            error = "Date of birth cannot be today or a future date";
+          }
+        }
+        break;
+
       case "email":
         if (value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
           error = "Invalid email format";
@@ -857,8 +868,12 @@ export default function PersonalDetailsForm({
                 <button
                   type="button"
                   onClick={async () => {
-                    // Dummy API call for saving personal details
-                    handlePersonalDetailsOtpSent()
+                    const dobError = validateField("dateOfBirth", formData.dateOfBirth);
+                    if (dobError) {
+                      setErrors((prev) => ({ ...prev, dateOfBirth: dobError }));
+                      return;
+                    }
+                    handlePersonalDetailsOtpSent();
                     setShowOtpPopup(true);
                   }}
                   className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-md text-sm font-medium shadow-sm hover:from-orange-500 hover:to-orange-600 transition cursor-pointer"
@@ -1069,8 +1084,11 @@ export default function PersonalDetailsForm({
                       name="dateOfBirth"
                       value={formData.dateOfBirth}
                       onChange={handleInputChange}
-                      className="w-full px-3 py-2 sm:py-2.5 border border-gray-300 rounded-lg text-xs sm:text-sm"
+                      className={`w-full px-3 py-2 sm:py-2.5 border rounded-lg text-xs sm:text-sm ${errors.dateOfBirth ? "border-red-500" : "border-gray-300"}`}
                     />
+                    {errors.dateOfBirth && (
+                      <p className="mt-1 text-xs text-red-500">{errors.dateOfBirth}</p>
+                    )}
                   </div>
 
                   <div>

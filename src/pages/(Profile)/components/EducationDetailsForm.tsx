@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { ChevronDown, RotateCcw, Trash2, Plus, Save } from "lucide-react";
+import { ChevronDown, Trash2, Plus, Save } from "lucide-react";
 import {
   updateEducationDetails,
   saveEducationDetails,
@@ -1247,17 +1247,6 @@ export default function EducationDetailsForm({
                 strokeWidth={2.5}
               />
             </button>
-            <button
-              type="button"
-              onClick={handleClear}
-              className="w-5 h-5 flex items-center justify-center rounded-full border-2 border-gray-600 hover:bg-gray-100 transition-colors"
-              title="Reset changes"
-            >
-              <RotateCcw
-                className="w-3 h-3 text-gray-600 cursor-pointer"
-                strokeWidth={2.5}
-              />
-            </button>
             {isExtra && (
               <button
                 type="button"
@@ -1607,17 +1596,6 @@ export default function EducationDetailsForm({
                   strokeWidth={2.5}
                 />
               </button>
-              <button
-                type="button"
-                onClick={handleClearEducationSSLC}
-                className="w-5 h-5 flex items-center justify-center rounded-full border-2 border-gray-600 hover:bg-gray-100 transition-colors"
-                title="Reset changes"
-              >
-                <RotateCcw
-                  className="w-3 h-3 text-gray-600 cursor-pointer"
-                  strokeWidth={2.5}
-                />
-              </button>
             </div>
           </div>
 
@@ -1760,17 +1738,6 @@ export default function EducationDetailsForm({
                 <ChevronDown
                   className={`w-3 h-3 text-gray-600 transition-transform cursor-pointer ${puExpanded ? "" : "rotate-180"
                     }`}
-                  strokeWidth={2.5}
-                />
-              </button>
-              <button
-                type="button"
-                onClick={handleClearEducationPreUniversity}
-                className="w-5 h-5 flex items-center justify-center rounded-full border-2 border-gray-600 hover:bg-gray-100 transition-colors"
-                title="Reset changes"
-              >
-                <RotateCcw
-                  className="w-3 h-3 text-gray-600 cursor-pointer"
                   strokeWidth={2.5}
                 />
               </button>

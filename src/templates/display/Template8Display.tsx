@@ -63,7 +63,7 @@ const Template8Display: React.FC<Template8DisplayProps> = ({ data }) => {
         )}
 
         {/* Work Experience */}
-        {experience.workExperiences.length > 0 && experience.workExperiences.some(w => w.enabled) && (
+        {experience.workExperiences.some(exp => exp.enabled) && experience.workExperiences.some(w => w.enabled) && (
           <section style={{ marginBottom: 20, display: 'flex', gap: '20px', paddingBottom: 20, borderBottom: '1px solid #ccc' }}>
             <div style={{ width: '90px', flexShrink: 0 }}>
               <h2 style={{ fontSize: 11, fontWeight: 700, color: '#004b87', textTransform: 'uppercase', margin: 0, letterSpacing: '0.5px', paddingTop: 2, whiteSpace: 'normal', lineHeight: 1.2 }}>
@@ -135,7 +135,7 @@ const Template8Display: React.FC<Template8DisplayProps> = ({ data }) => {
         )}
 
         {/* Education */}
-        {education.higherEducationEnabled && education.higherEducation.length > 0 && (
+        {education.higherEducation.some(edu => edu.enabled) && (
           <section style={{ marginBottom: 20, display: 'flex', gap: '30px', paddingBottom: 20, borderBottom: '1px solid #ccc' }}>
             <div style={{ width: '110px', flexShrink: 0 }}>
               <h2 style={{ fontSize: 11, fontWeight: 700, color: '#004b87', textTransform: 'uppercase', margin: 0, letterSpacing: '0.5px', paddingTop: 2 }}>
@@ -143,7 +143,7 @@ const Template8Display: React.FC<Template8DisplayProps> = ({ data }) => {
               </h2>
             </div>
             <div style={{ flex: 1 }}>
-              {education.higherEducation.map((edu, i) => (
+              {education.higherEducation.filter(edu => edu.enabled).map((edu, i) => (
                 <div key={i} style={{ marginBottom: 12 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                     <div style={{ fontSize: 10, fontWeight: 700, color: '#222' }}>{edu.degree}</div>
@@ -181,7 +181,7 @@ const Template8Display: React.FC<Template8DisplayProps> = ({ data }) => {
         )}
 
         {/* Key Skills */}
-        {skillsLinks.skills.length > 0 && (
+        {skillsLinks.skills.some(s => s.enabled && s.skillName) && (
           <section style={{ marginBottom: 20, display: 'flex', gap: '30px', paddingBottom: 20, borderBottom: '1px solid #ccc' }}>
             <div style={{ width: '110px', flexShrink: 0 }}>
               <h2 style={{ fontSize: 11, fontWeight: 700, color: '#004b87', textTransform: 'uppercase', margin: 0, letterSpacing: '0.5px', paddingTop: 2 }}>

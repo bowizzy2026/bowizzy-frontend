@@ -64,32 +64,12 @@ const ResumePreviewModal: React.FC<ResumePreviewModalProps> = ({
   const [payLoading, setPayLoading] = React.useState(false);
   const [resumeUnlocked, setResumeUnlocked] = React.useState(false);
   const generateDefaultResumeName = (): string => {
-    // Prefer explicit `username` prop, then try resumeData.personal names
-    let namePart = '';
-    if (username && String(username).trim()) {
-      namePart = String(username).trim();
-    } else if (resumeData?.personal) {
-      const fn = (resumeData.personal.firstName || '').trim();
-      const ln = (resumeData.personal.lastName || '').trim();
-      namePart = [fn, ln].filter(Boolean).join('');
-    }
+    const fn = (resumeData?.personal?.firstName || '').trim().replace(/\s+/g, '').replace(/[^a-zA-Z0-9-_]/g, '');
+    const ln = (resumeData?.personal?.lastName || '').trim().replace(/\s+/g, '').replace(/[^a-zA-Z0-9-_]/g, '');
+    const jobPart = (jobRole || apiJobRole || '').trim().replace(/\s+/g, '_').replace(/[^a-zA-Z0-9-_]/g, '');
 
-    if (!namePart) namePart = 'User';
-
-    // sanitize: replace spaces with empty, remove disallowed chars
-    namePart = namePart.replace(/\s+/g, '').replace(/[^a-zA-Z0-9-_]/g, '');
-
-    const expPart = (experienceSummary || apiExperienceSummary || '').trim();
-    const jobPart = (jobRole || apiJobRole || '').trim();
-    const cleanedExp = expPart.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9-_]/g, '');
-    const cleanedJob = jobPart.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9-_]/g, '');
-
-    const parts = [namePart];
-    if (cleanedExp) parts.push(cleanedExp);
-    if (cleanedJob) parts.push(cleanedJob);
-    parts.push('Bowizzy');
-
-    return parts.join('_').replace(/_+/g, '_');
+    const parts = [fn, ln, jobPart].filter(Boolean);
+    return parts.join('_').replace(/_+/g, '_') || '';
   };
   const [showDownloadDialog, setShowDownloadDialog] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
@@ -136,6 +116,18 @@ const ResumePreviewModal: React.FC<ResumePreviewModalProps> = ({
   const [modalPaginateCurrentPage, setModalPaginateCurrentPage] = useState<number>(1);
   const modalPaginatedRef = useRef<{ goTo: (i: number) => void; next: () => void; prev: () => void } | null>(null);
   const pdfPagesRef = useRef<HTMLDivElement>(null);
+  const resumeDataRef = useRef(resumeData);
+  useEffect(() => { resumeDataRef.current = resumeData; }, [resumeData]);
+  // Cache generated blob so re-opening the dialog is instant
+  const cachedBlobRef = useRef<Blob | null>(null);
+  // Clear cache when modal fully closes so next open regenerates with fresh data
+  useEffect(() => {
+    if (!isOpen) {
+      cachedBlobRef.current = null;
+      setPdfBlob(null);
+      setPdfUrl(null);
+    }
+  }, [isOpen]);
 
   // Get template
   const template = templateId ? getTemplateById(templateId) : null;
@@ -184,13 +176,14 @@ const ResumePreviewModal: React.FC<ResumePreviewModalProps> = ({
 
           generatedBlob = pdfDoc.output('blob') as Blob;
         } else {
-          const preparedData = await embedProfilePhoto(resumeData);
+          const preparedData = await embedProfilePhoto(resumeDataRef.current);
           const doc = <PDFComponent data={preparedData} primaryColor={primaryColor} fontFamily={fontFamily} />;
           const asPdf = pdf(doc);
           generatedBlob = await asPdf.toBlob();
         }
 
         if (generatedBlob) {
+          cachedBlobRef.current = generatedBlob;
           setPdfBlob(generatedBlob);
           const url = URL.createObjectURL(generatedBlob);
           setPdfUrl(url);
@@ -207,8 +200,21 @@ const ResumePreviewModal: React.FC<ResumePreviewModalProps> = ({
       }
     };
 
+    // If blob already cached from a previous dialog open in this session, reuse it instantly
+    if (cachedBlobRef.current) {
+      const url = URL.createObjectURL(cachedBlobRef.current);
+      setPdfBlob(cachedBlobRef.current);
+      setPdfUrl(url);
+      if (autoShowPdfPreview) {
+        setShowDownloadDialog(true);
+        onPreviewComplete?.();
+      }
+      return;
+    }
+
     generatePreview();
-  }, [isOpen, autoGeneratePreview, autoShowPdfPreview, PDFComponent, resumeData]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, autoGeneratePreview, autoShowPdfPreview, PDFComponent]);
 
   if (!isOpen) return null;
 
@@ -266,7 +272,7 @@ const ResumePreviewModal: React.FC<ResumePreviewModalProps> = ({
       URL.revokeObjectURL(pdfUrl);
     }
     setPdfUrl(null);
-    setPdfBlob(null);
+    // Keep pdfBlob/cachedBlobRef so it can be reused if user reopens dialog
     setResumeName(generateDefaultResumeName());
     setShowNameDialog(true);
   };
@@ -664,21 +670,6 @@ const ResumePreviewModal: React.FC<ResumePreviewModalProps> = ({
             <div
               className="bg-white rounded-2xl shadow-2xl w-[95%] h-[95vh] max-w-7xl p-8 relative flex flex-col"
             >
-              {/* Close Button */}
-              <button
-                onClick={() => {
-                  setShowDownloadDialog(false);
-                  if (pdfUrl) {
-                    URL.revokeObjectURL(pdfUrl);
-                  }
-                  setPdfUrl(null);
-                  setPdfBlob(null);
-                }}
-                className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-full transition-colors z-10"
-              >
-                <X className="w-5 h-5 text-gray-500" />
-              </button>
-
               {/* If PDF is not generated, show the form */}
               {!pdfUrl ? (
                 <div className="overflow-y-auto flex-1">

@@ -161,8 +161,11 @@ const Template18PDF: React.FC<Template18PDFProps> = ({ data, primaryColor = '#11
 
   const locationPart = personal.city || (personal.address && String(personal.address).split(',')[0]) || '';
   const locNat = [locationPart, personal.nationality].filter(Boolean).join(', ');
-  const linkedinLabel = extractHandle((skillsLinks && skillsLinks.links && skillsLinks.links.linkedinProfile) || (personal as any).linkedinProfile);
-  const contactLine = [locNat, personal.email, formatMobile(personal.mobileNumber), linkedinLabel].filter(Boolean).join(' | ');
+  const links = skillsLinks?.links;
+  const linkedinLabel = links?.linkedinEnabled !== false ? extractHandle(links?.linkedinProfile || (personal as any).linkedinProfile) : '';
+  const githubLabel = links?.githubEnabled !== false ? extractHandle(links?.githubProfile) : '';
+  const portfolioLabel = links?.portfolioEnabled ? links?.portfolioUrl : '';
+  const contactLine = [locNat, personal.email, formatMobile(personal.mobileNumber), linkedinLabel, githubLabel, portfolioLabel].filter(Boolean).join(' | ');
 
   return (
     <Document>
@@ -177,9 +180,10 @@ const Template18PDF: React.FC<Template18PDFProps> = ({ data, primaryColor = '#11
           <View style={styles.section}>
             <Text style={{ ...styles.sectionHeading, fontFamily: pdfFontFamilyBold, color: primaryColor }}>Professional Summary</Text>
             <View style={{ ...styles.divider, backgroundColor: primaryColor }} />
-            {personal.aboutCareerObjective ? <Text style={{ marginTop: 6, color: '#444' }}>{htmlToPlainText(personal.aboutCareerObjective)}</Text> : null}
+            {personal.aboutCareerObjective ? <Text style={{ marginTop: 6, color: '#444' }}>{htmlToPlainText(personal.aboutCareerObjective).replace(/ /g, ' ').trim()}</Text> : null}
           </View>
 
+          {experience.workExperiences.some((exp: any) => exp.enabled) && (
           <View style={styles.section}>
             <Text style={{ ...styles.sectionHeading, fontFamily: pdfFontFamilyBold, color: primaryColor }}>Work Experience</Text>
             <View style={{ ...styles.divider, backgroundColor: primaryColor }} />
@@ -223,12 +227,14 @@ const Template18PDF: React.FC<Template18PDFProps> = ({ data, primaryColor = '#11
               ))}
             </View>
           </View>
+          )}
 
+          {(education.higherEducation.some(edu => edu.enabled) || (education.preUniversityEnabled && education.preUniversity.instituteName) || (education.sslcEnabled && education.sslc.instituteName)) && (
           <View style={styles.section}>
             <Text style={styles.sectionHeading}>Education</Text>
             <View style={styles.divider} />
             <View style={{ marginTop: 8 }}>
-              {education.higherEducationEnabled && education.higherEducation.slice().map((edu:any,i:number)=>(
+              {education.higherEducation.filter(edu => edu.enabled).map((edu:any,i:number)=>(
                 <View key={i} style={{ marginBottom: 10 }}>
                   <Text style={{ marginTop: 6, color: '#000', fontFamily: 'Times-Bold' }}>{edu.degree}</Text>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 4 }}>
@@ -239,7 +245,7 @@ const Template18PDF: React.FC<Template18PDFProps> = ({ data, primaryColor = '#11
               ))}
 
               {/* Pre University */}
-              {(education.preUniversityEnabled || education.preUniversity.instituteName || education.higherEducation.length > 0) && (
+              {education.preUniversityEnabled && education.preUniversity.instituteName && (
                 <View style={{ marginBottom: 10 }}>
                   <Text style={{ marginTop: 6, color: '#000', fontFamily: 'Times-Bold' }}>{education.preUniversity.instituteName || 'Pre University'}</Text>
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 4 }}>
@@ -251,7 +257,7 @@ const Template18PDF: React.FC<Template18PDFProps> = ({ data, primaryColor = '#11
               )}
 
               {/* SSLC */}
-              {(education.sslcEnabled || education.sslc.instituteName || education.higherEducation.length > 0) && (
+              {education.sslcEnabled && education.sslc.instituteName && (
                 <View style={{ marginBottom: 10 }}>
                   <Text style={{ marginTop: 6, color: '#000', fontFamily: 'Times-Bold' }}>{education.sslc.instituteName || 'SSLC'}</Text>
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 4 }}>
@@ -263,7 +269,9 @@ const Template18PDF: React.FC<Template18PDFProps> = ({ data, primaryColor = '#11
               )}
             </View>
           </View>
+          )}
 
+          {(skillsLinks.skills || []).some((s:any) => s.enabled && s.skillName) && (
           <View style={styles.section}>
             <Text style={styles.sectionHeading}>Skills</Text>
             <View style={styles.divider} />
@@ -276,7 +284,9 @@ const Template18PDF: React.FC<Template18PDFProps> = ({ data, primaryColor = '#11
               ))}
             </View>
           </View>
+          )}
 
+          {(certifications || []).some((c:any) => c.enabled && c.certificateTitle) && (
           <View style={styles.section}>
             <Text style={styles.sectionHeading}>Certifications</Text>
             <View style={styles.divider} />
@@ -289,6 +299,7 @@ const Template18PDF: React.FC<Template18PDFProps> = ({ data, primaryColor = '#11
               ))}
             </View>
           </View>
+          )}
 
 
         </View>

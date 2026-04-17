@@ -66,7 +66,7 @@ const Template9Display: React.FC<Template9DisplayProps> = ({ data }) => {
             </div>
           )}
 
-          {skillsLinks.skills.length > 0 && (
+          {skillsLinks.skills.some(s => s.enabled && s.skillName) && (
             <div style={{ marginTop: 16 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
                 <h3 style={{ fontSize: 11, color: '#004b87', textTransform: 'uppercase', letterSpacing: 1, margin: 0 }}>Skills</h3>
@@ -98,13 +98,13 @@ const Template9Display: React.FC<Template9DisplayProps> = ({ data }) => {
         {/* Right Content */}
         <main style={{ width: '68%', boxSizing: 'border-box', paddingLeft: 12 }}>
           {/* Education */}
-          {education.higherEducationEnabled && education.higherEducation.length > 0 && (
+          {education.higherEducation.some(edu => edu.enabled) && (
             <section style={{ marginBottom: 18 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
                 <h2 style={{ fontSize: 13, color: '#222', margin: 0 }}>Education</h2>
                 <div style={{ width: 26, height: 3, background: '#d0d0d0', borderRadius: 2 }} />
               </div>
-              {education.higherEducation.map((edu, i) => (
+              {education.higherEducation.filter(edu => edu.enabled).map((edu, i) => (
                 <div key={i} style={{ marginBottom: 12 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <div style={{ fontSize: 11, fontWeight: 700 }}>{edu.degree}</div>
@@ -139,7 +139,7 @@ const Template9Display: React.FC<Template9DisplayProps> = ({ data }) => {
           )}
 
           {/* Experience */}
-          {experience.workExperiences.length > 0 && (
+          {experience.workExperiences.some(exp => exp.enabled) && (
             <section style={{ marginBottom: 18 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
                 <h2 style={{ fontSize: 13, color: '#222', margin: 0 }}>Experience</h2>

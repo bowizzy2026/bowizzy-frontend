@@ -440,7 +440,7 @@ export const Template3PDF: React.FC<Template3PDFProps> = ({ data }) => {
             )}
 
             {/* Skills */}
-            {skillsLinks.skills.length > 0 && skillsLinks.skills.some(s => s.enabled && s.skillName) && (
+            {skillsLinks.skills.some(s => s.enabled && s.skillName) && skillsLinks.skills.some(s => s.enabled && s.skillName) && (
               <View style={styles.sidebarSection}>
                 <View style={styles.sidebarSectionHeader}>
                   <Svg width={12} height={12} viewBox="0 0 24 24" style={styles.sidebarIconImg}>
@@ -464,7 +464,7 @@ export const Template3PDF: React.FC<Template3PDFProps> = ({ data }) => {
         {/* Right Content - White */}
         <View style={styles.rightContent}>
           {/* Education */}
-          {education.higherEducationEnabled && education.higherEducation.length > 0 && (
+          {education.higherEducation.some(edu => edu.enabled) && (
               <View style={styles.contentSection}>
               <View style={styles.contentSectionHeader}>
                 <Svg width={16} height={16} viewBox="0 0 24 24" style={{ marginRight: 10 }}>
@@ -485,7 +485,7 @@ export const Template3PDF: React.FC<Template3PDFProps> = ({ data }) => {
                 }} />
                 
                 {/* Higher Education */}
-                {education.higherEducation.map((edu, idx) => (
+                {education.higherEducation.filter(edu => edu.enabled).map((edu, idx) => (
                   <View key={idx} style={styles.itemContainer}>
                     <View style={styles.itemWithBullet}>
                       <View style={styles.blueBullet} />
@@ -547,7 +547,7 @@ export const Template3PDF: React.FC<Template3PDFProps> = ({ data }) => {
           )}
 
           {/* Experience */}
-          {experience.workExperiences.length > 0 && experience.workExperiences.some(exp => exp.enabled) && (
+          {experience.workExperiences.some(exp => exp.enabled) && experience.workExperiences.some(exp => exp.enabled) && (
               <View style={styles.contentSection}>
               <View style={styles.contentSectionHeader}>
                 <Svg width={16} height={16} viewBox="0 0 24 24" style={{ marginRight: 10 }}>

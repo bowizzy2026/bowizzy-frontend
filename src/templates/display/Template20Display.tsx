@@ -56,7 +56,7 @@ const Template20Display: React.FC<Template20DisplayProps> = ({
     return y ? y[1] : '';
   };
 
-  const contactItems = [personal.mobileNumber && `Phone: ${formatMobile(personal.mobileNumber)}`, personal.email && `Email: ${personal.email}`, personal.address && `Address: ${personal.address}`, skillsLinks && skillsLinks.links && skillsLinks.links.portfolioUrl && `Portfolio: ${skillsLinks.links.portfolioUrl}`].filter(Boolean);
+  const contactItems = [personal.mobileNumber && `Phone: ${formatMobile(personal.mobileNumber)}`, personal.email && `Email: ${personal.email}`, personal.address && `Address: ${personal.address}`, skillsLinks && skillsLinks.links && skillsLinks.links.portfolioEnabled && skillsLinks.links.portfolioUrl && `Portfolio: ${skillsLinks.links.portfolioUrl}`].filter(Boolean);
 
   return (
     <div style={{ width: '210mm', minHeight: '297mm', fontFamily: fontFamily, background: '#fff', padding: 24, boxSizing: 'border-box' }}>
@@ -129,12 +129,12 @@ const Template20Display: React.FC<Template20DisplayProps> = ({
         </div>
         )}
 
-        {(education.higherEducationEnabled || education.preUniversityEnabled || education.sslcEnabled) && (
+        {(education.higherEducation.some(edu => edu.enabled) || education.preUniversityEnabled || education.sslcEnabled) && (
         <div style={{ height: 1, background: '#ddd', margin: '12px 0' }} />
         )}
 
         {/* EDUCATION row */}
-        {(education.higherEducationEnabled || education.preUniversityEnabled || education.sslcEnabled) && (
+        {(education.higherEducation.some(edu => edu.enabled) || education.preUniversityEnabled || education.sslcEnabled) && (
         <div style={{ display: 'flex', alignItems: 'flex-start' }}>
           <div
             style={{
@@ -149,7 +149,7 @@ const Template20Display: React.FC<Template20DisplayProps> = ({
           >
             Education
           </div>          <div style={{ flex: 1 }}>
-            {education.higherEducationEnabled && education.higherEducation.slice().map((edu: any, i: number) => (
+            {education.higherEducation.filter(edu => edu.enabled).map((edu: any, i: number) => (
               <div key={i} style={{ marginBottom: 12 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <div style={{ fontWeight: 800, color: '#000' }}>{edu.degree}{(edu.startYear || edu.endYear) ? ` ${edu.startYear ? formatYear(edu.startYear) : ''} | ${edu.endYear ? formatYear(edu.endYear) : ''}` : ''}</div>

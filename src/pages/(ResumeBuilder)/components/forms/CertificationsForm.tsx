@@ -154,6 +154,10 @@ export const CertificationsForm: React.FC<CertificationsFormProps> = ({
     } else if (field === "providedBy" && typeof value === "string") {
       const error = validateProvider(value);
       setErrors((prev) => ({ ...prev, [`cert-${id}-providedBy`]: error }));
+    } else if (field === "date" && typeof value === "string") {
+      const currentMonth = new Date().toISOString().slice(0, 7);
+      const error = value && value > currentMonth ? "Date cannot be in the future" : "";
+      setErrors((prev) => ({ ...prev, [`cert-${id}-date`]: error }));
     }
   };
 
@@ -307,7 +311,8 @@ export const CertificationsForm: React.FC<CertificationsFormProps> = ({
     // Check local validation errors
     if (
       errors[`cert-${certificate.id}-certificateTitle`] ||
-      errors[`cert-${certificate.id}-file`]
+      errors[`cert-${certificate.id}-file`] ||
+      errors[`cert-${certificate.id}-date`]
     )
       return;
 
@@ -567,6 +572,7 @@ export const CertificationsForm: React.FC<CertificationsFormProps> = ({
       delete newErrors[`cert-${id}-domain`];
       delete newErrors[`cert-${id}-providedBy`];
       delete newErrors[`cert-${id}-file`];
+      delete newErrors[`cert-${id}-date`];
       return newErrors;
     });
     setCertFeedback((prev) => {
@@ -712,6 +718,8 @@ export const CertificationsForm: React.FC<CertificationsFormProps> = ({
                 value={cert.date}
                 onChange={(v) => updateCertificate(cert.id, "date", v)}
                 type="month"
+                max={new Date().toISOString().slice(0, 7)}
+                error={errors[`cert-${cert.id}-date`]}
               />
             </div>
 

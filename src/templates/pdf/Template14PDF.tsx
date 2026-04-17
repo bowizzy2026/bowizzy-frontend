@@ -118,9 +118,11 @@ const Template14PDF: React.FC<Template14PDFProps> = ({ data, primaryColor = '#11
   const profession = (experience && (experience as any).jobRole) || (experience.workExperiences && experience.workExperiences.find((w: any) => w.enabled && w.jobTitle) && experience.workExperiences.find((w: any) => w.enabled && w.jobTitle).jobTitle) || '';
 
   const contactParts = [personal.address && String(personal.address).split(',')[0], personal.email, personal.mobileNumber].filter(Boolean);
-  const linkedinPresent = (skillsLinks && (skillsLinks as any).links && (skillsLinks as any).links.linkedinProfile) || (personal as any).linkedinProfile;
-  const githubPresent = (skillsLinks && (skillsLinks as any).links && (skillsLinks as any).links.githubProfile) || (personal as any).githubProfile;
-  const pdfContactLine = [...contactParts, ...(linkedinPresent ? [linkedinPresent] : []), ...(githubPresent ? [githubPresent] : [])].join(' | ');
+  const links = skillsLinks && (skillsLinks as any).links;
+  const linkedinPresent = links?.linkedinEnabled !== false && (links?.linkedinProfile || (personal as any).linkedinProfile);
+  const githubPresent = links?.githubEnabled !== false && (links?.githubProfile || (personal as any).githubProfile);
+  const portfolioPresent = links?.portfolioEnabled && links?.portfolioUrl;
+  const pdfContactLine = [...contactParts, ...(linkedinPresent ? [linkedinPresent] : []), ...(githubPresent ? [githubPresent] : []), ...(portfolioPresent ? [portfolioPresent] : [])].join(' | ');
 
   return (
     <Document>
@@ -131,6 +133,7 @@ const Template14PDF: React.FC<Template14PDFProps> = ({ data, primaryColor = '#11
           <Text style={styles.contact}>{pdfContactLine}</Text>
         </View>
 
+        {experience.workExperiences.some((exp: any) => exp.enabled) && (<>
         <View style={{ marginTop: 12 }}>
           <Text style={{ ...styles.sectionHeading, fontFamily: pdfFontFamilyBold, color: primaryColor }}>WORK EXPERIENCE</Text>
           <View style={{ height: 1.5, backgroundColor: primaryColor, width: '100%', marginTop: 4, marginBottom: 0 }} />
@@ -147,7 +150,9 @@ const Template14PDF: React.FC<Template14PDFProps> = ({ data, primaryColor = '#11
             </View>
           ))}
         </View>
+        </>)}
 
+        {projects.some((p: any) => p.enabled) && (<>
         <View style={{ marginTop: 16 }}>
           <Text style={{ ...styles.sectionHeading, fontFamily: pdfFontFamilyBold, color: primaryColor }}>PROJECTS</Text>
           <View style={{ height: 1.5, backgroundColor: primaryColor, width: '100%', marginTop: 4, marginBottom: 0 }} />
@@ -164,6 +169,7 @@ const Template14PDF: React.FC<Template14PDFProps> = ({ data, primaryColor = '#11
             </View>
           ))}
         </View>
+        </>)}
 
         <View style={{ marginTop: 16 }}>
           <Text style={{ ...styles.sectionHeading, fontFamily: pdfFontFamilyBold, color: primaryColor }}>EDUCATION</Text>
@@ -171,7 +177,7 @@ const Template14PDF: React.FC<Template14PDFProps> = ({ data, primaryColor = '#11
         </View>
 
         <View style={{ marginTop: 8 }}>
-          {education.higherEducationEnabled && education.higherEducation.slice().sort((a: any,b: any) => 0).map((edu: any, i: number) => (
+          {education.higherEducation.filter(edu => edu.enabled).sort((a: any,b: any) => 0).map((edu: any, i: number) => (
             <View key={`he-${i}`} style={{ marginBottom: 12 }}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Text style={{ ...styles.itemTitle, fontFamily: pdfFontFamilyBold }}>{edu.instituteName}</Text>
@@ -205,17 +211,21 @@ const Template14PDF: React.FC<Template14PDFProps> = ({ data, primaryColor = '#11
           )}
         </View>
 
+        {skillsLinks.skills.some((s: any) => s.enabled && s.skillName) && (<>
         <View style={{ marginTop: 16 }}>
           <Text style={{ ...styles.sectionHeading, fontFamily: pdfFontFamilyBold, color: primaryColor }}>SKILLS</Text>
           <View style={{ height: 1.5, backgroundColor: primaryColor, width: '100%', marginTop: 4, marginBottom: 0 }} />
         </View>
         <View style={{ marginTop: 8 }}><Text style={{ fontSize: 10, color: '#2b2a2a' }}>{skillsLinks.skills.filter((s: any) => s.enabled && s.skillName).map((s: any) => s.skillName).join(', ')}</Text></View>
+        </>)}
 
+        {certifications.some((c: any) => c.enabled && c.certificateTitle) && (<>
         <View style={{ marginTop: 16 }}>
           <Text style={{ ...styles.sectionHeading, fontFamily: pdfFontFamilyBold, color: primaryColor }}>CERTIFICATIONS</Text>
           <View style={{ height: 1.5, backgroundColor: primaryColor, width: '100%', marginTop: 4, marginBottom: 0 }} />
         </View>
         <View style={{ marginTop: 8 }}><Text style={{ fontSize: 10, color: '#2b2a2a' }}>{certifications.filter((c: any) => c.enabled && c.certificateTitle).map((c: any) => c.certificateTitle).join(', ')}</Text></View>
+        </>)}
 
       {/* Footer */}
       <View style={{

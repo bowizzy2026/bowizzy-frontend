@@ -127,7 +127,7 @@ const Template20PDF: React.FC<Template20PDFProps> = ({ data, primaryColor = '#11
     return y ? y[1] : '';
   };
 
-  const contactItems = [personal.mobileNumber && `Phone: ${formatMobile(personal.mobileNumber)}`, personal.email && `Email: ${personal.email}`, personal.address && `Address: ${personal.address}`, skillsLinks && skillsLinks.links && skillsLinks.links.portfolioUrl && `Portfolio: ${skillsLinks.links.portfolioUrl}`].filter(Boolean);
+  const contactItems = [personal.mobileNumber && `Phone: ${formatMobile(personal.mobileNumber)}`, personal.email && `Email: ${personal.email}`, personal.address && `Address: ${personal.address}`, skillsLinks && skillsLinks.links && skillsLinks.links.portfolioEnabled && skillsLinks.links.portfolioUrl && `Portfolio: ${skillsLinks.links.portfolioUrl}`].filter(Boolean);
 
   return (
     <Document>
@@ -183,13 +183,13 @@ const Template20PDF: React.FC<Template20PDFProps> = ({ data, primaryColor = '#11
         )}
 
         {/* EDUCATION row */}
-        {(education.higherEducationEnabled || education.preUniversityEnabled || education.sslcEnabled) && (
+        {(education.higherEducation.some(edu => edu.enabled) || education.preUniversityEnabled || education.sslcEnabled) && (
         <>
         <View style={{ height: 1, backgroundColor: '#ddd', marginTop: 12, marginBottom: 12 }} />
         <View style={{ flexDirection: 'row' }}>
           <View style={{ width: 150 }}><Text style={styles.sectionHeading}>EDUCATION</Text></View>
           <View style={{ flex: 1 }}>
-            {education.higherEducationEnabled && education.higherEducation.slice().map((edu:any,i:number)=> (
+            {education.higherEducation.filter(edu => edu.enabled).map((edu:any,i:number)=> (
               <View key={i} style={{ marginBottom: 12 }}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                   <Text style={{ fontFamily: 'Times-Bold' }}>{edu.degree}{(edu.startYear || edu.endYear) ? ` ${formatYear(edu.startYear)} | ${formatYear(edu.endYear)}` : ''}</Text>

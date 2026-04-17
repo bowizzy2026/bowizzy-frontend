@@ -59,12 +59,12 @@ const Template7Display: React.FC<Template7DisplayProps> = ({ data }) => {
           )}
 
           {/* Education */}
-          {education.higherEducationEnabled && education.higherEducation.length > 0 && (
+          {education.higherEducation.some(edu => edu.enabled) && (
             <section style={{ marginBottom: 22 }}>
               <h2 style={{ fontSize: 10, fontWeight: 700, color: '#004b87', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 10, paddingBottom: 6, borderBottom: '1px solid #004b87' }}>
                 Education
               </h2>
-              {education.higherEducation.map((edu, i) => (
+              {education.higherEducation.filter(edu => edu.enabled).map((edu, i) => (
                 <div key={i} style={{ marginBottom: 14 }}>
                   <div style={{ fontSize: 10, fontWeight: 700, color: '#222' }}>{edu.instituteName}</div>
                   <div style={{ fontSize: 10, color: '#666', marginTop: 2 }}>{edu.degree}</div>
@@ -95,7 +95,7 @@ const Template7Display: React.FC<Template7DisplayProps> = ({ data }) => {
           )}
 
           {/* Experience */}
-          {experience.workExperiences.length > 0 && (
+          {experience.workExperiences.some(exp => exp.enabled) && (
             <section style={{ marginBottom: 22 }}>
               <h2 style={{ fontSize: 10, fontWeight: 700, color: '#004b87', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 10, paddingBottom: 6, borderBottom: '1px solid #004b87' }}>
                 Experience
@@ -136,7 +136,7 @@ const Template7Display: React.FC<Template7DisplayProps> = ({ data }) => {
           )}
 
           {/* Skills */}
-          {skillsLinks.skills.length > 0 && (
+          {skillsLinks.skills.some(s => s.enabled && s.skillName) && (
             <section style={{ marginBottom: 22 }}>
               <h2 style={{ fontSize: 10, fontWeight: 700, color: '#004b87', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 10, paddingBottom: 6, borderBottom: '1px solid #004b87' }}>
                 Skills

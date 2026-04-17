@@ -74,11 +74,11 @@ const Template10Display: React.FC<Template10DisplayProps> = ({ data }) => {
           </div>
 
           {/* Education Section */}
-          {education.higherEducationEnabled && education.higherEducation.length > 0 && (
+          {education.higherEducation.some(edu => edu.enabled) && (
             <div style={{ marginBottom: 20 }}>
               <h3 style={{ fontSize: 9.5, color: '#fff', backgroundColor: '#444', textTransform: 'uppercase', fontWeight: 700, padding: '10px 14px', margin: '0 0 12px 0', borderRadius: 24, letterSpacing: 1.2, display: 'inline-block' }}>Education</h3>
               <div style={{ fontSize: 9, lineHeight: 1.7 }}>
-                {education.higherEducation.map((edu, i) => (
+                {education.higherEducation.filter(edu => edu.enabled).map((edu, i) => (
                   <div key={i} style={{ marginBottom: 12 }}>
                     <div style={{ fontWeight: 700, color: '#222', fontSize: 10 }}>{edu.degree}</div>
                     {edu.instituteName && <div style={{ color: '#666', fontSize: 8.5 }}>{edu.instituteName}</div>}
@@ -107,7 +107,7 @@ const Template10Display: React.FC<Template10DisplayProps> = ({ data }) => {
           )}
 
           {/* Skills Section */}
-          {skillsLinks.skills.length > 0 && (
+          {skillsLinks.skills.some(s => s.enabled && s.skillName) && (
             <div>
               <h3 style={{ fontSize: 9.5, color: '#fff', backgroundColor: '#444', textTransform: 'uppercase', fontWeight: 700, padding: '10px 14px', margin: '0 0 12px 0', borderRadius: 24, letterSpacing: 1.2, display: 'inline-block' }}>Skills</h3>
               <ul style={{ paddingLeft: 14, margin: 0, color: '#333', fontSize: 9, lineHeight: 1.8 }}>
@@ -127,7 +127,7 @@ const Template10Display: React.FC<Template10DisplayProps> = ({ data }) => {
             <div style={{ fontSize: 12, color: '#666', fontWeight: 400 }}>{experience.jobRole || ''}</div>
           </div>
           {/* Work Experience */}
-          {experience.workExperiences.length > 0 && (
+          {experience.workExperiences.some(exp => exp.enabled) && (
             <section style={{ marginBottom: 24 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16 }}>
                 <h2 style={{ fontSize: 12, color: '#222', margin: 0, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1.2 }}>Work Experience</h2>

@@ -35,6 +35,27 @@ interface Interview {
   saved_slot_id?: string | number;
   interview_status?: string;
   meeting_link?: string;
+  candidate_name?: string;
+  candidate_review?: {
+    candidate_review_id?: number;
+    interview_schedule_id?: number;
+    communication_skills?: string;
+    technical_knowledge?: string;
+    problem_solving_analytical_skills?: string;
+    relevant_experience_skills?: string;
+    adaptability_learning_ability?: string;
+    cultural_team_fit?: string;
+    overall_impression?: string;
+    final_comments?: string;
+    final_recommendation?: string;
+    communication_skills_rating?: string;
+    technical_knowledge_rating?: string;
+    problem_solving_analytical_skills_rating?: string;
+    relevant_experience_skills_rating?: string;
+    adaptability_learning_ability_rating?: string;
+    cultural_team_fit_rating?: string;
+    overall_impression_rating?: string;
+  } | null;
   candidateFeedbackProvided?: boolean;
   interviewerFeedbackProvided?: boolean;
 }
@@ -146,6 +167,10 @@ function normalizeSlot(raw: Record<string, unknown>): Interview {
     meeting_link: (get("meeting_link") ?? get("meetingLink")) as
       | string
       | undefined,
+    candidate_name: (get("candidate_name") ?? get("candidateName")) as
+      | string
+      | undefined,
+    candidate_review: (get("candidate_review") ?? get("candidateReview") ?? null) as any,
     candidateFeedbackProvided: (get("candidateFeedbackProvided") ??
       get("candidate_feedback_provided")) as boolean | undefined,
     interviewerFeedbackProvided: (get("interviewerFeedbackProvided") ??
@@ -383,7 +408,7 @@ const VerifiedDashboard = ({
   ) => {
     if (type === "available" && isInterviewExpired(interview)) return;
 
-    if (type === "saved") {
+    if (type === "saved" || type === "scheduled") {
       setSelectedInterview(interview);
       setViewType(type);
       externalOnViewDetails?.(interview, type);
@@ -395,16 +420,10 @@ const VerifiedDashboard = ({
     setViewType(type);
 
     try {
-      const { token, userId } = getAuth();
-      const slotId =
-        type === "scheduled"
-          ? interview.interview_schedule_id || interview.id
-          : interview.interview_slot_id || interview.id;
+      const { token } = getAuth();
+      const slotId = interview.interview_slot_id || interview.id;
 
-      const path =
-        type === "scheduled"
-          ? `/users/${userId || 2}/mock-interview/interview-schedule/${slotId}`
-          : `/mock-interview/interview-slot/${slotId}`;
+      const path = `/mock-interview/interview-slot/${slotId}`;
 
       const res = await api.get(path, {
         headers: token ? { Authorization: `Bearer ${token}` } : undefined,

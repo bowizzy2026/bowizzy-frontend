@@ -14,6 +14,10 @@ const Template12Display: React.FC<Template12DisplayProps> = ({
   primaryColor = "#000000",
 }) => {  const { personal, experience, education, projects, skillsLinks, certifications } = data;
 
+  const hasEducation = education.higherEducation.some(edu => edu.enabled) || (education.preUniversityEnabled && education.preUniversity.instituteName) || (education.sslcEnabled && education.sslc.instituteName);
+  const hasSkills = skillsLinks.skills.some(s => s.enabled && s.skillName);
+  const hasCerts = certifications.some(c => c.enabled && c.certificateTitle);
+
   const formatMonthYear = (s?: string) => {
     if (!s) return '';
     const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -72,6 +76,7 @@ const Template12Display: React.FC<Template12DisplayProps> = ({
 
         <hr style={{ border: 'none', borderTop: '1px solid #333', margin: '18px 0' }} />
 
+        {experience.workExperiences.some(exp => exp.enabled) && (<>
         <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '16px', padding: '0 8px' }}>
           <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.5, color:primaryColor, fontWeight: 700 }}>Work Experience</div>
           <div>
@@ -93,9 +98,11 @@ const Template12Display: React.FC<Template12DisplayProps> = ({
         </div>
 
         {/* Divider after Work Experience, before Projects */}
-        <hr style={{ border: 'none', borderTop: '1px solid #aaa', margin: '18px 0' }} />
+        {projects.some(p => p.enabled) && <hr style={{ border: 'none', borderTop: '1px solid #aaa', margin: '18px 0' }} />}
+        </>)}
 
         {/* Projects Section */}
+        {projects.some(p => p.enabled) && (<>
         <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '16px', padding: '0 8px', marginTop: 8 }}>
           <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.5, color:primaryColor, fontWeight: 700 }}>Projects</div>
           <div>
@@ -114,13 +121,15 @@ const Template12Display: React.FC<Template12DisplayProps> = ({
             ))}
           </div>
         </div>
+        </>)}
 
+        {hasEducation && (<>
         <hr style={{ border: 'none', borderTop: '1px solid #333', margin: '12px 0', width: '100%' }} />
 
         <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '16px', padding: '0 8px' }}>
           <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.5, color:primaryColor, fontWeight: 700 }}>Education</div>
           <div>
-            {education.higherEducationEnabled && education.higherEducation.map((edu, i) => (
+            {education.higherEducation.filter(edu => edu.enabled).map((edu, i) => (
               <div key={i} style={{ marginBottom: 12 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                   <div style={{ fontWeight: 700, color: '#111827' }}>{edu.degree}</div>
@@ -159,19 +168,28 @@ const Template12Display: React.FC<Template12DisplayProps> = ({
               </div>
             )}
           </div>
-
-          <hr style={{ border: 'none', borderTop: '1px solid #333', margin: '12px 0', gridColumn: '1 / -1' }} />
-
-          <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.5, color:primaryColor, fontWeight: 700 }}>Skills</div>
-          <div>
-            <div style={{ color: '#2b2a2a' }}>{skillsLinks.skills.filter(s => s.enabled && s.skillName).map(s => s.skillName).join(', ')}</div>
-          </div>
-
-          <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.5, color:primaryColor, fontWeight: 700 }}>Certifications</div>
-          <div>
-            <div style={{ color: '#2b2a2a' }}>{certifications.filter(c => c.enabled && c.certificateTitle).map(c => c.certificateTitle).join(', ')}</div>
-          </div>
         </div>
+        </>)}
+
+        {hasSkills && (<>
+          <hr style={{ border: 'none', borderTop: '1px solid #333', margin: '12px 0', width: '100%' }} />
+          <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '16px', padding: '0 8px' }}>
+            <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.5, color:primaryColor, fontWeight: 700 }}>Skills</div>
+            <div>
+              <div style={{ color: '#2b2a2a' }}>{skillsLinks.skills.filter(s => s.enabled && s.skillName).map(s => s.skillName).join(', ')}</div>
+            </div>
+          </div>
+        </>)}
+
+        {hasCerts && (<>
+          <hr style={{ border: 'none', borderTop: '1px solid #333', margin: '12px 0', width: '100%' }} />
+          <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '16px', padding: '0 8px' }}>
+            <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.5, color:primaryColor, fontWeight: 700 }}>Certifications</div>
+            <div>
+              <div style={{ color: '#2b2a2a' }}>{certifications.filter(c => c.enabled && c.certificateTitle).map(c => c.certificateTitle).join(', ')}</div>
+            </div>
+          </div>
+        </>)}
 
       </div>
     </div>

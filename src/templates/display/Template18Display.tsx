@@ -83,8 +83,11 @@ const Template18Display: React.FC<Template18DisplayProps> = ({
 
   const locationPart = personal.city || (personal.address && String(personal.address).split(',')[0]) || '';
   const locNat = [locationPart, personal.nationality].filter(Boolean).join(', ');
-  const linkedinLabel = extractHandle((skillsLinks && skillsLinks.links && skillsLinks.links.linkedinProfile) || (personal as any).linkedinProfile);
-  const contactLine = [locNat, personal.email, formatMobile(personal.mobileNumber), linkedinLabel].filter(Boolean).join(' | ');
+  const links = skillsLinks?.links;
+  const linkedinLabel = links?.linkedinEnabled !== false ? extractHandle(links?.linkedinProfile || (personal as any).linkedinProfile) : '';
+  const githubLabel = links?.githubEnabled !== false ? extractHandle(links?.githubProfile) : '';
+  const portfolioLabel = links?.portfolioEnabled ? links?.portfolioUrl : '';
+  const contactLine = [locNat, personal.email, formatMobile(personal.mobileNumber), linkedinLabel, githubLabel, portfolioLabel].filter(Boolean).join(' | ');
 
   return (
     <div style={{ width: '210mm', minHeight: '297mm', fontFamily: fontFamily, background: '#fff', padding: 24, boxSizing: 'border-box' }}>
@@ -100,9 +103,10 @@ const Template18Display: React.FC<Template18DisplayProps> = ({
             <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.2, color: primaryColor, fontWeight: 700 }}>Professional Summary</div>
             <div style={{ height: 1, background: '#ddd', marginTop: 6, width: '100%' }} />
           </div>
-          <div style={{ marginTop: 8, color: '#444' }}>{personal.aboutCareerObjective && <div>{DOMPurify.sanitize(personal.aboutCareerObjective).replace(/<[^>]+>/g, '')}</div>}</div>
+          <div style={{ marginTop: 8, color: '#444' }}>{personal.aboutCareerObjective && <div>{DOMPurify.sanitize(personal.aboutCareerObjective).replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').replace(/\u00A0/g, ' ').replace(/ /g, ' ').trim()}</div>}</div>
         </section>
 
+        {experience.workExperiences.some(exp => exp.enabled) && (
         <section style={{ marginTop: 18 }}>
           <div>
             <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.2, color: primaryColor, fontWeight: 700 }}>Work Experience</div>
@@ -136,14 +140,16 @@ const Template18Display: React.FC<Template18DisplayProps> = ({
             ))}
           </div>
         </section>
+        )}
 
+        {(education.higherEducation.some(edu => edu.enabled) || (education.preUniversityEnabled && education.preUniversity.instituteName) || (education.sslcEnabled && education.sslc.instituteName)) && (
         <section style={{ marginTop: 18 }}>
           <div>
             <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.2, color: primaryColor, fontWeight: 700 }}>Education</div>
             <div style={{ height: 1, background: '#ddd', marginTop: 6, width: '100%' }} />
           </div>
           <div style={{ marginTop: 8 }}>
-            {education.higherEducationEnabled && education.higherEducation.slice().map((edu:any,i:number)=>(
+            {education.higherEducation.filter(edu => edu.enabled).map((edu:any,i:number)=>(
               <div key={i} style={{ marginBottom: 12 }}>
                 <div style={{ color: '#000', marginTop: 4, fontWeight: 800 }}>{edu.degree}</div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6 }}>
@@ -153,7 +159,7 @@ const Template18Display: React.FC<Template18DisplayProps> = ({
               </div>
             ))}
 
-            {(education.preUniversityEnabled || education.preUniversity.instituteName || education.higherEducation.length > 0) && (
+            {education.preUniversityEnabled && education.preUniversity.instituteName && (
               <div style={{ marginBottom: 12 }}>
                 <div style={{ color: '#000', marginTop: 4, fontWeight: 800 }}>{education.preUniversity.instituteName || 'Pre University'}</div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6 }}>
@@ -164,7 +170,7 @@ const Template18Display: React.FC<Template18DisplayProps> = ({
               </div>
             )}
 
-            {(education.sslcEnabled || education.sslc.instituteName || education.higherEducation.length > 0) && (
+            {education.sslcEnabled && education.sslc.instituteName && (
               <div style={{ marginBottom: 12 }}>
                 <div style={{ color: '#000', marginTop: 4, fontWeight: 800 }}>{education.sslc.instituteName || 'SSLC'}</div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6 }}>
@@ -176,7 +182,9 @@ const Template18Display: React.FC<Template18DisplayProps> = ({
             )}
           </div>
         </section>
+        )}
 
+        {(skillsLinks.skills || []).some((s:any) => s.enabled && s.skillName) && (
         <section style={{ marginTop: 18 }}>
           <div>
             <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.2, color: primaryColor, fontWeight: 700 }}>Skills</div>
@@ -188,7 +196,9 @@ const Template18Display: React.FC<Template18DisplayProps> = ({
             </ul>
           </div>
         </section>
+        )}
 
+        {(certifications || []).some((c:any) => c.enabled && c.certificateTitle) && (
         <section style={{ marginTop: 18 }}>
           <div>
             <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.2, color: primaryColor, fontWeight: 700 }}>Certifications</div>
@@ -200,6 +210,7 @@ const Template18Display: React.FC<Template18DisplayProps> = ({
             </ul>
           </div>
         </section>
+        )}
 
       </main>
     </div>

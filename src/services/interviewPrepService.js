@@ -10,6 +10,16 @@ export const createInterviewSlot = async (userId, token, slotPayload, mode = 'on
     return response.data;
 };
 
+export const isUserInterviewer = async (userId, token) => {
+    const response = await api.get(`/users/${userId}/mock-interview/is-interviewer`, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+        },
+    });
+    return response.data;
+};
+
 export const updateInterviewSlotPayment = async (userId, token, slotId) => {
     const response = await api.put(`/users/${userId}/mock-interview/interview-slot/${slotId}`, null, {
         headers: {

@@ -80,7 +80,7 @@ export const Template2Display: React.FC<Template2DisplayProps> = ({
 					</div>
 
 					{/* Education Section Container (Now includes all levels) */}
-					{(education.higherEducationEnabled ||
+					{(education.higherEducation.some(edu => edu.enabled) ||
 						education.preUniversityEnabled ||
 						education.sslcEnabled) && (
 						<div className="resume-section mb-6">
@@ -92,9 +92,8 @@ export const Template2Display: React.FC<Template2DisplayProps> = ({
 							</h2>
 
 							{/* Higher Education */}
-							{education.higherEducationEnabled &&
-								education.higherEducation.length > 0 &&
-								education.higherEducation.map((edu, idx) => (
+							{education.higherEducation.some(edu => edu.enabled) &&
+								education.higherEducation.filter(edu => edu.enabled).map((edu, idx) => (
 									<div key={idx} className="education-item mb-4">
 										<h3
 											className="font-bold text-gray-800"
@@ -172,7 +171,7 @@ export const Template2Display: React.FC<Template2DisplayProps> = ({
 					)}
 
 					{/* Skills */}
-					{skillsLinks.skills.length > 0 && (
+					{skillsLinks.skills.some(s => s.enabled && s.skillName) && (
 						<div className="resume-section mb-6">
 							<h2
 								className="text-sm font-bold text-gray-800 mb-3"
@@ -262,7 +261,7 @@ export const Template2Display: React.FC<Template2DisplayProps> = ({
 					)}
 
 					{/* Work Experience */}
-					{experience.workExperiences.length > 0 && (
+					{experience.workExperiences.some(exp => exp.enabled) && (
 						<div className="resume-section mb-6">
 							<h2
 								className="text-sm font-bold text-gray-800 mb-3"

@@ -2,11 +2,13 @@ import { useState, useEffect, useCallback } from "react";
 import { ArrowRight } from "lucide-react";
 import DashNav from "@/components/dashnav/dashnav";
 import { useNavigate } from "react-router-dom";
-import { 
-    getInterviewSlotsByUserId, 
+import {
+    getInterviewSlotsByUserId,
     cancelInterviewSlot,
     getCompletedInterviewsCount,
     getCandidateSchedules,
+    isUserInterviewer,
+
 } from "@/services/interviewPrepService";
 
 const InterviewPrep = () => {
@@ -15,7 +17,7 @@ const InterviewPrep = () => {
     const userData = JSON.parse(localStorage.getItem("user"));
     const userId = userData?.user_id;
     const token = userData?.token;
-    
+
     const [allSlots, setAllSlots] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -34,14 +36,14 @@ const InterviewPrep = () => {
 
     const formatDateTime = (utcTime) => {
         if (!utcTime) return { date: "N/A", time: "N/A" };
-        
+
         try {
             const dateObj = new Date(utcTime);
             const date = dateObj.toLocaleDateString(undefined, {
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric',
-            }).replace(',', ''); 
+            }).replace(',', '');
 
             const startTime = dateObj.toLocaleTimeString(undefined, {
                 hour: '2-digit',
@@ -50,7 +52,7 @@ const InterviewPrep = () => {
             });
 
             const time = `${startTime}`;
-            
+
             return { date, time };
         } catch (e) {
             return { date: "Invalid Date", time: "Invalid Time" };
@@ -63,11 +65,21 @@ const InterviewPrep = () => {
             setLoading(false);
             return;
         }
-
         try {
             setLoading(true);
             setError(null);
-            
+            const isInterviewer = await isUserInterviewer(userId, token);
+            console.log("Is user an interviewer?", isInterviewer);
+            if (isInterviewer) {
+                navigate('/interview-prep/take-mock-interview');
+            }
+        } catch (e) {
+            setError("An unexpected error occurred.");
+        }
+        try {
+            setLoading(true);
+            setError(null);
+
             const response = await getInterviewSlotsByUserId(userId, token);
             console.log(response);
 
@@ -94,23 +106,23 @@ const InterviewPrep = () => {
                     completedDate: date,
                 };
             });
-            
-            setAllSlots(normalizedSlots);
-                // fetch completed interviews count for the stats card
-                try {
-                    const cnt = await getCompletedInterviewsCount(userId, token);
-                    setCompletedCount(cnt?.completed_interviews ?? 0);
-                } catch (e) {
-                    console.warn('Failed to fetch completed interviews count', e);
-                }
 
-                // fetch candidate schedules for past performance
-                try {
-                    const schedules = await getCandidateSchedules(userId, token);
-                    setCandidateSchedules(Array.isArray(schedules) ? schedules : []);
-                } catch (e) {
-                    console.warn('Failed to fetch candidate schedules', e);
-                }
+            setAllSlots(normalizedSlots);
+            // fetch completed interviews count for the stats card
+            try {
+                const cnt = await getCompletedInterviewsCount(userId, token);
+                setCompletedCount(cnt?.completed_interviews ?? 0);
+            } catch (e) {
+                console.warn('Failed to fetch completed interviews count', e);
+            }
+
+            // fetch candidate schedules for past performance
+            try {
+                const schedules = await getCandidateSchedules(userId, token);
+                setCandidateSchedules(Array.isArray(schedules) ? schedules : []);
+            } catch (e) {
+                console.warn('Failed to fetch candidate schedules', e);
+            }
         } catch (err) {
             console.error("Failed to fetch interview slots:", err);
             setError("Failed to load interview data.");
@@ -131,13 +143,13 @@ const InterviewPrep = () => {
     const displayedUpcoming = showAllUpcoming
         ? upcomingInterviews
         : upcomingInterviews.slice(0, 4);
-        
+
     const displayedPast = pastInterviews.slice().sort((a, b) => {
         const aDate = new Date(a.end_time_utc ?? a.start_time_utc ?? a.completedDate);
         const bDate = new Date(b.end_time_utc ?? b.start_time_utc ?? b.completedDate);
         return bDate.getTime() - aDate.getTime(); // most recent first
     });
-        
+
     const openCancelModal = (slot) => {
         setSlotToCancel(slot);
         setShowCancelModal(true);
@@ -205,7 +217,7 @@ const InterviewPrep = () => {
         }
         return <span className={classes}>{text}</span>;
     };
-    
+
     const renderUpcomingCardButtons = (interview) => {
         const { is_payment_done, status, id, start_time_utc, end_time_utc } = interview;
 
@@ -216,28 +228,28 @@ const InterviewPrep = () => {
         const hasStarted = startTime ? (now >= startTime && !hasEnded) : false;
 
         if (is_payment_done === false) {
-        return (
-            <div className="w-full flex flex-col sm:flex-row sm:justify-end gap-2">
-                <button
-                    onClick={() => handlePayNow(id)}
-                    className="w-full sm:w-auto px-4 py-2 rounded-md text-sm font-semibold text-white cursor-pointer"
-                    style={{
-                        background: "linear-gradient(180deg, #FF9D48 0%, #FF8251 100%)"
-                    }}
-                >
-                    Pay
-                </button>
-                {!hasEnded && (
+            return (
+                <div className="w-full flex flex-col sm:flex-row sm:justify-end gap-2">
                     <button
-                        onClick={() => openCancelModal(interview)}
-                        className="w-full sm:w-auto px-4 py-2 bg-white border border-[#FFD4D4] text-[#FF6B6B] rounded-md text-sm font-medium hover:bg-red-50 cursor-pointer"
+                        onClick={() => handlePayNow(id)}
+                        className="w-full sm:w-auto px-4 py-2 rounded-md text-sm font-semibold text-white cursor-pointer"
+                        style={{
+                            background: "linear-gradient(180deg, #FF9D48 0%, #FF8251 100%)"
+                        }}
                     >
-                        Cancel
+                        Pay
                     </button>
-                )}
-            </div>
-        );
-    }
+                    {!hasEnded && (
+                        <button
+                            onClick={() => openCancelModal(interview)}
+                            className="w-full sm:w-auto px-4 py-2 bg-white border border-[#FFD4D4] text-[#FF6B6B] rounded-md text-sm font-medium hover:bg-red-50 cursor-pointer"
+                        >
+                            Cancel
+                        </button>
+                    )}
+                </div>
+            );
+        }
 
         if (is_payment_done === true && status === "open") {
             return (
@@ -542,7 +554,7 @@ const InterviewPrep = () => {
                             </div>
                         </div>
 
-                        
+
                     </div>
                 </div>
             </div>
@@ -616,7 +628,7 @@ const InterviewPrep = () => {
             </div>
         );
     }
-    
+
     if (error) {
         return (
             <div className="flex flex-col h-screen font-['Baloo_2']">

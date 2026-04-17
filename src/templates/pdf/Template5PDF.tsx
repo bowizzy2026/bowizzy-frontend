@@ -77,7 +77,7 @@ const Template5PDF: React.FC<Template5PDFProps> = ({ data }) => {
             </View>
           ) : null}
 
-          {experience.workExperiences.length > 0 && (
+          {experience.workExperiences.some(exp => exp.enabled) && (
             <View>
               <Text style={styles.sectionTitle}>EXPERIENCE</Text>
               {experience.workExperiences.filter(w => w.enabled).map((w, i) => (
@@ -99,7 +99,7 @@ const Template5PDF: React.FC<Template5PDFProps> = ({ data }) => {
             </View>
           )}
 
-          {projects && projects.length > 0 && (
+          {projects && projects.some((p: any) => p.enabled) && (
             <View>
               <Text style={styles.sectionTitle}>PROJECTS</Text>
               {projects.filter(p => p.enabled && p.projectTitle).map((p, i) => (
@@ -131,10 +131,10 @@ const Template5PDF: React.FC<Template5PDFProps> = ({ data }) => {
             </View>
           )}
 
-          {education.higherEducationEnabled && education.higherEducation.length > 0 && (
+          {education.higherEducation.some(edu => edu.enabled) && (
             <View>
               <Text style={styles.sectionTitle}>EDUCATION</Text>
-              {education.higherEducation.map((edu, i) => (
+              {education.higherEducation.filter(edu => edu.enabled).map((edu, i) => (
                 <View key={i} style={{ marginBottom: 6 }}>
                   <Text style={{ fontSize: 11, fontFamily: 'Times-Bold' }}>{edu.instituteName}</Text>
                   <Text style={styles.text}>{edu.degree} • {edu.startYear} - {edu.currentlyPursuing ? 'Present' : edu.endYear}</Text>
@@ -158,7 +158,7 @@ const Template5PDF: React.FC<Template5PDFProps> = ({ data }) => {
             </View>
           )}
 
-          {skillsLinks.skills.length > 0 && (
+          {skillsLinks.skills.some(s => s.enabled && s.skillName) && (
             <View>
               <Text style={styles.sectionTitle}>SKILLS</Text>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>

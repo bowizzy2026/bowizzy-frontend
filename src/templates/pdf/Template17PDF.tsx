@@ -124,23 +124,23 @@ const Template17PDF: React.FC<Template17PDFProps> = ({ data, primaryColor = '#11
           {role && <Text style={{ ...styles.role, fontFamily: pdfFontFamily, color: primaryColor }}>{role}</Text>}
 
           <View style={{ marginTop: 12 }}>
-            <Text style={{ fontSize: 11, fontFamily: pdfFontFamilyBold, letterSpacing: 1, color: primaryColor, marginBottom: 6 }}>DETAILS</Text>
+            <Text style={{ fontSize: 11, fontFamily: pdfFontFamilyBold, letterSpacing: 1, color: primaryColor, marginBottom: 6 }}>PERSONAL DETAILS</Text>
             <View style={{ height: 1, backgroundColor: primaryColor, marginBottom: 8 }} />
-            {personal.email && <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}><IconEmail /><Text style={{ fontSize: 10, color: '#000' }}>{personal.email}</Text></View>}
-            {personal.mobileNumber && <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}><IconPhone /><Text style={{ fontSize: 10, color: '#000' }}>{personal.mobileNumber}</Text></View>}
-            {personal.address && <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}><IconLocation /><Text style={{ fontSize: 10, color: '#000' }}>{String(personal.address).split(',')[0]}</Text></View>}
+            {personal.email && <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}><IconEmail /><Text style={{ fontSize: 9, color: '#000' }}>{personal.email}</Text></View>}
+            {personal.mobileNumber && <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}><IconPhone /><Text style={{ fontSize: 9, color: '#000' }}>{personal.mobileNumber}</Text></View>}
+            {(personal.address || personal.city || personal.state) && <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}><IconLocation /><Text style={{ fontSize: 9, color: '#000' }}>{[personal.address ? String(personal.address).split(',')[0] : '', personal.city, personal.state, personal.pincode].filter(Boolean).join(', ')}</Text></View>}
           </View>
 
           <View style={{ marginTop: 18 }}>
             <Text style={{ ...styles.sectionHeading, fontFamily: pdfFontFamilyBold, color: primaryColor }}>Skills</Text>
             <View style={{ ...styles.divider, backgroundColor: primaryColor }} />
-            { (skillsLinks.skills || []).filter((s:any)=>s.enabled && s.skillName).slice(0,6).map((s:any,i:number)=>(<View key={i} style={{ marginTop: 6, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}><Text style={{ fontSize: 10, color: '#000', flex: 1 }}>• {s.skillName}</Text><Text style={{ fontSize: 10, color: '#000' }}>{getSkillStars(s.skillLevel)}</Text></View>)) }
+            { (skillsLinks.skills || []).filter((s:any)=>s.enabled && s.skillName).slice(0,6).map((s:any,i:number)=>(<View key={i} style={{ marginTop: 6, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}><Text style={{ fontSize: 9, color: '#000', flex: 1 }}>• {s.skillName}</Text><Text style={{ fontSize: 9, color: '#000' }}>{getSkillStars(s.skillLevel)}</Text></View>)) }
           </View>
 
           <View style={{ marginTop: 18 }}>
             <Text style={{ ...styles.sectionHeading, fontFamily: pdfFontFamilyBold, color: primaryColor }}>Languages</Text>
             <View style={{ ...styles.divider, backgroundColor: primaryColor }} />
-            {(((personal as any).languagesKnown || (personal as any).languages || [])).map((l:string,i:number)=>(<Text key={i} style={{ marginTop: 6, fontSize: 10, color: '#000' }}>• {l}</Text>))}
+            {(((personal as any).languagesKnown || (personal as any).languages || [])).map((l:string,i:number)=>(<Text key={i} style={{ marginTop: 6, fontSize: 9, color: '#000' }}>• {l}</Text>))}
           </View>
 
         </View>
@@ -149,9 +149,10 @@ const Template17PDF: React.FC<Template17PDFProps> = ({ data, primaryColor = '#11
           <View>
             <Text style={styles.sectionHeading}>Summary</Text>
             <View style={{ height: 1, backgroundColor: '#ddd', marginTop: 6, width: '100%' }} />
-            {personal.aboutCareerObjective ? <Text style={{ marginTop: 8, color: '#444' }}>{htmlToPlainText(personal.aboutCareerObjective)}</Text> : null}
+            {personal.aboutCareerObjective ? <Text style={{ marginTop: 8, fontSize: 9, color: '#444' }}>{htmlToPlainText(personal.aboutCareerObjective).replace(/\s{2,}/g, ' ')}</Text> : null}
           </View>
 
+          {experience.workExperiences.filter((w:any)=>w.enabled).length > 0 && (
           <View style={{ marginTop: 18 }}>
             <Text style={styles.sectionHeading}>Experience</Text>
             <View style={{ height: 1, backgroundColor: '#ddd', marginTop: 6, width: '100%' }} />
@@ -162,26 +163,46 @@ const Template17PDF: React.FC<Template17PDFProps> = ({ data, primaryColor = '#11
                       <Text style={{ fontSize: 11, fontFamily: pdfFontFamilyBold }}>{w.jobTitle}</Text>
                     <Text style={{ fontSize: 10, color: '#000' }}>{formatMonthYear(w.startDate)} — {w.currentlyWorking ? 'Present' : formatMonthYear(w.endDate)}</Text>
                   </View>
-                  <Text style={{ marginTop: 6, color: '#000' }}>{w.companyName}{w.location ? ` — ${w.location}` : ''}</Text>
-                  {w.description && <View style={{ marginTop: 6, paddingLeft: 10 }}>{htmlToPlainText(w.description).split('\n').filter(Boolean).map((line, idx) => <Text key={idx} style={{ fontSize: 10, color: '#444', marginTop: 6 }}>• {line}</Text>)}</View>}
+                  <Text style={{ marginTop: 6, fontSize: 9, color: '#000' }}>{w.companyName}{w.location ? ` — ${w.location}` : ''}</Text>
+                  {w.description && <View style={{ marginTop: 6, paddingLeft: 10 }}>{htmlToPlainText(w.description).split('\n').filter(Boolean).map((line, idx) => <Text key={idx} style={{ fontSize: 9, color: '#444', marginTop: 6 }}>• {line}</Text>)}</View>}
                 </View>
               ))}
             </View>
           </View>
+          )}
+
+          {projects.filter((p:any)=>p.enabled).length > 0 && (
+          <View style={{ marginTop: 18 }}>
+            <Text style={styles.sectionHeading}>Projects</Text>
+            <View style={{ height: 1, backgroundColor: '#ddd', marginTop: 6, width: '100%' }} />
+            <View style={{ marginTop: 8 }}>
+              {projects.filter((p:any)=>p.enabled).map((p:any,i:number)=>(
+                <View key={i} style={{ marginBottom: 10 }}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                    <Text style={{ fontSize: 11, fontFamily: pdfFontFamilyBold }}>{p.projectTitle}</Text>
+                    <Text style={{ fontSize: 10, color: '#000' }}>{formatMonthYear(p.startDate)} — {p.currentlyWorking ? 'Present' : formatMonthYear(p.endDate)}</Text>
+                  </View>
+                  {p.description && <Text style={{ marginTop: 6, fontSize: 9, color: '#000' }}>{htmlToPlainText(p.description)}</Text>}
+                  {p.rolesResponsibilities && <View style={{ marginTop: 6, paddingLeft: 10 }}>{htmlToPlainText(p.rolesResponsibilities).split('\n').filter(Boolean).map((line, idx) => <Text key={idx} style={{ fontSize: 9, color: '#444', marginTop: 6 }}>• {line}</Text>)}</View>}
+                </View>
+              ))}
+            </View>
+          </View>
+          )}
 
           <View style={{ marginTop: 18 }}>
             <Text style={styles.sectionHeading}>Education</Text>
             <View style={{ height: 1, backgroundColor: '#ddd', marginTop: 6, width: '100%' }} />
             <View style={{ marginTop: 8 }}>
-              {education.higherEducationEnabled && education.higherEducation.slice().map((edu:any, i:number) => (
+              {education.higherEducation.filter(edu => edu.enabled).map((edu:any, i:number) => (
                 <View key={i} style={{ marginBottom: 10 }}>
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                    <Text style={{ fontSize: 11, fontFamily: 'Times-Bold' }}>{edu.degree}{edu.fieldOfStudy ? ` in ${edu.fieldOfStudy}` : ''}</Text>
-                    <Text style={{ fontSize: 10, color: '#000' }}>{formatYear(edu.endYear)}</Text>
+                    <Text style={{ fontSize: 11, fontFamily: pdfFontFamilyBold }}>{edu.degree}{edu.fieldOfStudy ? ` in ${edu.fieldOfStudy}` : ''}</Text>
+                    <Text style={{ fontSize: 9, color: '#000' }}>{formatYear(edu.endYear)}</Text>
                   </View>
-                  <Text style={{ marginTop: 6, color: '#000' }}>{edu.instituteName}</Text>
+                  <Text style={{ marginTop: 4, fontSize: 9, color: '#000' }}>{edu.instituteName}</Text>
                   {edu.resultFormat && edu.result ? (
-                    <Text style={{ fontSize: 10, color: '#444', fontFamily: 'Times-Bold', marginTop: 4 }}>{edu.resultFormat}: {edu.result}</Text>
+                    <Text style={{ fontSize: 9, color: '#444', fontFamily: pdfFontFamilyBold, marginTop: 4 }}>{edu.resultFormat}: {edu.result}</Text>
                   ) : null}
                 </View>
               ))}
@@ -190,12 +211,12 @@ const Template17PDF: React.FC<Template17PDFProps> = ({ data, primaryColor = '#11
               {(education.preUniversityEnabled || education.preUniversity.instituteName || education.higherEducation.length > 0) && (
                 <View style={{ marginBottom: 10 }}>
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                    <Text style={{ fontSize: 11, fontFamily: 'Times-Bold' }}>{education.preUniversity.instituteName || 'Pre University'}</Text>
-                    <Text style={{ fontSize: 10, color: '#000' }}>{education.preUniversity.yearOfPassing ? String(education.preUniversity.yearOfPassing).match(/(\d{4})/)?.[1] : ''}</Text>
+                    <Text style={{ fontSize: 11, fontFamily: pdfFontFamilyBold }}>{education.preUniversity.instituteName || 'Pre University'}</Text>
+                    <Text style={{ fontSize: 9, color: '#000' }}>{education.preUniversity.yearOfPassing ? String(education.preUniversity.yearOfPassing).match(/(\d{4})/)?.[1] : ''}</Text>
                   </View>
-                  <Text style={{ marginTop: 6, color: '#000' }}>Pre University (12th Standard){education.preUniversity.subjectStream ? ` — ${education.preUniversity.subjectStream}` : ''}</Text>
+                  <Text style={{ marginTop: 4, fontSize: 9, color: '#000' }}>Pre University (12th Standard){education.preUniversity.subjectStream ? ` — ${education.preUniversity.subjectStream}` : ''}</Text>
                   {education.preUniversity.resultFormat && education.preUniversity.result && (
-                    <Text style={{ fontSize: 10, color: '#444', fontFamily: 'Times-Bold', marginTop: 4 }}>{education.preUniversity.resultFormat}: {education.preUniversity.result}</Text>
+                    <Text style={{ fontSize: 9, color: '#444', fontFamily: pdfFontFamilyBold, marginTop: 4 }}>{education.preUniversity.resultFormat}: {education.preUniversity.result}</Text>
                   )}
                 </View>
               )}
@@ -204,12 +225,12 @@ const Template17PDF: React.FC<Template17PDFProps> = ({ data, primaryColor = '#11
               {(education.sslcEnabled || education.sslc.instituteName || education.higherEducation.length > 0) && (
                 <View style={{ marginBottom: 10 }}>
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                    <Text style={{ fontSize: 11, fontFamily: 'Times-Bold' }}>{education.sslc.instituteName || 'SSLC'}</Text>
-                    <Text style={{ fontSize: 10, color: '#000' }}>{education.sslc.yearOfPassing ? String(education.sslc.yearOfPassing).match(/(\d{4})/)?.[1] : ''}</Text>
+                    <Text style={{ fontSize: 11, fontFamily: pdfFontFamilyBold }}>{education.sslc.instituteName || 'SSLC'}</Text>
+                    <Text style={{ fontSize: 9, color: '#000' }}>{education.sslc.yearOfPassing ? String(education.sslc.yearOfPassing).match(/(\d{4})/)?.[1] : ''}</Text>
                   </View>
-                  <Text style={{ marginTop: 6, color: '#000' }}>SSLC (10th Standard){education.sslc.boardType ? ` — ${education.sslc.boardType}` : ''}</Text>
+                  <Text style={{ marginTop: 4, fontSize: 9, color: '#000' }}>SSLC (10th Standard){education.sslc.boardType ? ` — ${education.sslc.boardType}` : ''}</Text>
                   {education.sslc.resultFormat && education.sslc.result && (
-                    <Text style={{ fontSize: 10, color: '#444', fontFamily: 'Times-Bold', marginTop: 4 }}>{education.sslc.resultFormat}: {education.sslc.result}</Text>
+                    <Text style={{ fontSize: 9, color: '#444', fontFamily: pdfFontFamilyBold, marginTop: 4 }}>{education.sslc.resultFormat}: {education.sslc.result}</Text>
                   )}
                 </View>
               )}
@@ -217,11 +238,13 @@ const Template17PDF: React.FC<Template17PDFProps> = ({ data, primaryColor = '#11
             </View>
           </View>
 
+          {(certifications || []).some((c:any)=>c.enabled && c.certificateTitle) && (
           <View style={{ marginTop: 18 }}>
-            <Text style={styles.sectionHeading}>Achievements</Text>
+            <Text style={styles.sectionHeading}>Achievements / Certifications</Text>
             <View style={{ height: 1, backgroundColor: '#ddd', marginTop: 6, width: '100%' }} />
-            <View style={{ marginTop: 8 }}>{(certifications || []).filter((c:any)=>c.enabled && c.certificateTitle).map((c:any,i:number)=>(<Text key={i} style={{ marginBottom: 6 }}>{c.certificateTitle}{c.providedBy ? ` — ${c.providedBy}` : ''}</Text>))}</View>
+            <View style={{ marginTop: 8 }}>{(certifications || []).filter((c:any)=>c.enabled && c.certificateTitle).map((c:any,i:number)=>(<Text key={i} style={{ marginBottom: 6, fontSize: 9 }}>{c.certificateTitle}{c.providedBy ? ` — ${c.providedBy}` : ''}</Text>))}</View>
           </View>
+          )}
 
         </View>
       {/* Footer */}

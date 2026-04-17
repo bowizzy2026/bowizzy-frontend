@@ -53,19 +53,19 @@ const Template17Display: React.FC<Template17DisplayProps> = ({
   const role = (experience && (experience as any).jobRole) || (experience.workExperiences && experience.workExperiences.find((w: any) => w.enabled && w.jobTitle) && experience.workExperiences.find((w: any) => w.enabled && w.jobTitle).jobTitle) || '';
 
   return (
-<div style={{ width: '210mm', minHeight: '297mm', fontFamily, background: '#fff' }}>      <div style={{ display: 'flex' }}>
+<div style={{ width: '210mm', minHeight: '297mm', fontFamily, background: '#fff', paddingTop: 24 }}>      <div style={{ display: 'flex' }}>
         {/* Left sidebar */}
         <aside style={{ width: 220, background: '#f3f4f6', padding: 24, boxSizing: 'border-box' }}>
           <h2 style={{ margin: 0, fontSize: 20, color: primaryColor }}>{personal.firstName} {(personal.middleName || '')} {personal.lastName}</h2>
           {role && <div style={{ color: '#000', marginTop: 6, fontWeight: 700 }}>{role}</div>}
 
           <div style={{ marginTop: 20 }}>
-            <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1, color: primaryColor }}>DETAILS</div>
+            <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1, color: primaryColor }}>PERSONAL DETAILS</div>
             <div style={{ height: 1, background: '#999', marginTop: 6, marginBottom: 8 }} />
-            <div style={{ color: '#000', fontSize: 13 }}>
+            <div style={{ color: '#000', fontSize: 11 }}>
               {personal.email && <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 8 }}><FiMail style={{ color: '#000' }} /><a href={`mailto:${personal.email}`} style={{ color: '#000', textDecoration: 'none' }}>{personal.email}</a></div>}
               {personal.mobileNumber && <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 8 }}><FiPhone style={{ color: '#000' }} /><a href={`tel:${personal.mobileNumber}`} style={{ color: '#000', textDecoration: 'none' }}>{personal.mobileNumber}</a></div>}
-              {personal.address && <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 8 }}><FiMapPin style={{ color: '#000' }} /><div>{String(personal.address).split(',')[0]}</div></div>}
+              {(personal.address || personal.city || personal.state) && <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 8 }}><FiMapPin style={{ color: '#000' }} /><div>{[personal.address ? String(personal.address).split(',')[0] : '', personal.city, personal.state, personal.pincode].filter(Boolean).join(', ')}</div></div>}
             </div>
           </div>
 
@@ -74,7 +74,7 @@ const Template17Display: React.FC<Template17DisplayProps> = ({
             <div style={{ height: 1, background: '#999', marginTop: 6, marginBottom: 8 }} />
             <div style={{ color: '#000' }}>
               {(skillsLinks.skills || []).filter(s => s.enabled && s.skillName).slice(0,6).map((s, i) => (
-                <div key={i} style={{ marginBottom: 6, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+                <div key={i} style={{ marginBottom: 6, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, fontSize: 11 }}>
                   <span>• {s.skillName}</span>
                   <span style={{ fontSize: 11 }}>{getSkillStars(s.skillLevel)}</span>
                 </div>
@@ -86,7 +86,7 @@ const Template17Display: React.FC<Template17DisplayProps> = ({
             <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1, color: primaryColor }}>LANGUAGES</div>
             <div style={{ height: 1, background: '#999', marginTop: 6, marginBottom: 8 }} />
             <div style={{ color: '#000' }}>
-              {(((personal as any).languagesKnown || (personal as any).languages || [])).map((l: string, i: number) => <div key={i} style={{ marginBottom: 6 }}>• {l}</div>)}
+              {(((personal as any).languagesKnown || (personal as any).languages || [])).map((l: string, i: number) => <div key={i} style={{ marginBottom: 6, fontSize: 11 }}>• {l}</div>)}
             </div>
           </div>
 
@@ -99,8 +99,10 @@ const Template17Display: React.FC<Template17DisplayProps> = ({
               <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.2, color: primaryColor, fontWeight: 700 }}>Summary</div>
               <div style={{ height: 1, background: '#ddd', marginTop: 6, width: '100%' }} />
             </div>
-            <div style={{ marginTop: 8, color: '#444' }}>{personal.aboutCareerObjective && <div>{DOMPurify.sanitize(personal.aboutCareerObjective).replace(/<[^>]+>/g, '')}</div>}</div>
+            <div style={{ marginTop: 8, color: '#444', fontSize: 11 }}>{personal.aboutCareerObjective && <div>{DOMPurify.sanitize(personal.aboutCareerObjective).replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').replace(/\s{2,}/g, ' ').trim()}</div>}</div>
 
+            {experience.workExperiences.filter((w:any) => w.enabled).length > 0 && (
+            <>
             <div style={{ marginTop: 18 }}>
               <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.2, color: primaryColor, fontWeight: 700 }}>Experience</div>
               <div style={{ height: 1, background: '#ddd', marginTop: 6, width: '100%' }} />
@@ -109,29 +111,52 @@ const Template17Display: React.FC<Template17DisplayProps> = ({
               {experience.workExperiences.filter((w:any) => w.enabled).map((w:any,i:number) => (
                 <div key={i} style={{ marginBottom: 12 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <div style={{ fontWeight: 700 }}>{w.jobTitle}</div>
-                  <div style={{ color: '#000' }}>{formatMonthYear(w.startDate)} — {w.currentlyWorking ? 'Present' : formatMonthYear(w.endDate)}</div>
+                    <div style={{ fontWeight: 700, fontSize: 12 }}>{w.jobTitle}</div>
+                  <div style={{ color: '#000', fontSize: 11 }}>{formatMonthYear(w.startDate)} — {w.currentlyWorking ? 'Present' : formatMonthYear(w.endDate)}</div>
                 </div>
-                <div style={{ color: '#000', marginTop: 6 }}>{w.companyName}{w.location ? ` — ${w.location}` : ''}</div>
-                  {w.description && <div style={{ marginTop: 6, paddingLeft: 10 }}>{htmlToLines(w.description).map((ln, idx) => <div key={idx} style={{ marginTop: 6 }}>• {ln}</div>)}</div>}
+                <div style={{ color: '#000', marginTop: 6, fontSize: 11 }}>{w.companyName}{w.location ? ` — ${w.location}` : ''}</div>
+                  {w.description && <div style={{ marginTop: 6, paddingLeft: 10 }}>{htmlToLines(w.description).map((ln, idx) => <div key={idx} style={{ marginTop: 6, fontSize: 11 }}>• {ln}</div>)}</div>}
                 </div>
               ))}
             </div>
+            </>
+            )}
+
+            {projects.filter((p:any) => p.enabled).length > 0 && (
+            <>
+            <div style={{ marginTop: 18 }}>
+              <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.2, color: primaryColor, fontWeight: 700 }}>Projects</div>
+              <div style={{ height: 1, background: '#ddd', marginTop: 6, width: '100%' }} />
+            </div>
+            <div style={{ marginTop: 8 }}>
+              {projects.filter((p:any) => p.enabled).map((p:any,i:number) => (
+                <div key={i} style={{ marginBottom: 12 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <div style={{ fontWeight: 700, fontSize: 12 }}>{p.projectTitle}</div>
+                    <div style={{ color: '#000', fontSize: 11 }}>{formatMonthYear(p.startDate)} — {p.currentlyWorking ? 'Present' : formatMonthYear(p.endDate)}</div>
+                  </div>
+                  {p.description && <div style={{ color: '#000', marginTop: 6, fontSize: 11 }}>{DOMPurify.sanitize(p.description).replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').trim()}</div>}
+                  {p.rolesResponsibilities && <div style={{ marginTop: 6, paddingLeft: 10 }}>{htmlToLines(p.rolesResponsibilities).map((ln, idx) => <div key={idx} style={{ marginTop: 6, fontSize: 11 }}>• {ln}</div>)}</div>}
+                </div>
+              ))}
+            </div>
+            </>
+            )}
 
             <div style={{ marginTop: 18 }}>
               <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.2, color: primaryColor, fontWeight: 700 }}>Education</div>
               <div style={{ height: 1, background: '#ddd', marginTop: 6, width: '100%' }} />
             </div>
             <div style={{ marginTop: 8 }}>
-              {education.higherEducationEnabled && education.higherEducation.slice().map((edu:any,i:number) => (
+              {education.higherEducation.filter(edu => edu.enabled).map((edu:any,i:number) => (
                 <div key={i} style={{ marginBottom: 12 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <div style={{ fontWeight: 700 }}>{edu.degree}{edu.fieldOfStudy ? ` in ${edu.fieldOfStudy}` : ''}</div>
-                    <div style={{ color: '#000' }}>{(edu.endYear ? String(edu.endYear).match(/(\d{4})/)?.[1] : '')}</div>
+                    <div style={{ fontWeight: 700, fontSize: 12 }}>{edu.degree}{edu.fieldOfStudy ? ` in ${edu.fieldOfStudy}` : ''}</div>
+                    <div style={{ color: '#000', fontSize: 11 }}>{(edu.endYear ? String(edu.endYear).match(/(\d{4})/)?.[1] : '')}</div>
                   </div>
-                  <div style={{ color: '#000', marginTop: 4 }}>{edu.instituteName}</div>
+                  <div style={{ color: '#000', marginTop: 4, fontSize: 11 }}>{edu.instituteName}</div>
                   {edu.resultFormat && edu.result ? (
-                    <div style={{ marginTop: 6, color: '#444', fontWeight: 700 }}>{edu.resultFormat}: {edu.result}</div>
+                    <div style={{ marginTop: 6, color: '#444', fontWeight: 700, fontSize: 11 }}>{edu.resultFormat}: {edu.result}</div>
                   ) : null}
                 </div>
               ))}
@@ -139,32 +164,34 @@ const Template17Display: React.FC<Template17DisplayProps> = ({
               {(education.preUniversityEnabled || education.preUniversity.instituteName || education.higherEducation.length > 0) && (
                 <div style={{ marginBottom: 12 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <div style={{ fontWeight: 700 }}>{education.preUniversity.instituteName || 'Pre University'}</div>
-                    <div style={{ color: '#000' }}>{education.preUniversity.yearOfPassing ? String(education.preUniversity.yearOfPassing).match(/(\d{4})/)?.[1] : ''}</div>
+                    <div style={{ fontWeight: 700, fontSize: 12 }}>{education.preUniversity.instituteName || 'Pre University'}</div>
+                    <div style={{ color: '#000', fontSize: 11 }}>{education.preUniversity.yearOfPassing ? String(education.preUniversity.yearOfPassing).match(/(\d{4})/)?.[1] : ''}</div>
                   </div>
-                  <div style={{ color: '#000', marginTop: 4 }}>Pre University (12th Standard){education.preUniversity.subjectStream ? ` — ${education.preUniversity.subjectStream}` : ''}</div>
-                  {education.preUniversity.resultFormat && education.preUniversity.result && (<div style={{ marginTop: 6, color: '#444', fontWeight: 700 }}>{education.preUniversity.resultFormat}: {education.preUniversity.result}</div>)}
+                  <div style={{ color: '#000', marginTop: 4, fontSize: 11 }}>Pre University (12th Standard){education.preUniversity.subjectStream ? ` — ${education.preUniversity.subjectStream}` : ''}</div>
+                  {education.preUniversity.resultFormat && education.preUniversity.result && (<div style={{ marginTop: 6, color: '#444', fontWeight: 700, fontSize: 11 }}>{education.preUniversity.resultFormat}: {education.preUniversity.result}</div>)}
                 </div>
               )}
 
               {(education.sslcEnabled || education.sslc.instituteName || education.higherEducation.length > 0) && (
                 <div style={{ marginBottom: 12 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <div style={{ fontWeight: 700 }}>{education.sslc.instituteName || 'SSLC'}</div>
-                    <div style={{ color: '#000' }}>{education.sslc.yearOfPassing ? String(education.sslc.yearOfPassing).match(/(\d{4})/)?.[1] : ''}</div>
+                    <div style={{ fontWeight: 700, fontSize: 12 }}>{education.sslc.instituteName || 'SSLC'}</div>
+                    <div style={{ color: '#000', fontSize: 11 }}>{education.sslc.yearOfPassing ? String(education.sslc.yearOfPassing).match(/(\d{4})/)?.[1] : ''}</div>
                   </div>
-                  <div style={{ color: '#000', marginTop: 4 }}>SSLC (10th Standard){education.sslc.boardType ? ` — ${education.sslc.boardType}` : ''}</div>
-                  {education.sslc.resultFormat && education.sslc.result && (<div style={{ marginTop: 6, color: '#444', fontWeight: 700 }}>{education.sslc.resultFormat}: {education.sslc.result}</div>)}
+                  <div style={{ color: '#000', marginTop: 4, fontSize: 11 }}>SSLC (10th Standard){education.sslc.boardType ? ` — ${education.sslc.boardType}` : ''}</div>
+                  {education.sslc.resultFormat && education.sslc.result && (<div style={{ marginTop: 6, color: '#444', fontWeight: 700, fontSize: 11 }}>{education.sslc.resultFormat}: {education.sslc.result}</div>)}
                 </div>
               )}
 
             </div>
 
+            {(certifications || []).some((c:any)=>c.enabled && c.certificateTitle) && (<>
             <div style={{ marginTop: 18 }}>
-              <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.2, color: primaryColor, fontWeight: 700 }}>Achievements</div>
+              <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.2, color: primaryColor, fontWeight: 700 }}>Achievements / Certifications</div>
               <div style={{ height: 1, background: '#ddd', marginTop: 6, width: '100%' }} />
             </div>
-            <div style={{ marginTop: 8, color: '#444' }}>{(certifications || []).filter((c:any)=>c.enabled && c.certificateTitle).map((c:any,i:number)=>(<div key={i} style={{ marginBottom: 8 }}>{c.certificateTitle}{c.providedBy ? ` — ${c.providedBy}` : ''}</div>))}</div>
+            <div style={{ marginTop: 8, color: '#444' }}>{(certifications || []).filter((c:any)=>c.enabled && c.certificateTitle).map((c:any,i:number)=>(<div key={i} style={{ marginBottom: 8, fontSize: 11 }}>{c.certificateTitle}{c.providedBy ? ` — ${c.providedBy}` : ''}</div>))}</div>
+            </>)}
 
           </section>
         </main>

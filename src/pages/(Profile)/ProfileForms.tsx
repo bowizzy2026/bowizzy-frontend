@@ -41,6 +41,14 @@ export default function ProfileForm() {
   const userId = parsedData?.user_id;
   const token = parsedData?.token;
 
+  // Set initial step from navigation state if provided
+  useEffect(() => {
+    const passedStep = (location.state as any)?.step;
+    if (typeof passedStep === "number" && passedStep >= 0 && passedStep <= 5) {
+      setCurrentStep(passedStep);
+    }
+  }, [location.state]);
+
   const steps = [
     "Personal",
     "Education",
