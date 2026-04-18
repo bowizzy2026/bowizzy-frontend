@@ -318,7 +318,7 @@ export default function AIBuilder() {
           try {
             if (userId && authToken) {
               const res = await fetch(
-                `http://localhost:5000/users/${userId}/projects`,
+                `${(import.meta.env.VITE_API_BASE_URL as string) || 'http://localhost:5000'}/users/${userId}/projects`,
                 { headers: { Authorization: `Bearer ${authToken}` } }
               );
               if (res.ok) {
@@ -341,7 +341,7 @@ export default function AIBuilder() {
           try {
             if (userId && authToken) {
               const res = await fetch(
-                `http://localhost:5000/users/${userId}/work-experience`,
+                `${(import.meta.env.VITE_API_BASE_URL as string) || 'http://localhost:5000'}/users/${userId}/work-experience`,
                 { headers: { Authorization: `Bearer ${authToken}` } }
               );
               if (res.ok) {
@@ -366,7 +366,7 @@ export default function AIBuilder() {
           try {
             if (userId && authToken) {
               const res = await fetch(
-                `http://localhost:5000/users/${userId}/education`,
+                `${(import.meta.env.VITE_API_BASE_URL as string) || 'http://localhost:5000'}/users/${userId}/education`,
                 { headers: { Authorization: `Bearer ${authToken}` } }
               );
               if (res.ok) {
@@ -400,7 +400,7 @@ export default function AIBuilder() {
             additional_education: inputValue.trim() || (chatAnswers[sessionId]?.additional_education ?? ""),
           };
 
-          const generateRes = await fetch("http://localhost:5000/generate-resume", {
+          const generateRes = await fetch(`${(import.meta.env.VITE_API_BASE_URL as string) || 'http://localhost:5000'}/generate-resume`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
