@@ -1,6 +1,9 @@
-import React, { useRef, useEffect } from "react";
-import { Send, Upload, Loader2, Bot, User } from "lucide-react";
+import React, { useRef, useEffect, Suspense, useState, useMemo } from "react";
+import { Send, Upload, Loader2, Bot, User, Download } from "lucide-react";
+import { pdf } from '@react-pdf/renderer';
 import type { ChatSession } from "./types";
+import { aiTemplateRegistry } from './templates/aiTemplateRegistry';
+import { mapInfoJsonToResumeData } from './mapInfoJsonToResumeData';
 
 interface ChatBoxProps {
   session: ChatSession | undefined;
@@ -111,6 +114,11 @@ export default function ChatBox({
                   </div>
                 </div>
               </div>
+            )}
+
+            {/* Inline resume template preview */}
+            {session?.infoJson && !isLoading && (
+              <InlineResumePreview infoJson={session.infoJson} />
             )}
 
             <div ref={messagesEndRef} />
@@ -231,5 +239,152 @@ function PreStartState({
         Start
       </button>
     </div>
+  );
+}
+
+// ── Inline resume template cards shown inside chat ────────────────────────────
+function InlineResumePreview({ infoJson }: { infoJson: any }) {
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [downloading, setDownloading] = useState(false);
+  const previewRef = useRef<HTMLDivElement>(null);
+
+  const resumeData = useMemo(() => mapInfoJsonToResumeData(infoJson), [infoJson]);
+
+  // Auto-scroll into view when the preview first appears
+  useEffect(() => {
+    setTimeout(() => {
+      previewRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+  }, []);
+
+  const selectedTemplate = selectedIndex !== null ? aiTemplateRegistry[selectedIndex] : null;
+  const SelectedDisplay = selectedTemplate?.displayComponent ?? null;
+
+  const handleDownload = async (index: number) => {
+    setDownloading(true);
+    const tmpl = aiTemplateRegistry[index];
+    try {
+      // Eagerly resolve the lazy-loaded PDF component via raw dynamic import
+      const PdfModule = await tmpl.importPdf();
+      const PdfComp = PdfModule.default;
+      const blob = await pdf(
+        <PdfComp data={resumeData} primaryColor={tmpl.primaryColor} />
+      ).toBlob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${resumeData.personal.firstName || 'Resume'}_${resumeData.personal.lastName || ''}_${tmpl.name}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('PDF generation failed:', err);
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  return (
+    <>
+      <div ref={previewRef} className="mt-4">
+        <p className="text-sm font-medium text-gray-700 mb-3">
+          Choose a template to preview and download:
+        </p>
+
+        {/* 3-column card grid */}
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          {aiTemplateRegistry.map((tmpl, i) => {
+            const CardDisplay = tmpl.displayComponent;
+            return (
+              <div
+                key={tmpl.id}
+                onClick={() => setSelectedIndex(i)}
+                className="border border-gray-200 rounded-xl overflow-hidden cursor-pointer hover:border-orange-400 hover:shadow-md transition bg-white group"
+              >
+                <div className="overflow-hidden flex justify-center" style={{ height: 180 }}>
+                  <div
+                    style={{
+                      transform: 'scale(0.25)',
+                      transformOrigin: 'top center',
+                      width: '210mm',
+                      minHeight: '297mm',
+                      pointerEvents: 'none',
+                    }}
+                  >
+                    <Suspense fallback={<div className="h-full bg-gray-50" />}>
+                      <CardDisplay data={resumeData} primaryColor={tmpl.primaryColor} />
+                    </Suspense>
+                  </div>
+                </div>
+                <div className="px-2 py-2 border-t border-gray-100 text-center">
+                  <span className="text-xs font-medium text-gray-600 group-hover:text-orange-500 transition">
+                    {tmpl.name}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Modal popup for full preview */}
+      {selectedIndex !== null && selectedTemplate && SelectedDisplay && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+          onClick={() => setSelectedIndex(null)}
+        >
+          <div
+            className="relative bg-white rounded-2xl shadow-2xl max-w-5xl w-full mx-4 max-h-[90vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100 shrink-0">
+              <span className="text-sm font-semibold text-gray-800">
+                {selectedTemplate.name} Template
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => handleDownload(selectedIndex)}
+                  disabled={downloading}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-500 text-white text-xs font-medium rounded-lg hover:bg-orange-600 disabled:opacity-50 transition"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  {downloading ? 'Generating...' : 'Download PDF'}
+                </button>
+                <button
+                  onClick={() => setSelectedIndex(null)}
+                  className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition text-lg"
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+
+            {/* Preview body */}
+            <div className="flex-1 overflow-y-auto bg-gray-50 flex justify-center p-4">
+              <div
+                style={{
+                  transform: 'scale(0.85)',
+                  transformOrigin: 'top center',
+                  width: '210mm',
+                  minHeight: '297mm',
+                }}
+              >
+                  <Suspense
+                    fallback={
+                      <div className="flex items-center justify-center h-64 text-gray-400 text-sm">
+                        Loading template...
+                      </div>
+                    }
+                  >
+                  <SelectedDisplay data={resumeData} primaryColor={selectedTemplate.primaryColor} />
+                  </Suspense>
+                </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }

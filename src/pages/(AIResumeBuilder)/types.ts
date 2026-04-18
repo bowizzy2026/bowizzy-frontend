@@ -12,4 +12,5 @@ export interface ChatSession {
   mode: "jd" | "non-jd";
   createdAt: string;
   started?: boolean;
+  infoJson?: any;
 }

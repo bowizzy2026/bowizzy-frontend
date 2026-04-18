@@ -2,7 +2,7 @@
 import type { ChatSession, ChatMessage } from "@/pages/(AIResumeBuilder)/types";
 import api from "@/api";
 
-export async function getAiSessions(token: string): Promise<Pick<ChatSession, "id" | "title" | "mode" | "started" | "createdAt" | "messages">[]> {
+export async function getAiSessions(token: string): Promise<Pick<ChatSession, "id" | "title" | "mode" | "started" | "createdAt" | "messages" | "infoJson">[]> {
     const res = await api.get("/user/sessions", {
         headers: { Authorization: `Bearer ${token}` },
     });
@@ -21,6 +21,7 @@ export async function getAiSessions(token: string): Promise<Pick<ChatSession, "i
             started: item.started ?? false,
             createdAt: item.created_at,
             messages: chats,
+            infoJson: item.infoJson || item.info_json || null,
         };
     });
 }

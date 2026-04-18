@@ -1,0 +1,165 @@
+import React from 'react';
+import { Document, Page, View, Text } from '@react-pdf/renderer';
+import type { ResumeData } from '@/types/resume';
+
+const htmlToPlain = (html?: string) => {
+  if (!html) return '';
+  let t = html.replace(/<br\s*\/?>/gi, '\n').replace(/<\/p>|<\/li>/gi, '\n').replace(/<li>/gi, '• ').replace(/<[^>]+>/g, '');
+  return t.replace(/&nbsp;/g, ' ').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&').trim();
+};
+
+const renderBullets = (html?: string) => {
+  if (!html) return null;
+  const lines = htmlToPlain(html).split('\n').filter(l => l.trim());
+  return (
+    <View style={{ marginTop: 4 }}>
+      {lines.map((line, i) => (
+        <View key={i} style={{ flexDirection: 'row', marginTop: i > 0 ? 2 : 0 }}>
+          <Text style={{ width: 10, flexShrink: 0, fontSize: 9, color: '#475569' }}>{line.startsWith('•') ? '•' : ''}</Text>
+          <Text style={{ flex: 1, fontSize: 9, color: '#475569', lineHeight: 1.6 }}>{line.startsWith('•') ? line.substring(1).trim() : line}</Text>
+        </View>
+      ))}
+    </View>
+  );
+};
+
+const fmtDate = (s?: string) => {
+  if (!s) return '';
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const m = String(s).match(/^(\d{4})-(\d{2})/);
+  if (m) { const mm = parseInt(m[2], 10); return mm >= 1 && mm <= 12 ? `${months[mm-1]} ${m[1]}` : m[1]; }
+  return String(s);
+};
+const fmtYear = (s?: string) => { if (!s) return ''; const m = String(s).match(/(\d{4})/); return m ? m[1] : String(s); };
+
+interface Props { data: ResumeData; primaryColor?: string; }
+
+const SectionTitle = ({ title, color }: { title: string; color: string }) => (
+  <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 16, marginBottom: 8, gap: 10 }}>
+    <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: color }} />
+    <Text style={{ fontSize: 11, fontFamily: 'Helvetica-Bold', textTransform: 'uppercase', letterSpacing: 1.5, color }}>{title}</Text>
+    <View style={{ flex: 1, height: 0.5, backgroundColor: '#e2e8f0' }} />
+  </View>
+);
+
+const AiTemplate9PDF: React.FC<Props> = ({ data, primaryColor = '#334155' }) => {
+  const { personal, experience, education, projects, skillsLinks, certifications } = data;
+  const contactParts = [personal.email, personal.mobileNumber, personal.address].filter(Boolean);
+  const linkedin = skillsLinks?.links?.linkedinProfile || '';
+  const initials = `${(personal.firstName || '')[0] || ''}${(personal.lastName || '')[0] || ''}`.toUpperCase();
+
+  return (
+    <Document>
+      <Page size="A4" style={{ fontSize: 9, fontFamily: 'Helvetica' }}>
+        {/* Top banner */}
+        <View style={{ backgroundColor: primaryColor, paddingVertical: 20, paddingHorizontal: 40, flexDirection: 'row', alignItems: 'center', gap: 16 }}>
+          <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' }}>
+            <Text style={{ fontSize: 16, fontFamily: 'Helvetica-Bold', color: primaryColor }}>{initials}</Text>
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontSize: 24, fontFamily: 'Helvetica-Bold', color: '#fff', letterSpacing: 0.5 }}>
+              {personal.firstName} {personal.middleName || ''} {personal.lastName}
+            </Text>
+            {experience.jobRole && <Text style={{ fontSize: 11, color: '#cbd5e1', marginTop: 2 }}>{experience.jobRole}</Text>}
+          </View>
+          <View style={{ alignItems: 'flex-end' }}>
+            {contactParts.map((c, i) => <Text key={i} style={{ fontSize: 8.5, color: '#e2e8f0' }}>{c}</Text>)}
+            {linkedin && <Text style={{ fontSize: 8, color: '#93c5fd' }}>{linkedin}</Text>}
+          </View>
+        </View>
+
+        <View style={{ paddingHorizontal: 40, paddingTop: 12, paddingBottom: 28 }}>
+          {personal.aboutCareerObjective && (
+            <>
+              <SectionTitle title="Profile" color={primaryColor} />
+              <Text style={{ fontSize: 9.5, color: '#475569', lineHeight: 1.7 }}>{htmlToPlain(personal.aboutCareerObjective)}</Text>
+            </>
+          )}
+
+          {experience.workExperiences.some(w => w.enabled) && (
+            <>
+              <SectionTitle title="Experience" color={primaryColor} />
+              {experience.workExperiences.filter(w => w.enabled).map((w: any, i) => (
+                <View key={i} style={{ marginBottom: 12 }}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                    <Text style={{ fontSize: 10.5, fontFamily: 'Helvetica-Bold', color: '#0f172a' }}>{w.jobTitle}</Text>
+                    <Text style={{ fontSize: 8, color: '#94a3b8' }}>{fmtDate(w.startDate)} – {w.currentlyWorking ? 'Present' : fmtDate(w.endDate)}</Text>
+                  </View>
+                  <Text style={{ fontSize: 9.5, color: primaryColor, fontFamily: 'Helvetica-Bold', marginTop: 1 }}>{w.companyName}{w.location ? ` | ${w.location}` : ''}</Text>
+                  {w.description && renderBullets(w.description)}
+                </View>
+              ))}
+            </>
+          )}
+
+          {projects.some(p => p.enabled) && (
+            <>
+              <SectionTitle title="Projects" color={primaryColor} />
+              {projects.filter(p => p.enabled).map((p: any, i) => (
+                <View key={i} style={{ marginBottom: 12 }}>
+                  <Text style={{ fontSize: 10.5, fontFamily: 'Helvetica-Bold', color: '#0f172a' }}>{p.projectTitle}</Text>
+                  {p.description && renderBullets(p.description)}
+                </View>
+              ))}
+            </>
+          )}
+
+          {/* Two-column: Education + Skills */}
+          <View style={{ flexDirection: 'row', gap: 30, marginTop: 4 }}>
+            <View style={{ flex: 1 }}>
+              <SectionTitle title="Education" color={primaryColor} />
+              {education.higherEducation.filter(e => e.enabled).map((edu: any, i) => (
+                <View key={i} style={{ marginBottom: 7 }}>
+                  <Text style={{ fontSize: 10, fontFamily: 'Helvetica-Bold', color: '#0f172a' }}>{edu.degree} — {edu.fieldOfStudy}</Text>
+                  <Text style={{ fontSize: 9, color: '#64748b' }}>{edu.instituteName}</Text>
+                  <Text style={{ fontSize: 8.5, color: '#94a3b8' }}>{fmtYear(edu.startYear)} – {edu.currentlyPursuing ? 'Present' : fmtYear(edu.endYear)}</Text>
+                  {edu.resultFormat && edu.result && <Text style={{ fontSize: 8.5, color: '#475569' }}>{edu.resultFormat}: {edu.result}</Text>}
+                </View>
+              ))}
+              {education.preUniversityEnabled && education.preUniversity?.instituteName && (
+                <View style={{ marginBottom: 6 }}>
+                  <Text style={{ fontSize: 10, fontFamily: 'Helvetica-Bold', color: '#0f172a' }}>Pre University (12th)</Text>
+                  <Text style={{ fontSize: 9, color: '#64748b' }}>{education.preUniversity.instituteName} | {fmtYear(education.preUniversity.yearOfPassing)}</Text>
+                </View>
+              )}
+              {education.sslcEnabled && education.sslc?.instituteName && (
+                <View style={{ marginBottom: 6 }}>
+                  <Text style={{ fontSize: 10, fontFamily: 'Helvetica-Bold', color: '#0f172a' }}>SSLC (10th)</Text>
+                  <Text style={{ fontSize: 9, color: '#64748b' }}>{education.sslc.instituteName} | {fmtYear(education.sslc.yearOfPassing)}</Text>
+                </View>
+              )}
+            </View>
+
+            <View style={{ flex: 1 }}>
+              {skillsLinks.skills.some(s => s.enabled && s.skillName) && (
+                <>
+                  <SectionTitle title="Skills" color={primaryColor} />
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
+                    {skillsLinks.skills.filter(s => s.enabled && s.skillName).map((s, i) => (
+                      <View key={i} style={{ backgroundColor: primaryColor, paddingVertical: 2, paddingHorizontal: 8, borderRadius: 10 }}>
+                        <Text style={{ fontSize: 8, color: '#fff' }}>{s.skillName}</Text>
+                      </View>
+                    ))}
+                  </View>
+                </>
+              )}
+
+              {certifications.some(c => c.enabled && c.certificationName) && (
+                <>
+                  <SectionTitle title="Certifications" color={primaryColor} />
+                  {certifications.filter(c => c.enabled && c.certificationName).map((c, i) => (
+                    <Text key={i} style={{ fontSize: 9, color: '#475569', marginBottom: 3 }}>
+                      • {c.certificationName}{c.providedBy ? ` — ${c.providedBy}` : ''}
+                    </Text>
+                  ))}
+                </>
+              )}
+            </View>
+          </View>
+        </View>
+      </Page>
+    </Document>
+  );
+};
+
+export default AiTemplate9PDF;

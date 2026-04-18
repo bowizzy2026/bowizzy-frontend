@@ -68,6 +68,7 @@ export default function AIBuilder() {
           messages: s.messages || [],
           started: s.started ?? false,
           createdAt: s.createdAt,
+          infoJson: s.infoJson || null,
         }));
         setChatSessions(enrichedSessions);
       } catch (err) {
@@ -413,6 +414,18 @@ export default function AIBuilder() {
           });
 
           if (generateRes.ok) {
+            const generateData = await generateRes.json().catch(() => ({}));
+            const infoJsonFromApi = generateData.infoJson || generateData.info_json || null;
+
+            // Store infoJson in the session
+            if (infoJsonFromApi) {
+              setChatSessions((prev) =>
+                prev.map((s) =>
+                  s.id === sessionId ? { ...s, infoJson: infoJsonFromApi } : s
+                )
+              );
+            }
+
             const botReplyContent =
               "Great! I've gathered all your details and generated your resume content. Your resume is ready with an enhanced technical summary, project descriptions, and work experience highlights. You can now review and download it.";
 
