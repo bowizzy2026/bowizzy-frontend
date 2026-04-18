@@ -136,12 +136,12 @@ const AiTemplate9Display: React.FC<Props> = ({ data, primaryColor = '#334155' })
               </>
             )}
 
-            {certifications.some(c => c.enabled && c.certificationName) && (
+            {certifications.some(c => c.enabled && c.certificateTitle) && (
               <>
                 <SectionTitle title="Certifications" />
-                {certifications.filter(c => c.enabled && c.certificationName).map((c, i) => (
+                {certifications.filter(c => c.enabled && c.certificateTitle).map((c, i) => (
                   <p key={i} style={{ fontSize: 9, color: '#475569', margin: '0 0 3px' }}>
-                    • {c.certificationName}{c.providedBy ? ` — ${c.providedBy}` : ''}
+                    • {c.certificateTitle}{c.providedBy ? ` — ${c.providedBy}` : ''}
                   </p>
                 ))}
               </>
@@ -154,3 +154,5 @@ const AiTemplate9Display: React.FC<Props> = ({ data, primaryColor = '#334155' })
 };
 
 export default AiTemplate9Display;
+
+

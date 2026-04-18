@@ -144,12 +144,12 @@ const AiTemplate9PDF: React.FC<Props> = ({ data, primaryColor = '#334155' }) => 
                 </>
               )}
 
-              {certifications.some(c => c.enabled && c.certificationName) && (
+              {certifications.some(c => c.enabled && c.certificateTitle) && (
                 <>
                   <SectionTitle title="Certifications" color={primaryColor} />
-                  {certifications.filter(c => c.enabled && c.certificationName).map((c, i) => (
+                  {certifications.filter(c => c.enabled && c.certificateTitle).map((c, i) => (
                     <Text key={i} style={{ fontSize: 9, color: '#475569', marginBottom: 3 }}>
-                      • {c.certificationName}{c.providedBy ? ` — ${c.providedBy}` : ''}
+                      • {c.certificateTitle}{c.providedBy ? ` — ${c.providedBy}` : ''}
                     </Text>
                   ))}
                 </>
@@ -163,3 +163,5 @@ const AiTemplate9PDF: React.FC<Props> = ({ data, primaryColor = '#334155' }) => 
 };
 
 export default AiTemplate9PDF;
+
+
