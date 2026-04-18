@@ -3,7 +3,7 @@ import type { ChatSession, ChatMessage } from "@/pages/(AIResumeBuilder)/types";
 import api from "@/api";
 
 export async function getAiSessions(token: string): Promise<Pick<ChatSession, "id" | "title" | "mode" | "started" | "createdAt" | "messages">[]> {
-    const res = await api.get("/sessions", {
+    const res = await api.get("/user/sessions", {
         headers: { Authorization: `Bearer ${token}` },
     });
     // Map API response to required fields
