@@ -689,7 +689,7 @@ export const CertificationsForm: React.FC<CertificationsFormProps> = ({
               data.length > 1 ? () => removeCertificate(cert.id) : undefined
             }
             showActions={true}
-            isCollapsed={collapsedStates[cert.id] || false}
+            isCollapsed={collapsedStates[cert.id] !== undefined ? collapsedStates[cert.id] : true}
             onCollapseToggle={() => toggleCollapse(cert.id)}
           >
             <FormInput

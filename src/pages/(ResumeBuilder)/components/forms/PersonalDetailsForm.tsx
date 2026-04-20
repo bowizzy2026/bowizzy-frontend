@@ -1083,14 +1083,14 @@ const handleDismissEnhanced = () => {
                 label="Country"
                 placeholder={loadingCountries ? "Loading..." : "Select Country"}
                 value={data.country}
-                onChange={(v) => { updateField("country", v); updateField("state", ""); updateField("city", ""); }}
+                onChange={(v) => onChange({ ...data, country: v, state: "", city: "" })}
                 options={countryOptions}
               />
               <FormSelect
                 label="State"
                 placeholder={loadingStates ? "Loading..." : "Select State"}
                 value={data.state}
-                onChange={(v) => { updateField("state", v); updateField("city", ""); }}
+                onChange={(v) => onChange({ ...data, state: v, city: "" })}
                 options={stateOptions}
               />
             </div>
@@ -1100,7 +1100,7 @@ const handleDismissEnhanced = () => {
                 label="City"
                 placeholder={loadingCities ? "Loading..." : "Select City"}
                 value={data.city}
-                onChange={(v) => updateField("city", v)}
+                onChange={(v) => onChange({ ...data, city: v })}
                 options={cityOptions}
               />
               <FormInput

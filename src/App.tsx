@@ -143,7 +143,7 @@ function LayoutWrapper({ children }: { children: React.ReactNode }) {
 
   return (
     <SidebarProvider>
-      <Sidebar className="overflow-y-auto">
+      <Sidebar className="overflow-y-auto z-50">
         <SidebarHeader>
           <div className="flex items-center justify-center p-6">
             <img src={Bowizzy} alt="Bowizzard Logo" />
