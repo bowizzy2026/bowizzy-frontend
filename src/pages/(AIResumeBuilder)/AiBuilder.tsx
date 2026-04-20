@@ -3,6 +3,7 @@ import { Menu } from "lucide-react";
 import DashNav from "@/components/dashnav/dashnav";
 import ChatList from "./Chatlist";
 import ChatBox from "./Chatbox";
+import type { DataChip } from "./DataChips";
 
 import type { ChatSession, ChatMessage } from "./types";
 import {
@@ -14,7 +15,8 @@ import {
   createChat,
 } from "@/services/aiResumeService";
 
-// Helper to get next session number
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
 function getNextSessionNumber(sessions: ChatSession[]): number {
   const nums = sessions
     .map((s) => {
@@ -25,7 +27,17 @@ function getNextSessionNumber(sessions: ChatSession[]): number {
   return nums.length > 0 ? Math.max(...nums) + 1 : 1;
 }
 
-// ── Hardcoded question queue ──────────────────────────────────────────────────
+function formatDate(dateStr?: string | null): string {
+  if (!dateStr) return "";
+  try {
+    return new Date(dateStr).toLocaleDateString("en-US", { month: "short", year: "numeric" });
+  } catch {
+    return dateStr;
+  }
+}
+
+// ── Question queue ────────────────────────────────────────────────────────────
+
 const HARDCODED_QUESTIONS = [
   "Can you give me a brief about yourself?",
   "Can you tell me about the projects you have worked on?",
@@ -33,15 +45,32 @@ const HARDCODED_QUESTIONS = [
   "Can you give me your education details and certifications you have achieved, and from which source?",
 ];
 
+const CHIP_QUESTION_INDICES = new Set([1, 2, 3]);
+
+// ── Types ─────────────────────────────────────────────────────────────────────
+
+interface SessionAnswers {
+  about_yourself?: string;
+  additional_projects?: string;
+  additional_experience?: string;
+  additional_education?: string;
+  retained_project_ids?: number[];
+  retained_experience_ids?: number[];
+  retained_education_ids?: number[];
+}
+
+interface ChipState {
+  chips: DataChip[];
+  messageId: string;
+}
+
+// ── Component ─────────────────────────────────────────────────────────────────
+
 export default function AIBuilder() {
-  // Get token from localStorage
   let token = "";
   try {
-    const userStr = localStorage.getItem("user");
-    if (userStr) {
-      const user = JSON.parse(userStr);
-      token = user.token || "";
-    }
+    const u = JSON.parse(localStorage.getItem("user") || "null");
+    token = u?.token || "";
   } catch {}
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -50,27 +79,26 @@ export default function AIBuilder() {
   const [isLoading, setIsLoading] = useState(false);
   const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
-
-  // Tracks which hardcoded question to ask next (per session)
   const [questionIndex, setQuestionIndex] = useState<Record<string, number>>({});
+  const [chatAnswers, setChatAnswers] = useState<Record<string, SessionAnswers>>({});
+  const [chipStates, setChipStates] = useState<Record<string, ChipState>>({});
 
-  // Accumulates the user's 4 chat answers keyed by session (about_yourself, additional_projects, additional_experience, additional_education)
-  const [chatAnswers, setChatAnswers] = useState<Record<string, Record<string, string>>>({});
+  // ── Fetch sessions ────────────────────────────────────────────────────────
 
-  // Fetch sessions on mount
   React.useEffect(() => {
     async function fetchSessions() {
       try {
         const sessions = await getAiSessions(token);
-        const enrichedSessions = sessions.map((s) => ({
-          ...s,
-          id: String(s.id),
-          messages: s.messages || [],
-          started: s.started ?? false,
-          createdAt: s.createdAt,
-          infoJson: s.infoJson || null,
-        }));
-        setChatSessions(enrichedSessions);
+        setChatSessions(
+          sessions.map((s) => ({
+            ...s,
+            id: String(s.id),
+            messages: s.messages || [],
+            started: s.started ?? false,
+            createdAt: s.createdAt,
+            infoJson: s.infoJson || null,
+          }))
+        );
       } catch (err) {
         console.error("Failed to fetch sessions", err);
       }
@@ -78,7 +106,6 @@ export default function AIBuilder() {
     fetchSessions();
   }, [token]);
 
-  // Auto-select first session
   React.useEffect(() => {
     if (chatSessions.length > 0 && !currentSessionId) {
       setCurrentSessionId(chatSessions[0].id);
@@ -86,66 +113,155 @@ export default function AIBuilder() {
   }, [chatSessions, currentSessionId]);
 
   const currentSession = chatSessions.find((s) => s.id === currentSessionId);
+  const activeChipState = currentSessionId ? chipStates[currentSessionId] : undefined;
 
-  // ── Helpers ───────────────────────────────────────────────────────────────
+  // ── Fetch /resume-data and build chips ───────────────────────────────────
 
-  /** Appends a bot message to the session and optionally saves it via API */
+  const fetchAndBuildChips = async (
+    sessionId: string,
+    category: "projects" | "experience" | "education",
+    botMessageId: string
+  ) => {
+    const u = JSON.parse(localStorage.getItem("user") || "null");
+    const authToken = u?.token;
+    const base = (import.meta.env.VITE_API_BASE_URL as string) || "http://localhost:5000";
+
+    try {
+      const res = await fetch(`${base}/resume-data`, {
+        headers: { Authorization: `Bearer ${authToken}` },
+      });
+      if (!res.ok) return;
+      const json = await res.json();
+      const data = json.data || json;
+
+      let chips: DataChip[] = [];
+
+      if (category === "projects" && Array.isArray(data.projects)) {
+        chips = data.projects.map((p: {
+          project_id: number; project_title: string; project_type?: string;
+          start_date?: string; end_date?: string; currently_working?: boolean;
+        }) => ({
+          id: `proj-${p.project_id}`,
+          label: p.project_title,
+          sublabel: [
+            p.project_type,
+            formatDate(p.start_date),
+            p.currently_working ? "→ Present" : p.end_date ? `→ ${formatDate(p.end_date)}` : "",
+          ].filter(Boolean).join(" · "),
+          deleted: false,
+        }));
+      }
+
+      if (category === "experience" && data.work_experience?.experiences) {
+        chips = data.work_experience.experiences.map((e: {
+          experience_id: number; company_name: string; job_title: string;
+          start_date?: string; end_date?: string; currently_working_here?: boolean;
+        }) => ({
+          id: `exp-${e.experience_id}`,
+          label: `${e.job_title} @ ${e.company_name}`,
+          sublabel: [
+            formatDate(e.start_date),
+            e.currently_working_here ? "→ Present" : formatDate(e.end_date),
+          ].filter(Boolean).join(" "),
+          deleted: false,
+        }));
+      }
+
+      if (category === "education" && Array.isArray(data.education)) {
+        chips = data.education.map((e: {
+          education_id: number; education_type: string; institution_name: string;
+          degree?: string; field_of_study?: string; end_year?: string;
+        }) => ({
+          id: `edu-${e.education_id}`,
+          label: e.degree
+            ? `${e.degree}${e.field_of_study ? ` in ${e.field_of_study}` : ""}`
+            : e.education_type.toUpperCase(),
+          sublabel: [e.institution_name, formatDate(e.end_year)].filter(Boolean).join(" · "),
+          deleted: false,
+        }));
+      }
+
+      setChipStates((prev) => ({
+        ...prev,
+        [sessionId]: { chips, messageId: botMessageId },
+      }));
+    } catch (err) {
+      console.error("Failed to fetch resume-data for chips", err);
+    }
+  };
+
+  // ── Chip handlers ─────────────────────────────────────────────────────────
+
+  const handleChipDelete = (id: string) => {
+    if (!currentSessionId) return;
+    setChipStates((prev) => {
+      const s = prev[currentSessionId];
+      if (!s) return prev;
+      return {
+        ...prev,
+        [currentSessionId]: {
+          ...s,
+          chips: s.chips.map((c) => (c.id === id ? { ...c, deleted: true } : c)),
+        },
+      };
+    });
+  };
+
+  const handleChipUndo = (id: string) => {
+    if (!currentSessionId) return;
+    setChipStates((prev) => {
+      const s = prev[currentSessionId];
+      if (!s) return prev;
+      return {
+        ...prev,
+        [currentSessionId]: {
+          ...s,
+          chips: s.chips.map((c) => (c.id === id ? { ...c, deleted: false } : c)),
+        },
+      };
+    });
+  };
+
+  // ── Append bot message, returns its id ───────────────────────────────────
+
   const appendBotMessage = async (
     sessionId: string,
     content: string,
     saveToApi = true
-  ) => {
+  ): Promise<string> => {
+    const msgId = `msg-${Date.now()}-bot`;
     const botMsg: ChatMessage = {
-      id: `msg-${Date.now()}-bot`,
+      id: msgId,
       role: "assistant",
       content,
       createdAt: new Date().toISOString(),
     };
-
     setChatSessions((prev) =>
       prev.map((s) =>
         s.id === sessionId
-          ? {
-              ...s,
-              messages: [
-                ...(Array.isArray(s.messages) ? s.messages : []),
-                botMsg,
-              ],
-            }
+          ? { ...s, messages: [...(Array.isArray(s.messages) ? s.messages : []), botMsg] }
           : s
       )
     );
-
     if (saveToApi) {
-      try {
-        await createChat(sessionId, content, "assistant", null, token);
-      } catch (err) {
-        console.error("Failed to save bot message", err);
-      }
+      try { await createChat(sessionId, content, "assistant", null, token); } catch {}
     }
+    return msgId;
   };
 
-  // ── Handlers ──────────────────────────────────────────────────────────────
+  // ── Session handlers ──────────────────────────────────────────────────────
 
   const handleNewChat = async () => {
     try {
-      const nextNum = getNextSessionNumber(chatSessions);
-      const sessionName = `Session ${nextNum}`;
-      const session = await createAiSession(mode, sessionName, token);
-      const enrichedSession: ChatSession = {
-        id: String(session.id),
-        title: session.title,
-        mode: session.mode,
-        messages: [],
-        started: false,
-        createdAt: session.createdAt || new Date().toISOString(),
+      const session = await createAiSession(mode, `Session ${getNextSessionNumber(chatSessions)}`, token);
+      const enriched: ChatSession = {
+        id: String(session.id), title: session.title, mode: session.mode,
+        messages: [], started: false, createdAt: session.createdAt || new Date().toISOString(),
       };
-      setChatSessions((prev) => [enrichedSession, ...prev]);
-      setCurrentSessionId(enrichedSession.id);
+      setChatSessions((prev) => [enriched, ...prev]);
+      setCurrentSessionId(enriched.id);
       setSidebarOpen(false);
-    } catch (err) {
-      console.error("Failed to create session", err);
-    }
+    } catch (err) { console.error("Failed to create session", err); }
   };
 
   const handleSelectSession = async (id: string) => {
@@ -153,121 +269,98 @@ export default function AIBuilder() {
     const session = chatSessions.find((s) => s.id === id);
     if (session) setMode(session.mode);
     setSidebarOpen(false);
-
-    // Fetch chats for this session
     try {
       const chats = await getSessionChats(id, token);
       setChatSessions((prev) =>
-        prev.map((s) =>
-          s.id === id
-            ? {
-                ...s,
-                messages: chats,
-                started: chats && chats.length > 0 ? true : false,
-              }
-            : s
-        )
+        prev.map((s) => s.id === id ? { ...s, messages: chats, started: chats?.length > 0 } : s)
       );
-    } catch (err) {
-      console.error("Failed to fetch session chats", err);
-    }
+    } catch (err) { console.error("Failed to fetch session chats", err); }
   };
 
-  const handleDeleteSession = async (
-    sessionId: string,
-    e: React.MouseEvent
-  ) => {
+  const handleDeleteSession = async (sessionId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     try {
       await deleteAiSession(sessionId, token);
       setChatSessions((prev) => {
         const filtered = prev.filter((s) => s.id !== sessionId);
-        if (currentSessionId === sessionId && filtered.length > 0) {
-          setCurrentSessionId(filtered[0].id);
-        }
+        if (currentSessionId === sessionId && filtered.length > 0) setCurrentSessionId(filtered[0].id);
         return filtered;
       });
-    } catch (err) {
-      console.error("Failed to delete session", err);
-    }
+    } catch (err) { console.error("Failed to delete session", err); }
   };
 
   const handleModeChange = (newMode: "jd" | "non-jd") => {
     setMode(newMode);
     setChatSessions((prev) =>
-      prev.map((s) =>
-        s.id === currentSessionId ? { ...s, mode: newMode } : s
-      )
+      prev.map((s) => s.id === currentSessionId ? { ...s, mode: newMode } : s)
     );
   };
 
-  // Called when user presses Start on the pre-start screen
+  // ── Start ─────────────────────────────────────────────────────────────────
+
   const handleStart = async () => {
     if (!currentSessionId) return;
-
     try {
       await startAiSession(currentSessionId, token);
-
-      // 1. Auto-send the opening user message
       const openingMsg: ChatMessage = {
         id: `msg-${Date.now()}`,
         role: "user",
         content: "Hi, I need help to build my resume.",
         createdAt: new Date().toISOString(),
       };
-
       setChatSessions((prev) =>
         prev.map((s) =>
           s.id === currentSessionId
             ? {
                 ...s,
                 started: true,
-                messages: [
-                  ...(Array.isArray(s.messages) ? s.messages : []),
-                  openingMsg,
-                ],
+                messages: [...(Array.isArray(s.messages) ? s.messages : []), openingMsg],
                 title: "Hi, I need help to build my resume.",
               }
             : s
         )
       );
-
-      await createChat(
-        currentSessionId,
-        openingMsg.content,
-        "user",
-        null,
-        token
-      );
-
-      // 2. Fire first hardcoded question
+      await createChat(currentSessionId, openingMsg.content, "user", null, token);
       setQuestionIndex((prev) => ({ ...prev, [currentSessionId]: 0 }));
       await appendBotMessage(currentSessionId, HARDCODED_QUESTIONS[0]);
-    } catch (err) {
-      console.error("Failed to start session", err);
-    }
+    } catch (err) { console.error("Failed to start session", err); }
   };
+
+  // ── Send ──────────────────────────────────────────────────────────────────
 
   const handleSend = async () => {
     if (!inputValue.trim() || !currentSession || isLoading) return;
 
+    const sessionId     = currentSessionId!;
+    const currentQIndex = questionIndex[sessionId] ?? 0;
+    const nextQIndex    = currentQIndex + 1;
+
+    // Snapshot chip state BEFORE clearing — used both for mid-flow and final-step retained IDs
+    const snapshotChips = chipStates[sessionId]?.chips ?? [];
+
+    // Helper: extract numeric IDs from a chip snapshot
+    const extractRetainedIds = (chips: DataChip[]): number[] =>
+      chips
+        .filter((c) => !c.deleted)
+        .map((c) => {
+          const num = parseInt(c.id.split("-")[1], 10);
+          return isNaN(num) ? null : num;
+        })
+        .filter((n): n is number => n !== null);
+
+    // User bubble — typed text only, no chip metadata
     const userMsg: ChatMessage = {
       id: `msg-${Date.now()}`,
       role: "user",
-      content: inputValue,
+      content: inputValue.trim(),
       createdAt: new Date().toISOString(),
     };
-
-    // Optimistically append user message
     setChatSessions((prev) =>
       prev.map((s) =>
-        s.id === currentSessionId
+        s.id === sessionId
           ? {
               ...s,
-              messages: [
-                ...(Array.isArray(s.messages) ? s.messages : []),
-                userMsg,
-              ],
+              messages: [...(Array.isArray(s.messages) ? s.messages : []), userMsg],
               title:
                 (Array.isArray(s.messages) ? s.messages.length : 0) === 0
                   ? inputValue.slice(0, 35)
@@ -279,21 +372,15 @@ export default function AIBuilder() {
     setInputValue("");
     setIsLoading(true);
 
+    // Clear chips once user has responded to this step
+    setChipStates((prev) => { const n = { ...prev }; delete n[sessionId]; return n; });
+
     try {
-      await createChat(currentSessionId!, inputValue, "user", null, token);
+      // Save only the clean typed text to the chat API
+      await createChat(sessionId, inputValue.trim(), "user", null, token);
 
-      // ── Hardcoded question queue logic ────────────────────────────────────
-      const sessionId = currentSessionId!;
-      const currentQIndex = questionIndex[sessionId] ?? 0;
-      const nextQIndex = currentQIndex + 1;
-
-      // ── Auth from localStorage ─────────────────────────────────────────
-      const userData = JSON.parse(localStorage.getItem("user") || "null");
-      const userId = userData?.user_id;
-      const authToken = userData?.token;
-
-      // ── Store the user's answer mapped to the question they just answered ──
-      const answerKeyMap: Record<number, string> = {
+      // Store the typed answer for this question
+      const answerKeyMap: Record<number, keyof SessionAnswers> = {
         0: "about_yourself",
         1: "additional_projects",
         2: "additional_experience",
@@ -310,142 +397,104 @@ export default function AIBuilder() {
         }));
       }
 
-      await new Promise((r) => setTimeout(r, 600)); // brief natural delay
+      // For chip questions (Q1, Q2), store retained IDs from the snapshot into state
+      // Q3 (education) is the last step — we handle it directly below using the snapshot
+      if (currentQIndex === 1 || currentQIndex === 2) {
+        const retainedIds = extractRetainedIds(snapshotChips);
+        const retainedKeyMap: Record<number, keyof SessionAnswers> = {
+          1: "retained_project_ids",
+          2: "retained_experience_ids",
+        };
+        const retainedKey = retainedKeyMap[currentQIndex];
+        if (retainedKey) {
+          setChatAnswers((prev) => ({
+            ...prev,
+            [sessionId]: {
+              ...(prev[sessionId] || {}),
+              [retainedKey]: retainedIds,
+            },
+          }));
+        }
+      }
+
+      await new Promise((r) => setTimeout(r, 600));
+
+      const u = JSON.parse(localStorage.getItem("user") || "null");
+      const authToken = u?.token;
 
       if (nextQIndex < HARDCODED_QUESTIONS.length) {
-        // ── Q index 1: projects question — fetch & enrich ──────────────────
-        if (nextQIndex === 1) {
-          let botContent = HARDCODED_QUESTIONS[1];
-          try {
-            if (userId && authToken) {
-              const res = await fetch(
-                `${(import.meta.env.VITE_API_BASE_URL as string) || 'http://localhost:5000'}/users/${userId}/projects`,
-                { headers: { Authorization: `Bearer ${authToken}` } }
-              );
-              if (res.ok) {
-                const projects: Array<{ project_title: string }> = await res.json();
-                if (Array.isArray(projects) && projects.length > 0) {
-                  const titles = projects.map((p) => p.project_title).join(", ");
-                  botContent = `Are these the projects you have worked on — ${titles}? If you want to add more, please mention them in a detailed format.`;
-                }
-              }
-            }
-          } catch (err) {
-            console.error("Failed to fetch projects", err);
-          }
-          setQuestionIndex((prev) => ({ ...prev, [sessionId]: nextQIndex }));
-          await appendBotMessage(sessionId, botContent);
+        // Not done yet — post next bot question and fetch chips if needed
+        const botMsgId = await appendBotMessage(sessionId, HARDCODED_QUESTIONS[nextQIndex]);
+        setQuestionIndex((prev) => ({ ...prev, [sessionId]: nextQIndex }));
 
-        // ── Q index 2: work experience question — fetch & enrich ───────────
-        } else if (nextQIndex === 2) {
-          let botContent = HARDCODED_QUESTIONS[2];
-          try {
-            if (userId && authToken) {
-              const res = await fetch(
-                `${(import.meta.env.VITE_API_BASE_URL as string) || 'http://localhost:5000'}/users/${userId}/work-experience`,
-                { headers: { Authorization: `Bearer ${authToken}` } }
-              );
-              if (res.ok) {
-                const data: { experiences?: Array<{ job_title: string; company_name: string }> } = await res.json();
-                if (data.experiences && Array.isArray(data.experiences) && data.experiences.length > 0) {
-                  const list = data.experiences
-                    .map((e) => `${e.job_title} at ${e.company_name}`)
-                    .join(", ");
-                  botContent = `Here's the work experience we have on file for you — ${list}. Does this look correct, or would you like to update or add anything?`;
-                }
-              }
-            }
-          } catch (err) {
-            console.error("Failed to fetch work experience", err);
-          }
-          setQuestionIndex((prev) => ({ ...prev, [sessionId]: nextQIndex }));
-          await appendBotMessage(sessionId, botContent);
-
-        // ── Q index 3: education question — fetch & enrich ─────────────────
-        } else if (nextQIndex === 3) {
-          let botContent = HARDCODED_QUESTIONS[3];
-          try {
-            if (userId && authToken) {
-              const res = await fetch(
-                `${(import.meta.env.VITE_API_BASE_URL as string) || 'http://localhost:5000'}/users/${userId}/education`,
-                { headers: { Authorization: `Bearer ${authToken}` } }
-              );
-              if (res.ok) {
-                const educations: Array<{ education_type: string; institution_name: string }> = await res.json();
-                if (Array.isArray(educations) && educations.length > 0) {
-                  const list = educations
-                    .map((e) => `${e.education_type} at ${e.institution_name}`)
-                    .join(", ");
-                  botContent = `Here's the education we have on file for you — ${list}. Does this look correct, or would you like to update or add certifications and other details?`;
-                }
-              }
-            }
-          } catch (err) {
-            console.error("Failed to fetch education", err);
-          }
-          setQuestionIndex((prev) => ({ ...prev, [sessionId]: nextQIndex }));
-          await appendBotMessage(sessionId, botContent);
-
-        // ── All other questions — plain hardcoded ──────────────────────────
-        } else {
-          setQuestionIndex((prev) => ({ ...prev, [sessionId]: nextQIndex }));
-          await appendBotMessage(sessionId, HARDCODED_QUESTIONS[nextQIndex]);
-        }
+        if (nextQIndex === 1) await fetchAndBuildChips(sessionId, "projects", botMsgId);
+        else if (nextQIndex === 2) await fetchAndBuildChips(sessionId, "experience", botMsgId);
+        else if (nextQIndex === 3) await fetchAndBuildChips(sessionId, "education", botMsgId);
 
       } else {
-        // All 4 questions answered — call generate-resume API
-        try {
-          const finalAnswers = {
-            ...(chatAnswers[sessionId] || {}),
-            // also capture the last answer (education) which was just typed
-            additional_education: inputValue.trim() || (chatAnswers[sessionId]?.additional_education ?? ""),
-          };
+        // ── All 4 answers collected — build the generate-resume payload ────────
 
-          const generateRes = await fetch(`${(import.meta.env.VITE_API_BASE_URL as string) || 'http://localhost:5000'}/generate-resume`, {
+        // retained_education_ids comes from the current step's snapshot directly
+        // because setChatAnswers for this step hasn't flushed yet (setState is async)
+        const currentStepRetainedIds = extractRetainedIds(snapshotChips);
+
+        const accumulated: SessionAnswers = {
+          ...(chatAnswers[sessionId] || {}),
+          // additional_education: inputValue.trim() directly (same async-state reason)
+          additional_education: inputValue.trim() || chatAnswers[sessionId]?.additional_education || "",
+          // retained_education_ids: from snapshot, not from state
+          retained_education_ids: currentStepRetainedIds,
+        };
+
+        // Clean text-only chat_answers — no chip labels, no ID metadata
+        const cleanChatAnswers = {
+          about_yourself:        accumulated.about_yourself        ?? "",
+          additional_projects:   accumulated.additional_projects   ?? "",
+          additional_experience: accumulated.additional_experience ?? "",
+          additional_education:  accumulated.additional_education  ?? "",
+        };
+
+        // Retained ID arrays — properly typed, no casting needed
+        const retained_project_ids    = accumulated.retained_project_ids;
+        const retained_experience_ids = accumulated.retained_experience_ids;
+        const retained_education_ids  = accumulated.retained_education_ids;
+
+        const generateRes = await fetch(
+          `${(import.meta.env.VITE_API_BASE_URL as string) || "http://localhost:5000"}/generate-resume`,
+          {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${authToken}`,
-            },
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${authToken}` },
             body: JSON.stringify({
               session_id: sessionId,
-              chat_answers: finalAnswers,
+              chat_answers: cleanChatAnswers,
+              // Only include if the user actually saw chips for that category
+              ...(retained_project_ids    !== undefined && { retained_project_ids }),
+              ...(retained_experience_ids !== undefined && { retained_experience_ids }),
+              ...(retained_education_ids  !== undefined && { retained_education_ids }),
             }),
-          });
-
-          if (generateRes.ok) {
-            const generateData = await generateRes.json().catch(() => ({}));
-            const infoJsonFromApi = generateData.infoJson || generateData.info_json || null;
-
-            // Store infoJson in the session
-            if (infoJsonFromApi) {
-              setChatSessions((prev) =>
-                prev.map((s) =>
-                  s.id === sessionId ? { ...s, infoJson: infoJsonFromApi } : s
-                )
-              );
-            }
-
-            const botReplyContent =
-              "Great! I've gathered all your details and generated your resume content. Your resume is ready with an enhanced technical summary, project descriptions, and work experience highlights. You can now review and download it.";
-
-            await appendBotMessage(sessionId, botReplyContent);
-          } else {
-            const errData = await generateRes.json().catch(() => ({}));
-            const errorMsg =
-              "I encountered an issue while generating your resume. Please try again or contact support.";
-            await appendBotMessage(sessionId, errorMsg);
-            console.error("generate-resume API error:", errData);
           }
-        } catch (err) {
-          console.error("Failed to call generate-resume:", err);
+        );
+
+        if (generateRes.ok) {
+          const generateData = await generateRes.json().catch(() => ({}));
+          const infoJsonFromApi =
+            generateData.data || generateData.infoJson || generateData.info_json || null;
+          if (infoJsonFromApi) {
+            setChatSessions((prev) =>
+              prev.map((s) => s.id === sessionId ? { ...s, infoJson: infoJsonFromApi } : s)
+            );
+          }
           await appendBotMessage(
             sessionId,
-            "Something went wrong while generating your resume. Please try again."
+            "Great! I've gathered all your details and generated your resume content. Your resume is ready with an enhanced technical summary, project descriptions, and work experience highlights. You can now review and download it."
+          );
+        } else {
+          await appendBotMessage(
+            sessionId,
+            "I encountered an issue while generating your resume. Please try again or contact support."
           );
         }
       }
-      // ─────────────────────────────────────────────────────────────────────
     } catch (err) {
       console.error("Send message failed:", err);
     } finally {
@@ -454,7 +503,6 @@ export default function AIBuilder() {
   };
 
   const handleFileUpload = async (file: File) => {
-    // TODO: await apiUploadFile(currentSessionId, file)
     setInputValue(`[Uploaded: ${file.name}] `);
   };
 
@@ -476,7 +524,6 @@ export default function AIBuilder() {
         />
 
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-          {/* Mobile topbar */}
           <div className="flex items-center gap-3 px-4 py-3 bg-white border-b border-gray-200 md:hidden">
             <button
               onClick={() => setSidebarOpen(true)}
@@ -500,6 +547,10 @@ export default function AIBuilder() {
               onSend={handleSend}
               onFileUpload={handleFileUpload}
               onStart={handleStart}
+              activeChips={activeChipState?.chips}
+              onChipDelete={handleChipDelete}
+              onChipUndo={handleChipUndo}
+              chipMessageId={activeChipState?.messageId ?? null}
             />
           ) : (
             <div className="flex-1 flex items-center justify-center text-gray-400 text-sm">

@@ -4,6 +4,7 @@ import { pdf } from '@react-pdf/renderer';
 import type { ChatSession } from "./types";
 import { aiTemplateRegistry } from './templates/aiTemplateRegistry';
 import { mapInfoJsonToResumeData } from './mapInfoJsonToResumeData';
+import DataChips, { type DataChip } from "./DataChips";
 
 interface ChatBoxProps {
   session: ChatSession | undefined;
@@ -15,6 +16,12 @@ interface ChatBoxProps {
   onSend: () => void;
   onFileUpload: (file: File) => void;
   onStart: () => void;
+  // Chip props — only present when a chip-question is active
+  activeChips?: DataChip[];
+  onChipDelete?: (id: string) => void;
+  onChipUndo?: (id: string) => void;
+  // ID of the message that should render chips below it
+  chipMessageId?: string | null;
 }
 
 export default function ChatBox({
@@ -27,13 +34,17 @@ export default function ChatBox({
   onSend,
   onFileUpload,
   onStart,
+  activeChips,
+  onChipDelete,
+  onChipUndo,
+  chipMessageId,
 }: ChatBoxProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [session?.messages]);
+  }, [session?.messages, activeChips]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -92,6 +103,20 @@ export default function ChatBox({
                   }`}
                 >
                   {msg.content}
+
+                  {/* ── Chips rendered inline inside this bot bubble ── */}
+                  {msg.role === "assistant" &&
+                    chipMessageId === msg.id &&
+                    activeChips &&
+                    activeChips.length > 0 &&
+                    onChipDelete &&
+                    onChipUndo && (
+                      <DataChips
+                        chips={activeChips}
+                        onDelete={onChipDelete}
+                        onUndo={onChipUndo}
+                      />
+                    )}
                 </div>
               </div>
             ))}
@@ -126,7 +151,7 @@ export default function ChatBox({
         )}
       </div>
 
-      {/* Hidden file input — always mounted so ref works on pre-start screen */}
+      {/* Hidden file input */}
       <input
         type="file"
         ref={fileInputRef}
@@ -250,7 +275,6 @@ function InlineResumePreview({ infoJson }: { infoJson: any }) {
 
   const resumeData = useMemo(() => mapInfoJsonToResumeData(infoJson), [infoJson]);
 
-  // Auto-scroll into view when the preview first appears
   useEffect(() => {
     setTimeout(() => {
       previewRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -264,7 +288,6 @@ function InlineResumePreview({ infoJson }: { infoJson: any }) {
     setDownloading(true);
     const tmpl = aiTemplateRegistry[index];
     try {
-      // Eagerly resolve the lazy-loaded PDF component via raw dynamic import
       const PdfModule = await tmpl.importPdf();
       const PdfComp = PdfModule.default;
       const blob = await pdf(
@@ -292,7 +315,6 @@ function InlineResumePreview({ infoJson }: { infoJson: any }) {
           Choose a template to preview and download:
         </p>
 
-        {/* 3-column card grid */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
           {aiTemplateRegistry.map((tmpl, i) => {
             const CardDisplay = tmpl.displayComponent;
@@ -328,7 +350,6 @@ function InlineResumePreview({ infoJson }: { infoJson: any }) {
         </div>
       </div>
 
-      {/* Modal popup for full preview */}
       {selectedIndex !== null && selectedTemplate && SelectedDisplay && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
@@ -338,7 +359,6 @@ function InlineResumePreview({ infoJson }: { infoJson: any }) {
             className="relative bg-white rounded-2xl shadow-2xl max-w-5xl w-full mx-4 max-h-[90vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Header */}
             <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100 shrink-0">
               <span className="text-sm font-semibold text-gray-800">
                 {selectedTemplate.name} Template
@@ -361,7 +381,6 @@ function InlineResumePreview({ infoJson }: { infoJson: any }) {
               </div>
             </div>
 
-            {/* Preview body */}
             <div className="flex-1 overflow-y-auto bg-gray-50 flex justify-center p-4">
               <div
                 style={{
@@ -371,16 +390,16 @@ function InlineResumePreview({ infoJson }: { infoJson: any }) {
                   minHeight: '297mm',
                 }}
               >
-                  <Suspense
-                    fallback={
-                      <div className="flex items-center justify-center h-64 text-gray-400 text-sm">
-                        Loading template...
-                      </div>
-                    }
-                  >
+                <Suspense
+                  fallback={
+                    <div className="flex items-center justify-center h-64 text-gray-400 text-sm">
+                      Loading template...
+                    </div>
+                  }
+                >
                   <SelectedDisplay data={resumeData} primaryColor={selectedTemplate.primaryColor} />
-                  </Suspense>
-                </div>
+                </Suspense>
+              </div>
             </div>
           </div>
         </div>
