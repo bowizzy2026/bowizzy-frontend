@@ -43,9 +43,10 @@ const HARDCODED_QUESTIONS = [
   "Can you tell me about the projects you have worked on?",
   "Can you tell me about your work experience?",
   "Can you give me your education details and certifications you have achieved, and from which source?",
+  "Are these your skills? Feel free to remove any that don't apply or mention additional skills you'd like to add.",
+  "Are these your links? Remove any you don't want included or mention any additional links.",
+  "Are these your certificates? Remove any you don't want included or mention any additional certificates.",
 ];
-
-const CHIP_QUESTION_INDICES = new Set([1, 2, 3]);
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -54,9 +55,15 @@ interface SessionAnswers {
   additional_projects?: string;
   additional_experience?: string;
   additional_education?: string;
+  additional_skills?: string;
+  additional_links?: string;
+  additional_certificates?: string;
   retained_project_ids?: number[];
   retained_experience_ids?: number[];
   retained_education_ids?: number[];
+  retained_skill_ids?: number[];
+  retained_link_ids?: number[];
+  retained_certificate_ids?: number[];
 }
 
 interface ChipState {
@@ -119,7 +126,7 @@ export default function AIBuilder() {
 
   const fetchAndBuildChips = async (
     sessionId: string,
-    category: "projects" | "experience" | "education",
+    category: "projects" | "experience" | "education" | "skills" | "links" | "certificates",
     botMessageId: string
   ) => {
     const u = JSON.parse(localStorage.getItem("user") || "null");
@@ -177,6 +184,41 @@ export default function AIBuilder() {
             ? `${e.degree}${e.field_of_study ? ` in ${e.field_of_study}` : ""}`
             : e.education_type.toUpperCase(),
           sublabel: [e.institution_name, formatDate(e.end_year)].filter(Boolean).join(" · "),
+          deleted: false,
+        }));
+      }
+
+      if (category === "skills" && Array.isArray(data.skills)) {
+        chips = data.skills.map((s: {
+          skill_id: number; skill_name: string; skill_level?: string;
+        }) => ({
+          id: `skill-${s.skill_id}`,
+          label: s.skill_name,
+          sublabel: s.skill_level ?? "",
+          deleted: false,
+        }));
+      }
+
+      if (category === "links" && Array.isArray(data.links)) {
+        chips = data.links.map((l: {
+          link_id: number; link_type: string; url: string;
+        }) => ({
+          id: `link-${l.link_id}`,
+          label: l.link_type,
+          sublabel: l.url,
+          deleted: false,
+        }));
+      }
+
+      if (category === "certificates" && Array.isArray(data.certificates)) {
+        chips = data.certificates.map((c: {
+          certificate_id: number; certificate_title: string; certificate_type?: string;
+          certificate_provided_by?: string; date?: string;
+        }) => ({
+          id: `cert-${c.certificate_id}`,
+          label: c.certificate_title,
+          sublabel: [c.certificate_type, c.certificate_provided_by, formatDate(c.date)]
+            .filter(Boolean).join(" · "),
           deleted: false,
         }));
       }
@@ -335,10 +377,9 @@ export default function AIBuilder() {
     const currentQIndex = questionIndex[sessionId] ?? 0;
     const nextQIndex    = currentQIndex + 1;
 
-    // Snapshot chip state BEFORE clearing — used both for mid-flow and final-step retained IDs
+    // Snapshot chip state BEFORE clearing
     const snapshotChips = chipStates[sessionId]?.chips ?? [];
 
-    // Helper: extract numeric IDs from a chip snapshot
     const extractRetainedIds = (chips: DataChip[]): number[] =>
       chips
         .filter((c) => !c.deleted)
@@ -348,7 +389,6 @@ export default function AIBuilder() {
         })
         .filter((n): n is number => n !== null);
 
-    // User bubble — typed text only, no chip metadata
     const userMsg: ChatMessage = {
       id: `msg-${Date.now()}`,
       role: "user",
@@ -372,49 +412,45 @@ export default function AIBuilder() {
     setInputValue("");
     setIsLoading(true);
 
-    // Clear chips once user has responded to this step
+    // Clear chips once user has responded
     setChipStates((prev) => { const n = { ...prev }; delete n[sessionId]; return n; });
 
     try {
-      // Save only the clean typed text to the chat API
       await createChat(sessionId, inputValue.trim(), "user", null, token);
 
-      // Store the typed answer for this question
+      // ── Store typed answer ──────────────────────────────────────────────
       const answerKeyMap: Record<number, keyof SessionAnswers> = {
         0: "about_yourself",
         1: "additional_projects",
         2: "additional_experience",
         3: "additional_education",
+        4: "additional_skills",
+        5: "additional_links",
+        6: "additional_certificates",
       };
       const answerKey = answerKeyMap[currentQIndex];
       if (answerKey) {
         setChatAnswers((prev) => ({
           ...prev,
-          [sessionId]: {
-            ...(prev[sessionId] || {}),
-            [answerKey]: inputValue.trim(),
-          },
+          [sessionId]: { ...(prev[sessionId] || {}), [answerKey]: inputValue.trim() },
         }));
       }
 
-      // For chip questions (Q1, Q2), store retained IDs from the snapshot into state
-      // Q3 (education) is the last step — we handle it directly below using the snapshot
-      if (currentQIndex === 1 || currentQIndex === 2) {
+      // ── Store retained IDs for Q1–Q5 (not the last step Q6) ────────────
+      const retainedKeyMap: Record<number, keyof SessionAnswers> = {
+        1: "retained_project_ids",
+        2: "retained_experience_ids",
+        3: "retained_education_ids",
+        4: "retained_skill_ids",
+        5: "retained_link_ids",
+      };
+      const retainedKey = retainedKeyMap[currentQIndex];
+      if (retainedKey) {
         const retainedIds = extractRetainedIds(snapshotChips);
-        const retainedKeyMap: Record<number, keyof SessionAnswers> = {
-          1: "retained_project_ids",
-          2: "retained_experience_ids",
-        };
-        const retainedKey = retainedKeyMap[currentQIndex];
-        if (retainedKey) {
-          setChatAnswers((prev) => ({
-            ...prev,
-            [sessionId]: {
-              ...(prev[sessionId] || {}),
-              [retainedKey]: retainedIds,
-            },
-          }));
-        }
+        setChatAnswers((prev) => ({
+          ...prev,
+          [sessionId]: { ...(prev[sessionId] || {}), [retainedKey]: retainedIds },
+        }));
       }
 
       await new Promise((r) => setTimeout(r, 600));
@@ -423,41 +459,45 @@ export default function AIBuilder() {
       const authToken = u?.token;
 
       if (nextQIndex < HARDCODED_QUESTIONS.length) {
-        // Not done yet — post next bot question and fetch chips if needed
+        // ── More questions remain ───────────────────────────────────────
         const botMsgId = await appendBotMessage(sessionId, HARDCODED_QUESTIONS[nextQIndex]);
         setQuestionIndex((prev) => ({ ...prev, [sessionId]: nextQIndex }));
 
-        if (nextQIndex === 1) await fetchAndBuildChips(sessionId, "projects", botMsgId);
-        else if (nextQIndex === 2) await fetchAndBuildChips(sessionId, "experience", botMsgId);
-        else if (nextQIndex === 3) await fetchAndBuildChips(sessionId, "education", botMsgId);
+        if (nextQIndex === 1)      await fetchAndBuildChips(sessionId, "projects",      botMsgId);
+        else if (nextQIndex === 2) await fetchAndBuildChips(sessionId, "experience",    botMsgId);
+        else if (nextQIndex === 3) await fetchAndBuildChips(sessionId, "education",     botMsgId);
+        else if (nextQIndex === 4) await fetchAndBuildChips(sessionId, "skills",        botMsgId);
+        else if (nextQIndex === 5) await fetchAndBuildChips(sessionId, "links",         botMsgId);
+        else if (nextQIndex === 6) await fetchAndBuildChips(sessionId, "certificates",  botMsgId);
 
       } else {
-        // ── All 4 answers collected — build the generate-resume payload ────────
+        // ── All 7 answers collected — build payload ─────────────────────
 
-        // retained_education_ids comes from the current step's snapshot directly
-        // because setChatAnswers for this step hasn't flushed yet (setState is async)
+        // Q6 (certificates) is the last step — snapshot directly
         const currentStepRetainedIds = extractRetainedIds(snapshotChips);
 
         const accumulated: SessionAnswers = {
           ...(chatAnswers[sessionId] || {}),
-          // additional_education: inputValue.trim() directly (same async-state reason)
-          additional_education: inputValue.trim() || chatAnswers[sessionId]?.additional_education || "",
-          // retained_education_ids: from snapshot, not from state
-          retained_education_ids: currentStepRetainedIds,
+          additional_certificates: inputValue.trim() || chatAnswers[sessionId]?.additional_certificates || "",
+          retained_certificate_ids: currentStepRetainedIds,
         };
 
-        // Clean text-only chat_answers — no chip labels, no ID metadata
         const cleanChatAnswers = {
-          about_yourself:        accumulated.about_yourself        ?? "",
-          additional_projects:   accumulated.additional_projects   ?? "",
-          additional_experience: accumulated.additional_experience ?? "",
-          additional_education:  accumulated.additional_education  ?? "",
+          about_yourself:          accumulated.about_yourself          ?? "",
+          additional_projects:     accumulated.additional_projects     ?? "",
+          additional_experience:   accumulated.additional_experience   ?? "",
+          additional_education:    accumulated.additional_education    ?? "",
+          additional_skills:       accumulated.additional_skills       ?? "",
+          additional_links:        accumulated.additional_links        ?? "",
+          additional_certificates: accumulated.additional_certificates ?? "",
         };
 
-        // Retained ID arrays — properly typed, no casting needed
-        const retained_project_ids    = accumulated.retained_project_ids;
-        const retained_experience_ids = accumulated.retained_experience_ids;
-        const retained_education_ids  = accumulated.retained_education_ids;
+        const retained_project_ids     = accumulated.retained_project_ids;
+        const retained_experience_ids  = accumulated.retained_experience_ids;
+        const retained_education_ids   = accumulated.retained_education_ids;
+        const retained_skill_ids       = accumulated.retained_skill_ids;
+        const retained_link_ids        = accumulated.retained_link_ids;
+        const retained_certificate_ids = accumulated.retained_certificate_ids;
 
         const generateRes = await fetch(
           `${(import.meta.env.VITE_API_BASE_URL as string) || "http://localhost:5000"}/generate-resume`,
@@ -465,12 +505,14 @@ export default function AIBuilder() {
             method: "POST",
             headers: { "Content-Type": "application/json", Authorization: `Bearer ${authToken}` },
             body: JSON.stringify({
-              session_id: sessionId,
+              session_id:   sessionId,
               chat_answers: cleanChatAnswers,
-              // Only include if the user actually saw chips for that category
-              ...(retained_project_ids    !== undefined && { retained_project_ids }),
-              ...(retained_experience_ids !== undefined && { retained_experience_ids }),
-              ...(retained_education_ids  !== undefined && { retained_education_ids }),
+              ...(retained_project_ids     !== undefined && { retained_project_ids }),
+              ...(retained_experience_ids  !== undefined && { retained_experience_ids }),
+              ...(retained_education_ids   !== undefined && { retained_education_ids }),
+              ...(retained_skill_ids       !== undefined && { retained_skill_ids }),
+              ...(retained_link_ids        !== undefined && { retained_link_ids }),
+              ...(retained_certificate_ids !== undefined && { retained_certificate_ids }),
             }),
           }
         );
