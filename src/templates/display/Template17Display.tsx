@@ -143,6 +143,7 @@ const Template17Display: React.FC<Template17DisplayProps> = ({
             </>
             )}
 
+            {(education.higherEducation.filter(edu => edu.enabled).length > 0 || education.preUniversityEnabled || education.sslcEnabled) && (<>
             <div style={{ marginTop: 18 }}>
               <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.2, color: primaryColor, fontWeight: 700 }}>Education</div>
               <div style={{ height: 1, background: '#ddd', marginTop: 6, width: '100%' }} />
@@ -161,7 +162,7 @@ const Template17Display: React.FC<Template17DisplayProps> = ({
                 </div>
               ))}
 
-              {(education.preUniversityEnabled || education.preUniversity.instituteName || education.higherEducation.length > 0) && (
+              {education.preUniversityEnabled && (
                 <div style={{ marginBottom: 12 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <div style={{ fontWeight: 700, fontSize: 12 }}>{education.preUniversity.instituteName || 'Pre University'}</div>
@@ -172,7 +173,7 @@ const Template17Display: React.FC<Template17DisplayProps> = ({
                 </div>
               )}
 
-              {(education.sslcEnabled || education.sslc.instituteName || education.higherEducation.length > 0) && (
+              {education.sslcEnabled && (
                 <div style={{ marginBottom: 12 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <div style={{ fontWeight: 700, fontSize: 12 }}>{education.sslc.instituteName || 'SSLC'}</div>
@@ -184,6 +185,7 @@ const Template17Display: React.FC<Template17DisplayProps> = ({
               )}
 
             </div>
+            </>)}
 
             {(certifications || []).some((c:any)=>c.enabled && c.certificateTitle) && (<>
             <div style={{ marginTop: 18 }}>

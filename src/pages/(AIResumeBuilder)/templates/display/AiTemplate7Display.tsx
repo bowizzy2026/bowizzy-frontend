@@ -23,6 +23,8 @@ const AiTemplate7Display: React.FC<Props> = ({ data, primaryColor = '#374151' })
   const contactParts = [personal.email, personal.mobileNumber, personal.address].filter(Boolean);
   const linkedin = skillsLinks?.links?.linkedinProfile || '';
   const github = skillsLinks?.links?.githubProfile || '';
+  const portfolio = skillsLinks?.links?.portfolioUrl || '';
+  const languages: string[] = (personal as any).languagesKnown || [];
 
   const sectionStyle: React.CSSProperties = { fontSize: 10, fontWeight: 600, letterSpacing: 3, textTransform: 'uppercase' as const, color: primaryColor, marginTop: 16, marginBottom: 2 };
   const thinLine: React.CSSProperties = { height: 0.5, backgroundColor: '#d1d5db', width: '100%', marginBottom: 8 };
@@ -39,6 +41,7 @@ const AiTemplate7Display: React.FC<Props> = ({ data, primaryColor = '#374151' })
           {contactParts.map((c, i) => <span key={i} style={{ fontSize: 8.5, color: '#6b7280' }}>{c}</span>)}
           {linkedin && <span style={{ fontSize: 8.5, color: primaryColor }}>{linkedin}</span>}
           {github && <span style={{ fontSize: 8.5, color: primaryColor }}>{github}</span>}
+          {portfolio && <span style={{ fontSize: 8.5, color: primaryColor }}>{portfolio}</span>}
         </div>
       </div>
       <div style={{ height: 1.5, backgroundColor: primaryColor, marginBottom: 10 }} />
@@ -79,9 +82,13 @@ const AiTemplate7Display: React.FC<Props> = ({ data, primaryColor = '#374151' })
           <div style={thinLine} />
           {projects.filter(p => p.enabled).map((p: any, i) => (
             <div key={i} style={{ marginBottom: 10 }}>
-              <strong style={{ fontSize: 10.5, color: '#111827' }}>{p.projectTitle}</strong>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                <strong style={{ fontSize: 10.5, color: '#111827' }}>{p.projectTitle}</strong>
+                {(p.startDate || p.endDate || p.currentlyWorking) && <span style={{ fontSize: 9, color: '#6b7280' }}>{fmtDate(p.startDate)}{(p.currentlyWorking || p.endDate) ? ` – ${p.currentlyWorking ? 'Present' : fmtDate(p.endDate)}` : ''}</span>}
+              </div>
               <ul style={{ margin: '3px 0 0 16px', padding: 0, fontSize: 9, color: '#4b5563', lineHeight: 1.5 }}>
                 {htmlToLines(p.description).map((line, j) => <li key={j} style={{ marginBottom: 1.5 }}>{line.replace(/^[•\-]\s*/, '')}</li>)}
+                {htmlToLines(p.rolesResponsibilities).map((line, j) => <li key={j} style={{ marginBottom: 1.5 }}>{line.replace(/^[•\-]\s*/, '')}</li>)}
               </ul>
             </div>
           ))}
@@ -98,6 +105,7 @@ const AiTemplate7Display: React.FC<Props> = ({ data, primaryColor = '#374151' })
             <span style={{ fontSize: 8.5, color: '#9ca3af' }}>{fmtYear(edu.startYear)} – {edu.currentlyPursuing ? 'Present' : fmtYear(edu.endYear)}</span>
           </div>
           <p style={{ fontSize: 9, color: '#6b7280', margin: 0 }}>{edu.instituteName}</p>
+          {edu.universityBoard && <p style={{ fontSize: 9, color: '#6b7280', margin: 0 }}>{edu.universityBoard}</p>}
           {edu.resultFormat && edu.result && <p style={{ fontSize: 9, color: '#4b5563', margin: 0 }}>{edu.resultFormat}: {edu.result}</p>}
         </div>
       ))}
@@ -122,6 +130,15 @@ const AiTemplate7Display: React.FC<Props> = ({ data, primaryColor = '#374151' })
           <p style={{ fontSize: 9.5, color: '#4b5563', margin: 0, lineHeight: 1.6 }}>
             {skillsLinks.skills.filter(s => s.enabled && s.skillName).map(s => s.skillName).join('  ·  ')}
           </p>
+        </>
+      )}
+
+      {/* Languages */}
+      {languages.length > 0 && (
+        <>
+          <p style={sectionStyle}>Languages</p>
+          <div style={thinLine} />
+          <p style={{ fontSize: 9.5, color: '#4b5563', margin: 0 }}>{languages.join('  ·  ')}</p>
         </>
       )}
 

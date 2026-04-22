@@ -1,10 +1,390 @@
+// Razorpay type declaration
+declare global {
+  interface Window { Razorpay?: any; }
+}
 import React, { useRef, useEffect, Suspense, useState, useMemo } from "react";
-import { Send, Upload, Loader2, Bot, User, Download } from "lucide-react";
+import { Send, Loader2, Bot, User, Download, Lock, Tag, Sparkles, ChevronDown, ChevronUp, Info, X } from "lucide-react";
 import { pdf } from '@react-pdf/renderer';
 import type { ChatSession } from "./types";
 import { aiTemplateRegistry } from './templates/aiTemplateRegistry';
 import { mapInfoJsonToResumeData } from './mapInfoJsonToResumeData';
 import DataChips, { type DataChip } from "./DataChips";
+import api from "@/api";
+
+// ── AI Resume Payment constants ────────────────────────────────────────────────
+const AI_RESUME_BASE_PRICE = Number(import.meta.env.VITE_BASE_AI_RESUME_PRICE) || 49.2;
+const MAX_CREDITS_APPLICABLE = 10;
+const CREDIT_VALUE = 0.5; // 1 credit = ₹0.5
+const CGST_RATE = 0.09;
+const SGST_RATE = 0.09;
+
+interface UserProfileData {
+  name: { first_name: string; middle_name: string; last_name: string };
+  image: string;
+  isWelcomeBonusRedeemed: boolean;
+  credits: number;
+  coupon_code: string;
+}
+
+interface PriceBreakdown {
+  basePrice: number;
+  creditsApplied: number;
+  creditDiscount: number;
+  priceAfterCredits: number;
+  cgst: number;
+  sgst: number;
+  totalTax: number;
+  finalPrice: number;
+}
+
+function calculatePriceBreakdown(basePrice: number, creditsApplied: number): PriceBreakdown {
+  const creditDiscount = creditsApplied * CREDIT_VALUE;
+  const priceAfterCredits = Math.max(0, basePrice - creditDiscount);
+  const cgst = parseFloat((priceAfterCredits * CGST_RATE).toFixed(2));
+  const sgst = parseFloat((priceAfterCredits * SGST_RATE).toFixed(2));
+  const totalTax = cgst + sgst;
+  const finalPrice = parseFloat((priceAfterCredits + totalTax).toFixed(2));
+  return { basePrice, creditsApplied, creditDiscount, priceAfterCredits, cgst, sgst, totalTax, finalPrice };
+}
+
+// ── AI Resume Payment Modal ────────────────────────────────────────────────────
+interface AiPaymentModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onPaymentSuccess: () => void;
+  token: string;
+}
+
+const AiPaymentModal: React.FC<AiPaymentModalProps> = ({ isOpen, onClose, onPaymentSuccess, token }) => {
+  const [userProfile, setUserProfile] = useState<UserProfileData | null>(null);
+  const [loadingProfile, setLoadingProfile] = useState(false);
+  const [creditsToApply, setCreditsToApply] = useState(0);
+  const [useCredits, setUseCredits] = useState(false);
+  const [payLoading, setPayLoading] = useState(false);
+  const [showBreakdown, setShowBreakdown] = useState(true);
+
+  useEffect(() => {
+    if (!isOpen || !token) return;
+    setLoadingProfile(true);
+    api.get('/personal-details/profile-data', { headers: { Authorization: `Bearer ${token}` } })
+      .then(resp => setUserProfile(resp?.data ?? resp))
+      .catch(err => console.error('Failed to fetch profile data', err))
+      .finally(() => setLoadingProfile(false));
+  }, [isOpen, token]);
+
+  useEffect(() => {
+    if (!useCredits) {
+      setCreditsToApply(0);
+    } else {
+      setCreditsToApply(Math.min(userProfile?.credits ?? 0, MAX_CREDITS_APPLICABLE));
+    }
+  }, [useCredits, userProfile]);
+
+  const availableCredits = userProfile?.credits ?? 0;
+  const maxApplicable = Math.min(availableCredits, MAX_CREDITS_APPLICABLE);
+  const breakdown = calculatePriceBreakdown(AI_RESUME_BASE_PRICE, creditsToApply);
+
+  const handlePay = async () => {
+    setPayLoading(true);
+    try {
+      // Load Razorpay if not already loaded
+      await new Promise<void>((resolve, reject) => {
+        if (typeof window !== 'undefined' && window.Razorpay) return resolve();
+        const script = document.createElement('script');
+        script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+        script.onload = () => resolve();
+        script.onerror = () => reject(new Error('Razorpay SDK failed to load'));
+        document.body.appendChild(script);
+      });
+
+      const userData = JSON.parse(localStorage.getItem('user') || '{}');
+      const authToken = token || userData?.token;
+      const finalCreditsToApply = useCredits ? Math.min(creditsToApply, Math.min(availableCredits, MAX_CREDITS_APPLICABLE)) : 0;
+
+      const createResp = await api.post(
+        '/payment/create-order',
+        {
+          amount: breakdown.finalPrice,
+          credits_applied: finalCreditsToApply,
+          base_price: breakdown.basePrice,
+          credit_discount: breakdown.creditDiscount,
+          cgst: breakdown.cgst,
+          sgst: breakdown.sgst,
+          plan_type: 'AI_RESUME',
+        },
+        authToken ? { headers: { Authorization: `Bearer ${authToken}` } } : undefined
+      );
+
+      const orderData = createResp?.data ?? createResp;
+      const orderId = orderData?.id || orderData?.order_id || orderData?.orderId || orderData?.razorpay_order_id;
+      const razorKey = orderData?.key || orderData?.key_id || import.meta.env.VITE_RAZORPAY_KEY_ID || '';
+      const amountInPaise = Math.round(breakdown.finalPrice * 100);
+
+      const options = {
+        key: razorKey,
+        amount: amountInPaise,
+        currency: 'INR',
+        name: 'Bowizzy',
+        description: 'AI Resume Builder',
+        order_id: orderId,
+        notes: {
+          credits_applied: finalCreditsToApply,
+          base_price: breakdown.basePrice,
+          credit_discount: breakdown.creditDiscount,
+          price_after_credits: breakdown.priceAfterCredits,
+          cgst: breakdown.cgst,
+          sgst: breakdown.sgst,
+        },
+        modal: { ondismiss: () => setPayLoading(false) },
+        handler: async function (response: any) {
+          try {
+            const verifyResp: any = await api.post(
+              '/payment/verify',
+              {
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                credits_applied: finalCreditsToApply,
+              },
+              authToken ? { headers: { Authorization: `Bearer ${authToken}` } } : undefined
+            );
+            if (verifyResp?.data?.message === 'Payment successful' || verifyResp?.message === 'Payment successful') {
+              onPaymentSuccess();
+              onClose();
+            } else {
+              alert('Payment verification failed. Please contact support.');
+              setPayLoading(false);
+            }
+          } catch {
+            alert('Payment verification failed. Please contact support.');
+            setPayLoading(false);
+          }
+        },
+        prefill: {
+          name: userProfile
+            ? `${userProfile.name.first_name} ${userProfile.name.last_name}`.trim()
+            : userData?.name || '',
+          email: userData?.email || '',
+        },
+        theme: { color: '#F97316' },
+      };
+
+      const rzp = new window.Razorpay(options);
+      if (typeof rzp.on === 'function') {
+        rzp.on('payment.failed', () => { setPayLoading(false); alert('Payment failed or was cancelled.'); });
+      }
+      rzp.open();
+    } catch {
+      setPayLoading(false);
+      alert('Failed to initiate payment. Please try again.');
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <>
+      <div className="fixed inset-0 bg-black/70 z-[90] backdrop-blur-sm" onClick={onClose} />
+      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div
+          className="relative w-full max-w-sm rounded-2xl overflow-hidden shadow-2xl"
+          style={{
+            background: 'linear-gradient(145deg, #ffffff 0%, #fff7f3 100%)',
+            border: '1px solid rgba(249,115,22,0.15)',
+          }}
+        >
+          {/* Header band */}
+          <div
+            className="px-5 pt-5 pb-3"
+            style={{ background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)' }}
+          >
+            <button
+              onClick={onClose}
+              className="absolute top-4 right-4 p-1.5 rounded-full hover:bg-white/10 transition-colors"
+            >
+              <X className="w-4 h-4 text-white/70" />
+            </button>
+            <div className="flex items-center gap-3 mb-1">
+              <div className="w-10 h-10 rounded-2xl bg-orange-500/20 border border-orange-400/30 flex items-center justify-center">
+                <Lock className="w-5 h-5 text-orange-400" />
+              </div>
+              <div>
+                <h2 className="text-white font-semibold text-base leading-tight">Unlock AI Resume Builder</h2>
+                <p className="text-white/50 text-xs leading-tight">One-time payment · Instant access</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-4 flex flex-col gap-3">
+            {/* Credits Section */}
+            {loadingProfile ? (
+              <div className="flex items-center gap-2 p-4 rounded-2xl bg-orange-50 border border-orange-100">
+                <div className="w-4 h-4 border-2 border-orange-400 border-t-transparent rounded-full animate-spin" />
+                <span className="text-sm text-orange-600">Loading your credits...</span>
+              </div>
+            ) : availableCredits > 0 ? (
+              <div
+                className="rounded-2xl overflow-hidden border transition-all duration-200"
+                style={{
+                  borderColor: useCredits ? '#F97316' : '#e5e7eb',
+                  background: useCredits ? 'linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%)' : '#fafafa',
+                }}
+              >
+                <div className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <div
+                        className="w-9 h-9 rounded-xl flex items-center justify-center"
+                        style={{ background: useCredits ? '#F97316' : '#f3f4f6' }}
+                      >
+                        <Sparkles className={`w-4 h-4 ${useCredits ? 'text-white' : 'text-gray-400'}`} />
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-gray-800">
+                          You have <span className="text-orange-500">{availableCredits} credits</span>
+                        </p>
+                        <p className="text-xs text-gray-500">1 credit = ₹{CREDIT_VALUE} · Max {MAX_CREDITS_APPLICABLE} applicable</p>
+                      </div>
+                    </div>
+                    {/* Toggle */}
+                    <button
+                      onClick={() => setUseCredits(v => !v)}
+                      className={`relative w-12 h-6 rounded-full transition-all duration-200 flex-shrink-0 ${useCredits ? 'bg-orange-500' : 'bg-gray-300'}`}
+                      style={{ boxShadow: useCredits ? 'inset 0 2px 4px rgba(0,0,0,0.15)' : 'inset 0 1px 3px rgba(0,0,0,0.1)' }}
+                    >
+                      <span
+                        className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-250 pointer-events-none ${useCredits ? 'translate-x-6' : 'translate-x-0'}`}
+                      />
+                    </button>
+                  </div>
+
+                  {/* Credit slider */}
+                  {useCredits && (
+                    <div className="mt-4 pt-4 border-t border-orange-200">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-medium text-gray-600">Credits to apply</span>
+                        <span className="text-sm font-bold text-orange-600">
+                          {creditsToApply} credits → −₹{(creditsToApply * CREDIT_VALUE).toFixed(2)}
+                        </span>
+                      </div>
+                      <input
+                        type="range"
+                        min={0}
+                        max={maxApplicable}
+                        value={creditsToApply}
+                        onChange={e => setCreditsToApply(Number(e.target.value))}
+                        className="w-full h-2 rounded-full appearance-none cursor-pointer"
+                        style={{
+                          background: `linear-gradient(to right, #F97316 0%, #F97316 ${maxApplicable > 0 ? (creditsToApply / maxApplicable) * 100 : 0}%, #e5e7eb ${maxApplicable > 0 ? (creditsToApply / maxApplicable) * 100 : 0}%, #e5e7eb 100%)`,
+                          accentColor: '#F97316',
+                        }}
+                      />
+                      <div className="flex justify-between mt-1">
+                        <span className="text-xs text-gray-400">0</span>
+                        <span className="text-xs text-gray-400">{maxApplicable}</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2.5 p-3.5 rounded-2xl bg-gray-50 border border-gray-100">
+                <Info className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                <span className="text-sm text-gray-500">You have no credits available.</span>
+              </div>
+            )}
+
+            {/* Price Breakdown */}
+            <div className="rounded-2xl border border-gray-100 overflow-hidden" style={{ background: '#fff' }}>
+              <button
+                className="w-full flex items-center justify-between px-4 py-3 hover:bg-gray-50 transition-colors"
+                onClick={() => setShowBreakdown(v => !v)}
+              >
+                <div className="flex items-center gap-2">
+                  <Tag className="w-4 h-4 text-gray-500" />
+                  <span className="text-sm font-semibold text-gray-700">Price Breakdown</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-bold text-gray-900">₹{breakdown.finalPrice}</span>
+                  {showBreakdown ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
+                </div>
+              </button>
+
+              {showBreakdown && (
+                <div className="px-4 pb-4 flex flex-col gap-0">
+                  <div className="border-t border-gray-100 mb-3" />
+                  {[
+                    { label: 'Base Price', value: `₹${breakdown.basePrice.toFixed(2)}`, highlight: false, muted: false, bold: false },
+                    ...(breakdown.creditsApplied > 0
+                      ? [{ label: `Credits Applied (${breakdown.creditsApplied} × ₹${CREDIT_VALUE})`, value: `−₹${breakdown.creditDiscount.toFixed(2)}`, highlight: true, muted: false, bold: false }]
+                      : []),
+                    { label: 'Price after Credits', value: `₹${breakdown.priceAfterCredits.toFixed(2)}`, highlight: false, muted: false, bold: true },
+                    { label: 'CGST (9%)', value: `₹${breakdown.cgst.toFixed(2)}`, highlight: false, muted: true, bold: false },
+                    { label: 'SGST (9%)', value: `₹${breakdown.sgst.toFixed(2)}`, highlight: false, muted: true, bold: false },
+                  ].map((row, idx) => (
+                    <div key={idx} className="flex items-center justify-between py-1.5">
+                      <span className={`text-sm ${row.highlight ? 'text-green-600 font-medium' : row.muted ? 'text-gray-400' : row.bold ? 'text-gray-700 font-semibold' : 'text-gray-600'}`}>
+                        {row.label}
+                      </span>
+                      <span className={`text-sm font-semibold ${row.highlight ? 'text-green-600' : row.muted ? 'text-gray-400' : 'text-gray-800'}`}>
+                        {row.value}
+                      </span>
+                    </div>
+                  ))}
+                  {/* Total */}
+                  <div
+                    className="flex items-center justify-between mt-2 pt-3 rounded-xl px-3 py-2.5"
+                    style={{ background: 'linear-gradient(135deg, #1a1a2e, #0f3460)' }}
+                  >
+                    <span className="text-sm font-bold text-white/80">Total Payable</span>
+                    <span className="text-lg font-extrabold text-orange-400">₹{breakdown.finalPrice}</span>
+                  </div>
+                  {breakdown.creditsApplied > 0 && (
+                    <p className="text-xs text-green-600 text-center mt-2 font-medium">
+                      🎉 You saved ₹{breakdown.creditDiscount.toFixed(2)} using credits!
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Pay Button */}
+            <button
+              onClick={handlePay}
+              disabled={payLoading}
+              className="w-full py-3.5 rounded-2xl text-white font-bold text-base transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+              style={{
+                background: payLoading ? '#9ca3af' : 'linear-gradient(135deg, #F97316 0%, #ea580c 100%)',
+                boxShadow: payLoading ? 'none' : '0 8px 24px rgba(249,115,22,0.35)',
+              }}
+            >
+              {payLoading ? (
+                <><div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />Initiating Payment...</>
+              ) : (
+                <><Lock className="w-4 h-4" />Pay ₹{breakdown.finalPrice} & Start</>
+              )}
+            </button>
+
+            <p className="text-xs text-gray-400 text-center">Secured by Razorpay · GST inclusive pricing</p>
+          </div>
+        </div>
+      </div>
+
+      <style>{`
+        input[type='range']::-webkit-slider-thumb {
+          -webkit-appearance: none; appearance: none;
+          width: 18px; height: 18px; border-radius: 50%;
+          background: #F97316; cursor: pointer;
+          box-shadow: 0 0 0 3px rgba(249,115,22,0.2); border: 2px solid white;
+        }
+        input[type='range']::-moz-range-thumb {
+          width: 18px; height: 18px; border-radius: 50%;
+          background: #F97316; cursor: pointer; border: 2px solid white;
+        }
+      `}</style>
+    </>
+  );
+};
 
 interface ChatBoxProps {
   session: ChatSession | undefined;
@@ -16,6 +396,7 @@ interface ChatBoxProps {
   onSend: () => void;
   onFileUpload: (file: File) => void;
   onStart: () => void;
+  token: string;
   // Chip props — only present when a chip-question is active
   activeChips?: DataChip[];
   onChipDelete?: (id: string) => void;
@@ -34,6 +415,7 @@ export default function ChatBox({
   onSend,
   onFileUpload,
   onStart,
+  token,
   activeChips,
   onChipDelete,
   onChipUndo,
@@ -71,21 +453,20 @@ export default function ChatBox({
             onModeChange={onModeChange}
             onFileUpload={() => fileInputRef.current?.click()}
             onStart={onStart}
+            token={token}
           />
         ) : (
           <div className="max-w-2xl mx-auto space-y-4">
             {session?.messages.map((msg) => (
               <div
                 key={msg.id}
-                className={`flex items-end gap-2 ${
-                  msg.role === "user" ? "flex-row-reverse" : "flex-row"
-                }`}
+                className={`flex items-end gap-2 ${msg.role === "user" ? "flex-row-reverse" : "flex-row"
+                  }`}
               >
                 {/* Avatar */}
                 <div
-                  className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 ${
-                    msg.role === "user" ? "bg-orange-100" : "bg-gray-100"
-                  }`}
+                  className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 ${msg.role === "user" ? "bg-orange-100" : "bg-gray-100"
+                    }`}
                 >
                   {msg.role === "user" ? (
                     <User className="w-3.5 h-3.5 text-orange-600" />
@@ -96,11 +477,10 @@ export default function ChatBox({
 
                 {/* Bubble */}
                 <div
-                  className={`max-w-[75%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${
-                    msg.role === "user"
-                      ? "bg-orange-500 text-white rounded-br-sm"
-                      : "bg-white text-gray-800 border border-gray-200 rounded-bl-sm"
-                  }`}
+                  className={`max-w-[75%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${msg.role === "user"
+                    ? "bg-orange-500 text-white rounded-br-sm"
+                    : "bg-white text-gray-800 border border-gray-200 rounded-bl-sm"
+                    }`}
                 >
                   {msg.content}
 
@@ -201,12 +581,27 @@ function PreStartState({
   onModeChange,
   onFileUpload,
   onStart,
+  token,
 }: {
   mode: "jd" | "non-jd";
   onModeChange: (m: "jd" | "non-jd") => void;
   onFileUpload: () => void;
   onStart: () => void;
+  token: string;
 }) {
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+
+  const handleStartClick = () => {
+    if (mode === "non-jd") {
+      setShowPaymentModal(true);
+    }
+  };
+
+  const handlePaymentSuccess = () => {
+    setShowPaymentModal(false);
+    onStart();
+  };
+
   return (
     <div className="flex flex-col items-center justify-center h-full min-h-[60vh] text-center px-4 py-16 gap-6">
       {/* Icon + heading */}
@@ -218,7 +613,7 @@ function PreStartState({
           Let's build your resume
         </h2>
         <p className="text-sm text-gray-400 max-w-xs leading-relaxed">
-          Choose a mode, optionally upload a file, then hit Start.
+          Choose a mode, then hit Start Payment to begin.
         </p>
       </div>
 
@@ -230,13 +625,12 @@ function PreStartState({
             <button
               key={m}
               onClick={() => onModeChange(m)}
-              className={`text-xs px-4 py-1.5 rounded-md font-medium transition ${
-                mode === m
-                  ? "bg-white text-gray-800 shadow-sm"
-                  : "text-gray-500 hover:text-gray-700"
-              }`}
+              className={`text-xs px-4 py-1.5 rounded-md font-medium transition ${mode === m
+                ? "bg-white text-gray-800 shadow-sm"
+                : "text-gray-500 hover:text-gray-700"
+                }`}
             >
-              {m === "jd" ? "JD Mode" : "General"}
+              {m === "jd" ? "JD Mode" : "AI Mode"}
             </button>
           ))}
         </div>
@@ -247,22 +641,33 @@ function PreStartState({
         )}
       </div>
 
-      {/* Upload button */}
-      <button
-        onClick={onFileUpload}
-        className="flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 text-sm text-gray-600 hover:text-gray-800 transition"
-      >
-        <Upload className="w-4 h-4" />
-        Upload resume or JD
-      </button>
+      {/* Start Payment button */}
+      {
+        mode !== "jd" ? (
+          <button
+            onClick={handleStartClick}
+            className="flex items-center gap-2 px-8 py-2.5 rounded-xl bg-orange-500 text-white text-sm font-medium hover:bg-orange-600 active:scale-95 transition"
+          >
+            <Lock className="w-4 h-4" />
+            Start Payment
+          </button>
+        ) : (
+          <button
+            disabled
+            className="px-8 py-2.5 rounded-xl bg-orange-500 text-white text-sm font-medium hover:bg-orange-600 active:scale-95 transition disabled:opacity-50"
+          >
+            Coming Soon
+          </button>
+        )
+      }
 
-      {/* Start button */}
-      <button
-        onClick={onStart}
-        className="px-8 py-2.5 rounded-xl bg-orange-500 text-white text-sm font-medium hover:bg-orange-600 active:scale-95 transition"
-      >
-        Start
-      </button>
+      {/* Payment Modal */}
+      <AiPaymentModal
+        isOpen={showPaymentModal}
+        onClose={() => setShowPaymentModal(false)}
+        onPaymentSuccess={handlePaymentSuccess}
+        token={token}
+      />
     </div>
   );
 }

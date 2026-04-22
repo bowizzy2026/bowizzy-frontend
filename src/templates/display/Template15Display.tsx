@@ -135,6 +135,7 @@ const Template15Display: React.FC<Template15DisplayProps> = ({
                     <div style={{ fontWeight: 700, fontSize: 11, color: '#6b7280' }}>{edu.resultFormat}: {edu.result}</div>
                   ) : null}
                 </div>
+                {edu.universityBoard && <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>{edu.universityBoard}</div>}
               </div>
             ))}
 

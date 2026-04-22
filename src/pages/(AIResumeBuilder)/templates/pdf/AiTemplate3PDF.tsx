@@ -15,8 +15,8 @@ const renderBullets = (html?: string) => {
     <View style={{ marginTop: 2 }}>
       {lines.map((line, i) => (
         <View key={i} style={{ flexDirection: 'row', marginTop: i > 0 ? 1 : 0 }}>
-          <Text style={{ width: 10, flexShrink: 0, fontSize: 9, color: '#333' }}>{line.startsWith('•') ? '•' : ''}</Text>
-          <Text style={{ flex: 1, fontSize: 9, color: '#333', lineHeight: 1.5 }}>{line.startsWith('•') ? line.substring(1).trim() : line}</Text>
+          <Text style={{ width: 10, flexShrink: 0, fontSize: 9, color: '#333', textAlign: 'justify' }}>{line.startsWith('•') ? '•' : ''}</Text>
+          <Text style={{ flex: 1, fontSize: 9, color: '#333', lineHeight: 1.5 ,textAlign: 'justify'}}>{line.startsWith('•') ? line.substring(1).trim() : line}</Text>
         </View>
       ))}
     </View>
@@ -41,13 +41,17 @@ const AiTemplate3PDF: React.FC<Props> = ({ data, primaryColor = '#2d3748' }) => 
   const { personal, experience, education, projects, skillsLinks, certifications } = data;
   const linkedin = skillsLinks?.links?.linkedinProfile || '';
   const github = skillsLinks?.links?.githubProfile || '';
+  const portfolio = skillsLinks?.links?.portfolioUrl || '';
+  const languages: string[] = (personal as any).languagesKnown || [];
 
   return (
     <Document>
       <Page size="A4" style={{ paddingTop: 0, paddingBottom: 0, paddingLeft: 0, paddingRight: 0, fontSize: 9 }}>
-        <View style={{ flexDirection: 'row', minHeight: '100%' }}>
+        {/* Full-height sidebar background */}
+        <View style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: SIDEBAR_WIDTH, backgroundColor: primaryColor }} />
+        <View style={{ flexDirection: 'row' }}>
           {/* Left sidebar */}
-          <View style={{ width: SIDEBAR_WIDTH, backgroundColor: primaryColor, paddingVertical: 28, paddingHorizontal: 18, color: '#fff' }}>
+          <View style={{ width: SIDEBAR_WIDTH, paddingTop: 28, paddingHorizontal: 18 }}>
             <Text style={{ fontSize: 20, fontFamily: 'Helvetica-Bold', color: '#fff', marginBottom: 4 }}>{personal.firstName}</Text>
             <Text style={{ fontSize: 20, fontFamily: 'Helvetica-Bold', color: '#fff', marginBottom: 12 }}>{personal.lastName}</Text>
 
@@ -59,6 +63,7 @@ const AiTemplate3PDF: React.FC<Props> = ({ data, primaryColor = '#2d3748' }) => 
             {personal.address && <Text style={{ fontSize: 8, color: '#e2e8f0', marginBottom: 3 }}>{personal.address}</Text>}
             {linkedin && <Text style={{ fontSize: 7, color: '#90cdf4', marginBottom: 3 }}>{linkedin}</Text>}
             {github && <Text style={{ fontSize: 7, color: '#90cdf4', marginBottom: 3 }}>{github}</Text>}
+            {portfolio && <Text style={{ fontSize: 7, color: '#90cdf4', marginBottom: 3 }}>{portfolio}</Text>}
 
             {/* Education in sidebar */}
             <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#e2e8f0', letterSpacing: 1.5, textTransform: 'uppercase', marginTop: 18, marginBottom: 4 }}>Education</Text>
@@ -68,6 +73,7 @@ const AiTemplate3PDF: React.FC<Props> = ({ data, primaryColor = '#2d3748' }) => 
                 <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#fff' }}>{edu.degree}</Text>
                 <Text style={{ fontSize: 8, color: '#e2e8f0' }}>{edu.fieldOfStudy}</Text>
                 <Text style={{ fontSize: 8, color: '#e2e8f0' }}>{edu.instituteName}</Text>
+                {edu.universityBoard ? <Text style={{ fontSize: 8, color: '#e2e8f0' }}>{edu.universityBoard}</Text> : null}
                 <Text style={{ fontSize: 7, color: '#a0aec0' }}>{fmtYear(edu.startYear)} – {edu.currentlyPursuing ? 'Present' : fmtYear(edu.endYear)}</Text>
                 {edu.resultFormat && edu.result && <Text style={{ fontSize: 7, color: '#a0aec0' }}>{edu.resultFormat}: {edu.result}</Text>}
               </View>
@@ -108,16 +114,23 @@ const AiTemplate3PDF: React.FC<Props> = ({ data, primaryColor = '#2d3748' }) => 
                 ))}
               </>
             )}
+            {languages.length > 0 && (
+              <>
+                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#e2e8f0', letterSpacing: 1.5, textTransform: 'uppercase', marginTop: 18, marginBottom: 4 }}>Languages</Text>
+                <View style={{ height: 1, backgroundColor: '#e2e8f0', marginBottom: 6 }} />
+                {languages.map((l, i) => <Text key={i} style={{ fontSize: 8, color: '#e2e8f0', marginBottom: 2 }}>• {l}</Text>)}
+              </>
+            )}
           </View>
 
           {/* Main content */}
-          <View style={{ flex: 1, paddingVertical: 28, paddingHorizontal: 24 }}>
+          <View style={{ flex: 1, paddingTop: 28, paddingHorizontal: 24 }}>
             {/* Summary */}
             {personal.aboutCareerObjective && (
               <>
                 <Text style={{ fontSize: 10, fontFamily: 'Helvetica-Bold', letterSpacing: 1.5, textTransform: 'uppercase', color: primaryColor, marginBottom: 2 }}>Summary</Text>
                 <View style={{ height: 1, backgroundColor: primaryColor, marginBottom: 6 }} />
-                <Text style={{ fontSize: 9, color: '#333', lineHeight: 1.5 }}>{htmlToPlain(personal.aboutCareerObjective)}</Text>
+                <Text style={{ fontSize: 9, color: '#333', lineHeight: 1.5, textAlign: 'justify' }}>{htmlToPlain(personal.aboutCareerObjective)}</Text>
               </>
             )}
 
@@ -146,8 +159,12 @@ const AiTemplate3PDF: React.FC<Props> = ({ data, primaryColor = '#2d3748' }) => 
                 <View style={{ height: 1, backgroundColor: primaryColor, marginBottom: 6 }} />
                 {projects.filter(p => p.enabled).map((p: any, i) => (
                   <View key={i} style={{ marginBottom: 10 }}>
-                    <Text style={{ fontSize: 10, fontFamily: 'Helvetica-Bold' }}>{p.projectTitle}</Text>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                      <Text style={{ fontSize: 10, fontFamily: 'Helvetica-Bold' }}>{p.projectTitle}</Text>
+                      {(p.startDate || p.endDate || p.currentlyWorking) ? <Text style={{ fontSize: 8.5, color: '#a0aec0' }}>{fmtDate(p.startDate)}{(p.currentlyWorking || p.endDate) ? ` – ${p.currentlyWorking ? 'Present' : fmtDate(p.endDate)}` : ''}</Text> : null}
+                    </View>
                     {p.description && renderBullets(p.description)}
+                    {p.rolesResponsibilities && renderBullets(p.rolesResponsibilities)}
                   </View>
                 ))}
               </>

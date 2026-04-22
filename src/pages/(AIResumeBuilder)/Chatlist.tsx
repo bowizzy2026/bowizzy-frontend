@@ -111,7 +111,7 @@ export default function ChatList({
                         : "bg-gray-100 text-gray-500"
                     }`}
                   >
-                    {session.mode === "jd" ? "JD" : "General"}
+                    {session.mode === "jd" ? "JD" : "AI Mode"}
                   </span>
                   <span className="text-xs text-gray-400 truncate">
                     {(session.messages?.length ?? 0) > 0

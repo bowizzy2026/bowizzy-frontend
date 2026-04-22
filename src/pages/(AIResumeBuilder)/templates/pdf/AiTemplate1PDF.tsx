@@ -10,7 +10,7 @@ const styles = StyleSheet.create({
   divider: { height: 1, width: '100%', marginTop: 2, marginBottom: 6 },
   itemTitle: { fontSize: 11 },
   itemSub: { fontSize: 10, color: '#333' },
-  body: { fontSize: 10, color: '#333', lineHeight: 1.5 },
+  body: { fontSize: 10, color: '#333', lineHeight: 1.5, textAlign: 'justify' },
   bullet: { width: 10, flexShrink: 0, fontSize: 10, color: '#333' },
 });
 
@@ -53,6 +53,9 @@ const AiTemplate1PDF: React.FC<Props> = ({ data, primaryColor = '#1a1a1a' }) => 
   const { personal, experience, education, projects, skillsLinks, certifications } = data;
   const contactParts = [personal.email, personal.mobileNumber, personal.address].filter(Boolean);
   const linkedin = skillsLinks?.links?.linkedinProfile || '';
+  const github = skillsLinks?.links?.githubProfile || '';
+  const portfolio = skillsLinks?.links?.portfolioUrl || '';
+  const languages: string[] = (personal as any).languagesKnown || [];
 
   return (
     <Document>
@@ -63,7 +66,7 @@ const AiTemplate1PDF: React.FC<Props> = ({ data, primaryColor = '#1a1a1a' }) => 
             {personal.firstName} {personal.middleName || ''} {personal.lastName}
           </Text>
           <Text style={{ ...styles.contact, marginTop: 4 }}>{contactParts.join('  |  ')}</Text>
-          {linkedin && <Text style={{ ...styles.contact, marginTop: 2 }}>{linkedin}</Text>}
+          {[linkedin, github, portfolio].filter(Boolean).map((c, i) => <Text key={i} style={{ ...styles.contact, marginTop: 2 }}>{c}</Text>)}
         </View>
         <View style={{ ...styles.divider, backgroundColor: primaryColor }} />
 
@@ -100,8 +103,12 @@ const AiTemplate1PDF: React.FC<Props> = ({ data, primaryColor = '#1a1a1a' }) => 
             <View style={{ ...styles.divider, backgroundColor: primaryColor }} />
             {projects.filter(p => p.enabled).map((p: any, i) => (
               <View key={i} style={{ marginBottom: 8 }}>
-                <Text style={{ ...styles.itemTitle, fontFamily: 'Helvetica-Bold' }}>{p.projectTitle}</Text>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                  <Text style={{ ...styles.itemTitle, fontFamily: 'Helvetica-Bold' }}>{p.projectTitle}</Text>
+                  {(p.startDate || p.endDate || p.currentlyWorking) ? <Text style={{ fontSize: 8.5, color: '#9ca3af' }}>{fmtDate(p.startDate)}{(p.currentlyWorking || p.endDate) ? ` – ${p.currentlyWorking ? 'Present' : fmtDate(p.endDate)}` : ''}</Text> : null}
+                </View>
                 {p.description && renderBullets(p.description)}
+                {p.rolesResponsibilities && renderBullets(p.rolesResponsibilities)}
               </View>
             ))}
           </>
@@ -114,6 +121,7 @@ const AiTemplate1PDF: React.FC<Props> = ({ data, primaryColor = '#1a1a1a' }) => 
           <View key={i} style={{ marginBottom: 6 }}>
             <Text style={{ ...styles.itemTitle, fontFamily: 'Helvetica-Bold' }}>{edu.degree} — {edu.fieldOfStudy}</Text>
             <Text style={styles.itemSub}>{edu.instituteName} | {fmtYear(edu.startYear)} – {edu.currentlyPursuing ? 'Present' : fmtYear(edu.endYear)}</Text>
+            {edu.universityBoard ? <Text style={styles.itemSub}>{edu.universityBoard}</Text> : null}
             {edu.resultFormat && edu.result && <Text style={styles.body}>{edu.resultFormat}: {edu.result}</Text>}
           </View>
         ))}
@@ -138,6 +146,15 @@ const AiTemplate1PDF: React.FC<Props> = ({ data, primaryColor = '#1a1a1a' }) => 
             <Text style={{ ...styles.sectionHeading, fontFamily: 'Helvetica-Bold', color: primaryColor }}>Skills</Text>
             <View style={{ ...styles.divider, backgroundColor: primaryColor }} />
             <Text style={styles.body}>{skillsLinks.skills.filter(s => s.enabled && s.skillName).map(s => s.skillName).join(', ')}</Text>
+          </>
+        )}
+
+        {/* Languages */}
+        {languages.length > 0 && (
+          <>
+            <Text style={{ ...styles.sectionHeading, fontFamily: 'Helvetica-Bold', color: primaryColor }}>Languages</Text>
+            <View style={{ ...styles.divider, backgroundColor: primaryColor }} />
+            <Text style={styles.body}>{languages.join(', ')}</Text>
           </>
         )}
 

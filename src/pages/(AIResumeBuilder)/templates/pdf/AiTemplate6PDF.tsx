@@ -39,6 +39,9 @@ const AiTemplate6PDF: React.FC<Props> = ({ data, primaryColor = '#4338ca' }) => 
   const { personal, experience, education, projects, skillsLinks, certifications } = data;
   const contactParts = [personal.email, personal.mobileNumber, personal.address].filter(Boolean);
   const linkedin = skillsLinks?.links?.linkedinProfile || '';
+  const github = skillsLinks?.links?.githubProfile || '';
+  const portfolio = skillsLinks?.links?.portfolioUrl || '';
+  const languages: string[] = (personal as any).languagesKnown || [];
 
   return (
     <Document>
@@ -54,7 +57,7 @@ const AiTemplate6PDF: React.FC<Props> = ({ data, primaryColor = '#4338ca' }) => 
             </Text>
             {experience.jobRole && <Text style={{ fontSize: 10, color: '#666', marginTop: 3, letterSpacing: 1 }}>{experience.jobRole}</Text>}
             <View style={{ height: 1, backgroundColor: '#ddd', marginTop: 8, marginBottom: 4 }} />
-            <Text style={{ fontSize: 8, color: '#666', marginTop: 2 }}>{contactParts.join('  •  ')}{linkedin ? `  •  ${linkedin}` : ''}</Text>
+            <Text style={{ fontSize: 8, color: '#666', marginTop: 2 }}>{[...contactParts, linkedin, github, portfolio].filter(Boolean).join('  •  ')}</Text>
           </View>
 
           {/* Two-column layout for main content */}
@@ -95,8 +98,12 @@ const AiTemplate6PDF: React.FC<Props> = ({ data, primaryColor = '#4338ca' }) => 
                   <View style={{ height: 1, backgroundColor: primaryColor, marginBottom: 6 }} />
                   {projects.filter(p => p.enabled).map((p: any, i) => (
                     <View key={i} style={{ marginBottom: 10 }}>
-                      <Text style={{ fontSize: 10, fontFamily: 'Helvetica-Bold' }}>{p.projectTitle}</Text>
+                      <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                        <Text style={{ fontSize: 10, fontFamily: 'Helvetica-Bold' }}>{p.projectTitle}</Text>
+                        {(p.startDate || p.endDate || p.currentlyWorking) ? <Text style={{ fontSize: 8.5, color: '#9ca3af' }}>{fmtDate(p.startDate)}{(p.currentlyWorking || p.endDate) ? ` – ${p.currentlyWorking ? 'Present' : fmtDate(p.endDate)}` : ''}</Text> : null}
+                      </View>
                       {p.description && renderBullets(p.description)}
+                      {p.rolesResponsibilities && renderBullets(p.rolesResponsibilities)}
                     </View>
                   ))}
                 </View>
@@ -113,8 +120,7 @@ const AiTemplate6PDF: React.FC<Props> = ({ data, primaryColor = '#4338ca' }) => 
                   <View key={i} style={{ marginBottom: 8 }}>
                     <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold' }}>{edu.degree}</Text>
                     <Text style={{ fontSize: 8, color: '#555' }}>{edu.fieldOfStudy}</Text>
-                    <Text style={{ fontSize: 8, color: '#555' }}>{edu.instituteName}</Text>
-                    <Text style={{ fontSize: 7, color: '#777' }}>{fmtYear(edu.startYear)} – {edu.currentlyPursuing ? 'Present' : fmtYear(edu.endYear)}</Text>
+                    <Text style={{ fontSize: 8, color: '#555' }}>{edu.instituteName}</Text>                  {edu.universityBoard ? <Text style={{ fontSize: 8, color: '#555' }}>{edu.universityBoard}</Text> : null}                    <Text style={{ fontSize: 7, color: '#777' }}>{fmtYear(edu.startYear)} – {edu.currentlyPursuing ? 'Present' : fmtYear(edu.endYear)}</Text>
                     {edu.resultFormat && edu.result && <Text style={{ fontSize: 7, color: '#777' }}>{edu.resultFormat}: {edu.result}</Text>}
                   </View>
                 ))}
@@ -153,6 +159,13 @@ const AiTemplate6PDF: React.FC<Props> = ({ data, primaryColor = '#4338ca' }) => 
                   {certifications.filter(c => c.enabled && c.certificateTitle).map((c, i) => (
                     <Text key={i} style={{ fontSize: 8, color: '#333', marginBottom: 2 }}>• {c.certificateTitle}</Text>
                   ))}
+                </View>
+              )}
+              {languages.length > 0 && (
+                <View style={{ marginBottom: 14 }}>
+                  <Text style={{ fontSize: 10, fontFamily: 'Helvetica-Bold', color: primaryColor, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 4 }}>Languages</Text>
+                  <View style={{ height: 1, backgroundColor: primaryColor, marginBottom: 6 }} />
+                  {languages.map((l, i) => <Text key={i} style={{ fontSize: 8, color: '#333', marginBottom: 2 }}>• {l}</Text>)}
                 </View>
               )}
             </View>

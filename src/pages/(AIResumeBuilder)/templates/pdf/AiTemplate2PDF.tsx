@@ -34,14 +34,14 @@ const fmtDate = (s?: string) => {
 const fmtYear = (s?: string) => { if (!s) return ''; const m = String(s).match(/(\d{4})/); return m ? m[1] : String(s); };
 
 const styles = StyleSheet.create({
-  page: { paddingTop: 0, paddingBottom: 24, paddingLeft: 0, paddingRight: 0, fontSize: 9 },
+  page: { paddingTop: 28, paddingBottom: 24, paddingLeft: 0, paddingRight: 0, fontSize: 9 },
   header: { backgroundColor: '#1e3a5f', paddingVertical: 24, paddingHorizontal: 40, color: '#fff' },
   name: { fontSize: 28, fontFamily: 'Helvetica-Bold', color: '#fff', letterSpacing: 1 },
   subtitle: { fontSize: 10, color: '#c4d9f2', marginTop: 4 },
   content: { paddingHorizontal: 40, paddingTop: 16 },
   sectionHeading: { fontSize: 10, fontFamily: 'Helvetica-Bold', letterSpacing: 2, textTransform: 'uppercase', marginTop: 14, marginBottom: 2 },
   divider: { height: 1.5, width: '100%', marginBottom: 6 },
-  body: { fontSize: 9, color: '#333', lineHeight: 1.5 },
+  body: { fontSize: 9, color: '#333', lineHeight: 1.5,textAlgin: 'justify' },
   itemTitle: { fontSize: 10, fontFamily: 'Helvetica-Bold' },
   itemSub: { fontSize: 9, color: '#555' },
 });
@@ -52,6 +52,9 @@ const AiTemplate2PDF: React.FC<Props> = ({ data, primaryColor = '#1e3a5f' }) => 
   const { personal, experience, education, projects, skillsLinks, certifications } = data;
   const contactParts = [personal.email, personal.mobileNumber, personal.address].filter(Boolean);
   const linkedin = skillsLinks?.links?.linkedinProfile || '';
+  const github = skillsLinks?.links?.githubProfile || '';
+  const portfolio = skillsLinks?.links?.portfolioUrl || '';
+  const languages: string[] = (personal as any).languagesKnown || [];
 
   return (
     <Document>
@@ -59,7 +62,7 @@ const AiTemplate2PDF: React.FC<Props> = ({ data, primaryColor = '#1e3a5f' }) => 
         {/* Colored header band */}
         <View style={{ ...styles.header, backgroundColor: primaryColor }}>
           <Text style={styles.name}>{personal.firstName} {personal.middleName || ''} {personal.lastName}</Text>
-          <Text style={styles.subtitle}>{contactParts.join('  •  ')}{linkedin ? `  •  ${linkedin}` : ''}</Text>
+          <Text style={styles.subtitle}>{[...contactParts, linkedin, github, portfolio].filter(Boolean).join('  •  ')}</Text>
         </View>
 
         <View style={styles.content}>
@@ -97,8 +100,12 @@ const AiTemplate2PDF: React.FC<Props> = ({ data, primaryColor = '#1e3a5f' }) => 
               <View style={{ ...styles.divider, backgroundColor: primaryColor }} />
               {projects.filter(p => p.enabled).map((p: any, i) => (
                 <View key={i} style={{ marginBottom: 8 }}>
-                  <Text style={styles.itemTitle}>{p.projectTitle}</Text>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                    <Text style={styles.itemTitle}>{p.projectTitle}</Text>
+                    {(p.startDate || p.endDate || p.currentlyWorking) ? <Text style={{ fontSize: 8.5, color: '#9ca3af' }}>{fmtDate(p.startDate)}{(p.currentlyWorking || p.endDate) ? ` – ${p.currentlyWorking ? 'Present' : fmtDate(p.endDate)}` : ''}</Text> : null}
+                  </View>
                   {p.description && renderBullets(p.description)}
+                  {p.rolesResponsibilities && renderBullets(p.rolesResponsibilities)}
                 </View>
               ))}
             </>
@@ -114,19 +121,26 @@ const AiTemplate2PDF: React.FC<Props> = ({ data, primaryColor = '#1e3a5f' }) => 
                 <Text style={styles.itemSub}>{fmtYear(edu.startYear)} – {edu.currentlyPursuing ? 'Present' : fmtYear(edu.endYear)}</Text>
               </View>
               <Text style={styles.itemSub}>{edu.instituteName}</Text>
+              {edu.universityBoard ? <Text style={styles.itemSub}>{edu.universityBoard}</Text> : null}
               {edu.resultFormat && edu.result && <Text style={styles.body}>{edu.resultFormat}: {edu.result}</Text>}
             </View>
           ))}
           {education.preUniversityEnabled && education.preUniversity?.instituteName && (
             <View style={{ marginBottom: 6 }}>
-              <Text style={styles.itemTitle}>Pre University (12th)</Text>
-              <Text style={styles.itemSub}>{education.preUniversity.instituteName} | {fmtYear(education.preUniversity.yearOfPassing)}</Text>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                <Text style={styles.itemTitle}>Pre University (12th)</Text>
+                <Text style={styles.itemSub}>{fmtYear(education.preUniversity.yearOfPassing)}</Text>
+              </View>
+              <Text style={styles.itemSub}>{education.preUniversity.instituteName}</Text>
             </View>
           )}
           {education.sslcEnabled && education.sslc?.instituteName && (
             <View style={{ marginBottom: 6 }}>
-              <Text style={styles.itemTitle}>SSLC (10th)</Text>
-              <Text style={styles.itemSub}>{education.sslc.instituteName} | {fmtYear(education.sslc.yearOfPassing)}</Text>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                <Text style={styles.itemTitle}>SSLC (10th)</Text>
+                <Text style={styles.itemSub}>{fmtYear(education.sslc.yearOfPassing)}</Text>
+              </View>
+              <Text style={styles.itemSub}>{education.sslc.instituteName}</Text>
             </View>
           )}
 
@@ -136,6 +150,15 @@ const AiTemplate2PDF: React.FC<Props> = ({ data, primaryColor = '#1e3a5f' }) => 
               <Text style={{ ...styles.sectionHeading, color: primaryColor }}>Skills</Text>
               <View style={{ ...styles.divider, backgroundColor: primaryColor }} />
               <Text style={styles.body}>{skillsLinks.skills.filter(s => s.enabled && s.skillName).map(s => s.skillName).join(', ')}</Text>
+            </>
+          )}
+
+          {/* Languages */}
+          {languages.length > 0 && (
+            <>
+              <Text style={{ ...styles.sectionHeading, color: primaryColor }}>Languages</Text>
+              <View style={{ ...styles.divider, backgroundColor: primaryColor }} />
+              <Text style={styles.body}>{languages.join(', ')}</Text>
             </>
           )}
 

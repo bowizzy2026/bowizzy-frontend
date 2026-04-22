@@ -22,6 +22,9 @@ const AiTemplate9Display: React.FC<Props> = ({ data, primaryColor = '#334155' })
   const { personal, experience, education, projects, skillsLinks, certifications } = data;
   const contactParts = [personal.email, personal.mobileNumber, personal.address].filter(Boolean);
   const linkedin = skillsLinks?.links?.linkedinProfile || '';
+  const github = skillsLinks?.links?.githubProfile || '';
+  const portfolio = skillsLinks?.links?.portfolioUrl || '';
+  const languages: string[] = (personal as any).languagesKnown || [];
   const initials = `${(personal.firstName || '')[0] || ''}${(personal.lastName || '')[0] || ''}`.toUpperCase();
 
   const SectionTitle = ({ title }: { title: string }) => (
@@ -49,7 +52,7 @@ const AiTemplate9Display: React.FC<Props> = ({ data, primaryColor = '#334155' })
         </div>
         <div style={{ textAlign: 'right' }}>
           {contactParts.map((c, i) => <p key={i} style={{ fontSize: 8.5, color: '#e2e8f0', margin: 0 }}>{c}</p>)}
-          {linkedin && <p style={{ fontSize: 8, color: '#93c5fd', margin: 0 }}>{linkedin}</p>}
+          {[linkedin, github, portfolio].filter(Boolean).map((c, i) => <p key={i} style={{ fontSize: 8, color: '#93c5fd', margin: 0 }}>{c}</p>)}
         </div>
       </div>
 
@@ -87,9 +90,13 @@ const AiTemplate9Display: React.FC<Props> = ({ data, primaryColor = '#334155' })
             <SectionTitle title="Projects" />
             {projects.filter(p => p.enabled).map((p: any, i) => (
               <div key={i} style={{ marginBottom: 12 }}>
-                <strong style={{ fontSize: 10.5, color: '#0f172a' }}>{p.projectTitle}</strong>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                  <strong style={{ fontSize: 10.5, color: '#0f172a' }}>{p.projectTitle}</strong>
+                  {(p.startDate || p.endDate || p.currentlyWorking) && <span style={{ fontSize: 8.5, color: '#94a3b8' }}>{fmtDate(p.startDate)}{(p.currentlyWorking || p.endDate) ? ` – ${p.currentlyWorking ? 'Present' : fmtDate(p.endDate)}` : ''}</span>}
+                </div>
                 <ul style={{ margin: '4px 0 0 16px', padding: 0, fontSize: 9, color: '#475569', lineHeight: 1.6 }}>
                   {htmlToLines(p.description).map((line, j) => <li key={j} style={{ marginBottom: 2 }}>{line.replace(/^[•\-]\s*/, '')}</li>)}
+                  {htmlToLines(p.rolesResponsibilities).map((line, j) => <li key={j} style={{ marginBottom: 2 }}>{line.replace(/^[•\-]\s*/, '')}</li>)}
                 </ul>
               </div>
             ))}
@@ -104,6 +111,7 @@ const AiTemplate9Display: React.FC<Props> = ({ data, primaryColor = '#334155' })
               <div key={i} style={{ marginBottom: 7 }}>
                 <strong style={{ fontSize: 10, color: '#0f172a' }}>{edu.degree} — {edu.fieldOfStudy}</strong>
                 <p style={{ fontSize: 9, color: '#64748b', margin: 0 }}>{edu.instituteName}</p>
+                {edu.universityBoard && <p style={{ fontSize: 9, color: '#64748b', margin: 0 }}>{edu.universityBoard}</p>}
                 <p style={{ fontSize: 8.5, color: '#94a3b8', margin: 0 }}>{fmtYear(edu.startYear)} – {edu.currentlyPursuing ? 'Present' : fmtYear(edu.endYear)}</p>
                 {edu.resultFormat && edu.result && <p style={{ fontSize: 8.5, color: '#475569', margin: 0 }}>{edu.resultFormat}: {edu.result}</p>}
               </div>
@@ -144,6 +152,16 @@ const AiTemplate9Display: React.FC<Props> = ({ data, primaryColor = '#334155' })
                     • {c.certificateTitle}{c.providedBy ? ` — ${c.providedBy}` : ''}
                   </p>
                 ))}
+              </>
+            )}
+            {languages.length > 0 && (
+              <>
+                <SectionTitle title="Languages" />
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+                  {languages.map((l, i) => (
+                    <span key={i} style={{ fontSize: 8.5, color: '#fff', backgroundColor: primaryColor, padding: '3px 10px', borderRadius: 12 }}>{l}</span>
+                  ))}
+                </div>
               </>
             )}
           </div>

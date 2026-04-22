@@ -40,9 +40,9 @@ function formatDate(dateStr?: string | null): string {
 
 const HARDCODED_QUESTIONS = [
   "Can you give me a brief about yourself?",
-  "Can you tell me about the projects you have worked on?",
-  "Can you tell me about your work experience?",
-  "Can you give me your education details and certifications you have achieved, and from which source?",
+  "Are these your projects? Feel free to remove any that don't apply or mention additional projects you'd like to add.",
+  "Are these your work experiences? Feel free to remove any that don't apply or mention additional experiences you'd like to add.",
+  "Are these your education details? Feel free to remove any that don't apply or mention additional education you'd like to add.",
   "Are these your skills? Feel free to remove any that don't apply or mention additional skills you'd like to add.",
   "Are these your links? Remove any you don't want included or mention any additional links.",
   "Are these your certificates? Remove any you don't want included or mention any additional certificates.",
@@ -589,6 +589,7 @@ export default function AIBuilder() {
               onSend={handleSend}
               onFileUpload={handleFileUpload}
               onStart={handleStart}
+              token={token}
               activeChips={activeChipState?.chips}
               onChipDelete={handleChipDelete}
               onChipUndo={handleChipUndo}

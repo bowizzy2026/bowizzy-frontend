@@ -45,6 +45,12 @@ const AiTemplate7PDF: React.FC<Props> = ({ data, primaryColor = '#374151' }) => 
   const { personal, experience, education, projects, skillsLinks, certifications } = data;
   const contactParts = [personal.email, personal.mobileNumber, personal.address].filter(Boolean);
   const linkedin = skillsLinks?.links?.linkedinProfile || '';
+  const github = skillsLinks?.links?.githubProfile || '';
+  const portfolio = skillsLinks?.links?.portfolioUrl || '';
+  const languages: string[] = (personal as any).languagesKnown || [];
+  const github = skillsLinks?.links?.githubProfile || '';
+  const portfolio = skillsLinks?.links?.portfolioUrl || '';
+  const languages: string[] = (personal as any).languagesKnown || [];
 
   return (
     <Document>
@@ -54,10 +60,14 @@ const AiTemplate7PDF: React.FC<Props> = ({ data, primaryColor = '#374151' }) => 
           <Text style={{ fontSize: 28, fontFamily: 'Helvetica-Bold', color: primaryColor, letterSpacing: 0.5 }}>
             {personal.firstName} {personal.middleName || ''} {personal.lastName}
           </Text>
-          {experience.jobRole && <Text style={{ fontSize: 11, color: '#6b7280', marginTop: 3 }}>{experience.jobRole}</Text>}
+          {experience.jobRole && <Text style={{ fontSize: 11, color: '#6b7280', marginTop: 3 }}>
+            {github && <Text style={{ fontSize: 8.5, color: primaryColor }}>{github}</Text>}
+            {portfolio && <Text style={{ fontSize: 8.5, color: primaryColor }}>{portfolio}</Text>}{experience.jobRole}</Text>}
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginTop: 6 }}>
             {contactParts.map((c, i) => <Text key={i} style={{ fontSize: 8.5, color: '#6b7280' }}>{c}</Text>)}
             {linkedin && <Text style={{ fontSize: 8.5, color: primaryColor }}>{linkedin}</Text>}
+            {github && <Text style={{ fontSize: 8.5, color: primaryColor }}>{github}</Text>}
+            {portfolio && <Text style={{ fontSize: 8.5, color: primaryColor }}>{portfolio}</Text>}
           </View>
         </View>
         <View style={{ height: 1.5, backgroundColor: primaryColor, marginBottom: 10 }} />
@@ -90,8 +100,12 @@ const AiTemplate7PDF: React.FC<Props> = ({ data, primaryColor = '#374151' }) => 
             <SectionHeader title="Projects" color={primaryColor} />
             {projects.filter(p => p.enabled).map((p: any, i) => (
               <View key={i} style={{ marginBottom: 10 }}>
-                <Text style={{ fontSize: 10.5, fontFamily: 'Helvetica-Bold', color: '#111827' }}>{p.projectTitle}</Text>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                  <Text style={{ fontSize: 10.5, fontFamily: 'Helvetica-Bold', color: '#111827' }}>{p.projectTitle}</Text>
+                  {(p.startDate || p.endDate || p.currentlyWorking) ? <Text style={{ fontSize: 8.5, color: '#9ca3af' }}>{fmtDate(p.startDate)}{(p.currentlyWorking || p.endDate) ? ` – ${p.currentlyWorking ? 'Present' : fmtDate(p.endDate)}` : ''}</Text> : null}
+                </View>
                 {p.description && renderBullets(p.description)}
+                {p.rolesResponsibilities && renderBullets(p.rolesResponsibilities)}
               </View>
             ))}
           </>
@@ -105,6 +119,7 @@ const AiTemplate7PDF: React.FC<Props> = ({ data, primaryColor = '#374151' }) => 
               <Text style={{ fontSize: 8.5, color: '#9ca3af' }}>{fmtYear(edu.startYear)} – {edu.currentlyPursuing ? 'Present' : fmtYear(edu.endYear)}</Text>
             </View>
             <Text style={{ fontSize: 9, color: '#6b7280' }}>{edu.instituteName}</Text>
+            {edu.universityBoard ? <Text style={{ fontSize: 9, color: '#6b7280' }}>{edu.universityBoard}</Text> : null}
             {edu.resultFormat && edu.result && <Text style={{ fontSize: 9, color: '#4b5563' }}>{edu.resultFormat}: {edu.result}</Text>}
           </View>
         ))}
@@ -124,9 +139,23 @@ const AiTemplate7PDF: React.FC<Props> = ({ data, primaryColor = '#374151' }) => 
         {skillsLinks.skills.some(s => s.enabled && s.skillName) && (
           <>
             <SectionHeader title="Skills" color={primaryColor} />
-            <Text style={{ fontSize: 9.5, color: '#4b5563', lineHeight: 1.6 }}>
+         languages.length > 0 && (
+          <>
+            <SectionHeader title="Languages" color={primaryColor} />
+            <Text style={{ fontSize: 9.5, color: '#4b5563' }}>{languages.join('  ·  ')}</Text>
+          </>
+        )}
+
+        {   <Text style={{ fontSize: 9.5, color: '#4b5563', lineHeight: 1.6 }}>
               {skillsLinks.skills.filter(s => s.enabled && s.skillName).map(s => s.skillName).join('  ·  ')}
             </Text>
+          </>
+        )}
+
+        {languages.length > 0 && (
+          <>
+            <SectionHeader title="Languages" color={primaryColor} />
+            <Text style={{ fontSize: 9.5, color: '#4b5563' }}>{languages.join('  ·  ')}</Text>
           </>
         )}
 

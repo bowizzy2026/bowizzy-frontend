@@ -550,7 +550,7 @@ export const ProjectsForm: React.FC<ProjectsFormProps> = ({
               data.length > 1 ? () => removeProject(project.id) : undefined
             }
             showActions={true}
-            isCollapsed={collapsedStates[project.id] || false}
+            isCollapsed={collapsedStates[project.id] !== undefined ? collapsedStates[project.id] : true}
             onCollapseToggle={() => toggleCollapse(project.id)}
           >
             <FormInput

@@ -22,6 +22,9 @@ const AiTemplate8Display: React.FC<Props> = ({ data, primaryColor = '#1e293b' })
   const { personal, experience, education, projects, skillsLinks, certifications } = data;
   const contactParts = [personal.email, personal.mobileNumber, personal.address].filter(Boolean);
   const linkedin = skillsLinks?.links?.linkedinProfile || '';
+  const github = skillsLinks?.links?.githubProfile || '';
+  const portfolio = skillsLinks?.links?.portfolioUrl || '';
+  const languages: string[] = (personal as any).languagesKnown || [];
 
   const SectionTitle = ({ title }: { title: string }) => (
     <div style={{ marginTop: 16, marginBottom: 8 }}>
@@ -43,7 +46,7 @@ const AiTemplate8Display: React.FC<Props> = ({ data, primaryColor = '#1e293b' })
           </div>
           <div style={{ textAlign: 'right' }}>
             {contactParts.map((c, i) => <p key={i} style={{ fontSize: 8.5, color: '#475569', margin: 0 }}>{c}</p>)}
-            {linkedin && <p style={{ fontSize: 8, color: primaryColor, margin: 0 }}>{linkedin}</p>}
+            {[linkedin, github, portfolio].filter(Boolean).map((c, i) => <p key={i} style={{ fontSize: 8, color: primaryColor, margin: 0 }}>{c}</p>)}
           </div>
         </div>
       </div>
@@ -81,9 +84,13 @@ const AiTemplate8Display: React.FC<Props> = ({ data, primaryColor = '#1e293b' })
           <SectionTitle title="Projects" />
           {projects.filter(p => p.enabled).map((p: any, i) => (
             <div key={i} style={{ marginBottom: 10, paddingLeft: 10, borderLeft: `2px solid ${primaryColor}20` }}>
-              <strong style={{ fontSize: 10.5, color: '#0f172a' }}>{p.projectTitle}</strong>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                <strong style={{ fontSize: 10.5, color: '#0f172a' }}>{p.projectTitle}</strong>
+                {(p.startDate || p.endDate || p.currentlyWorking) && <span style={{ fontSize: 8.5, color: '#94a3b8' }}>{fmtDate(p.startDate)}{(p.currentlyWorking || p.endDate) ? ` – ${p.currentlyWorking ? 'Present' : fmtDate(p.endDate)}` : ''}</span>}
+              </div>
               <ul style={{ margin: '3px 0 0 14px', padding: 0, fontSize: 9, color: '#475569', lineHeight: 1.5 }}>
                 {htmlToLines(p.description).map((line, j) => <li key={j} style={{ marginBottom: 1.5 }}>{line.replace(/^[•\-]\s*/, '')}</li>)}
+                {htmlToLines(p.rolesResponsibilities).map((line, j) => <li key={j} style={{ marginBottom: 1.5 }}>{line.replace(/^[•\-]\s*/, '')}</li>)}
               </ul>
             </div>
           ))}
@@ -99,6 +106,7 @@ const AiTemplate8Display: React.FC<Props> = ({ data, primaryColor = '#1e293b' })
             <span style={{ fontSize: 8.5, color: '#94a3b8' }}>{fmtYear(edu.startYear)} – {edu.currentlyPursuing ? 'Present' : fmtYear(edu.endYear)}</span>
           </div>
           <p style={{ fontSize: 9, color: '#64748b', margin: 0 }}>{edu.instituteName}</p>
+          {edu.universityBoard && <p style={{ fontSize: 9, color: '#64748b', margin: 0 }}>{edu.universityBoard}</p>}
           {edu.resultFormat && edu.result && <p style={{ fontSize: 9, color: '#475569', margin: 0 }}>{edu.resultFormat}: {edu.result}</p>}
         </div>
       ))}
@@ -126,6 +134,14 @@ const AiTemplate8Display: React.FC<Props> = ({ data, primaryColor = '#1e293b' })
               </span>
             ))}
           </div>
+        </>
+      )}
+
+      {/* Languages */}
+      {languages.length > 0 && (
+        <>
+          <SectionTitle title="Languages" />
+          <p style={{ fontSize: 9.5, color: '#334155', margin: 0 }}>{languages.join(', ')}</p>
         </>
       )}
 

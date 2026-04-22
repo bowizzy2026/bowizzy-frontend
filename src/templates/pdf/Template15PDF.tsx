@@ -193,6 +193,7 @@ const Template15PDF: React.FC<Template15PDFProps> = ({ data, primaryColor = '#0b
                   <Text style={{ fontSize: 11, color: '#6b7280' }}>{edu.resultFormat}: {edu.result}</Text>
                 ) : null}
               </View>
+              {edu.universityBoard ? <Text style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>{edu.universityBoard}</Text> : null}
             </View>
           ))}
 

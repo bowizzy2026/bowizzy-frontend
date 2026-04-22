@@ -22,6 +22,9 @@ const AiTemplate5Display: React.FC<Props> = ({ data, primaryColor = '#0f766e' })
   const { personal, experience, education, projects, skillsLinks, certifications } = data;
   const contactParts = [personal.email, personal.mobileNumber].filter(Boolean);
   const linkedin = skillsLinks?.links?.linkedinProfile || '';
+  const github = skillsLinks?.links?.githubProfile || '';
+  const portfolio = skillsLinks?.links?.portfolioUrl || '';
+  const languages: string[] = (personal as any).languagesKnown || [];
 
   const SectionTitle = ({ title }: { title: string }) => (
     <div style={{ display: 'flex', alignItems: 'center', marginTop: 14, marginBottom: 6 }}>
@@ -43,7 +46,7 @@ const AiTemplate5Display: React.FC<Props> = ({ data, primaryColor = '#0f766e' })
         <div style={{ textAlign: 'right' }}>
           {contactParts.map((c, i) => <p key={i} style={{ fontSize: 9, color: '#555', margin: 0 }}>{c}</p>)}
           {personal.address && <p style={{ fontSize: 9, color: '#555', margin: 0 }}>{personal.address}</p>}
-          {linkedin && <p style={{ fontSize: 8, color: primaryColor, margin: 0 }}>{linkedin}</p>}
+          {[linkedin, github, portfolio].filter(Boolean).map((c, i) => <p key={i} style={{ fontSize: 8, color: primaryColor, margin: 0 }}>{c}</p>)}
         </div>
       </div>
       <div style={{ height: 2, backgroundColor: primaryColor, marginBottom: 4 }} />
@@ -78,9 +81,13 @@ const AiTemplate5Display: React.FC<Props> = ({ data, primaryColor = '#0f766e' })
           <SectionTitle title="Projects" />
           {projects.filter(p => p.enabled).map((p: any, i) => (
             <div key={i} style={{ marginBottom: 10 }}>
-              <strong style={{ fontSize: 10 }}>{p.projectTitle}</strong>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                <strong style={{ fontSize: 10 }}>{p.projectTitle}</strong>
+                {(p.startDate || p.endDate || p.currentlyWorking) && <span style={{ fontSize: 9, color: '#555' }}>{fmtDate(p.startDate)}{(p.currentlyWorking || p.endDate) ? ` – ${p.currentlyWorking ? 'Present' : fmtDate(p.endDate)}` : ''}</span>}
+              </div>
               <ul style={{ margin: '2px 0 0 16px', padding: 0, fontSize: 9, color: '#333' }}>
                 {htmlToLines(p.description).map((line, j) => <li key={j} style={{ marginBottom: 1 }}>{line.replace(/^[•\-]\s*/, '')}</li>)}
+                {htmlToLines(p.rolesResponsibilities).map((line, j) => <li key={j} style={{ marginBottom: 1 }}>{line.replace(/^[•\-]\s*/, '')}</li>)}
               </ul>
             </div>
           ))}
@@ -95,6 +102,7 @@ const AiTemplate5Display: React.FC<Props> = ({ data, primaryColor = '#0f766e' })
             <span style={{ fontSize: 9, color: '#555' }}>{fmtYear(edu.startYear)} – {edu.currentlyPursuing ? 'Present' : fmtYear(edu.endYear)}</span>
           </div>
           <p style={{ fontSize: 9, color: '#555', margin: 0 }}>{edu.instituteName}</p>
+          {edu.universityBoard && <p style={{ fontSize: 9, color: '#555', margin: 0 }}>{edu.universityBoard}</p>}
         </div>
       ))}
       {education.preUniversityEnabled && education.preUniversity?.instituteName && (
@@ -118,6 +126,13 @@ const AiTemplate5Display: React.FC<Props> = ({ data, primaryColor = '#0f766e' })
               <span key={i} style={{ backgroundColor: '#e6f7f5', padding: '2px 8px', borderRadius: 3, fontSize: 8, color: primaryColor }}>{s.skillName}</span>
             ))}
           </div>
+        </>
+      )}
+
+      {languages.length > 0 && (
+        <>
+          <SectionTitle title="Languages" />
+          <p style={{ fontSize: 9, color: '#333', margin: 0 }}>{languages.join(', ')}</p>
         </>
       )}
 

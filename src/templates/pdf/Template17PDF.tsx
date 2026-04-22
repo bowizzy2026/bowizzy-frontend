@@ -190,6 +190,7 @@ const Template17PDF: React.FC<Template17PDFProps> = ({ data, primaryColor = '#11
           </View>
           )}
 
+          {(education.higherEducation.filter(edu => edu.enabled).length > 0 || education.preUniversityEnabled || education.sslcEnabled) && (
           <View style={{ marginTop: 18 }}>
             <Text style={styles.sectionHeading}>Education</Text>
             <View style={{ height: 1, backgroundColor: '#ddd', marginTop: 6, width: '100%' }} />
@@ -208,7 +209,7 @@ const Template17PDF: React.FC<Template17PDFProps> = ({ data, primaryColor = '#11
               ))}
 
               {/* Pre University */}
-              {(education.preUniversityEnabled || education.preUniversity.instituteName || education.higherEducation.length > 0) && (
+              {education.preUniversityEnabled && (
                 <View style={{ marginBottom: 10 }}>
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                     <Text style={{ fontSize: 11, fontFamily: pdfFontFamilyBold }}>{education.preUniversity.instituteName || 'Pre University'}</Text>
@@ -222,7 +223,7 @@ const Template17PDF: React.FC<Template17PDFProps> = ({ data, primaryColor = '#11
               )}
 
               {/* SSLC */}
-              {(education.sslcEnabled || education.sslc.instituteName || education.higherEducation.length > 0) && (
+              {education.sslcEnabled && (
                 <View style={{ marginBottom: 10 }}>
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                     <Text style={{ fontSize: 11, fontFamily: pdfFontFamilyBold }}>{education.sslc.instituteName || 'SSLC'}</Text>
@@ -237,6 +238,7 @@ const Template17PDF: React.FC<Template17PDFProps> = ({ data, primaryColor = '#11
 
             </View>
           </View>
+          )}
 
           {(certifications || []).some((c:any)=>c.enabled && c.certificateTitle) && (
           <View style={{ marginTop: 18 }}>

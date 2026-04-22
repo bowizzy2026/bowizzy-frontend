@@ -22,6 +22,8 @@ const AiTemplate3Display: React.FC<Props> = ({ data, primaryColor = '#2d3748' })
   const { personal, experience, education, projects, skillsLinks, certifications } = data;
   const linkedin = skillsLinks?.links?.linkedinProfile || '';
   const github = skillsLinks?.links?.githubProfile || '';
+  const portfolio = skillsLinks?.links?.portfolioUrl || '';
+  const languages: string[] = (personal as any).languagesKnown || [];
 
   const sidebarSectionTitle: React.CSSProperties = { fontSize: 9, fontWeight: 700, color: '#e2e8f0', letterSpacing: 1.5, textTransform: 'uppercase' as const, marginTop: 18, marginBottom: 4 };
   const mainSectionTitle: React.CSSProperties = { fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase' as const, color: primaryColor, marginBottom: 2, marginTop: 14 };
@@ -40,6 +42,7 @@ const AiTemplate3Display: React.FC<Props> = ({ data, primaryColor = '#2d3748' })
         {personal.address && <p style={{ fontSize: 8, color: '#e2e8f0', margin: '0 0 3px' }}>{personal.address}</p>}
         {linkedin && <p style={{ fontSize: 7, color: '#90cdf4', margin: '0 0 3px', wordBreak: 'break-all' }}>{linkedin}</p>}
         {github && <p style={{ fontSize: 7, color: '#90cdf4', margin: '0 0 3px', wordBreak: 'break-all' }}>{github}</p>}
+        {portfolio && <p style={{ fontSize: 7, color: '#90cdf4', margin: '0 0 3px', wordBreak: 'break-all' }}>{portfolio}</p>}
 
         <p style={sidebarSectionTitle}>Education</p>
         <div style={{ height: 1, backgroundColor: '#e2e8f0', marginBottom: 6 }} />
@@ -48,6 +51,7 @@ const AiTemplate3Display: React.FC<Props> = ({ data, primaryColor = '#2d3748' })
             <p style={{ fontSize: 9, fontWeight: 700, color: '#fff', margin: 0 }}>{edu.degree}</p>
             <p style={{ fontSize: 8, color: '#e2e8f0', margin: 0 }}>{edu.fieldOfStudy}</p>
             <p style={{ fontSize: 8, color: '#e2e8f0', margin: 0 }}>{edu.instituteName}</p>
+            {edu.universityBoard && <p style={{ fontSize: 8, color: '#e2e8f0', margin: 0 }}>{edu.universityBoard}</p>}
             <p style={{ fontSize: 7, color: '#a0aec0', margin: 0 }}>{fmtYear(edu.startYear)} – {edu.currentlyPursuing ? 'Present' : fmtYear(edu.endYear)}</p>
           </div>
         ))}
@@ -83,6 +87,13 @@ const AiTemplate3Display: React.FC<Props> = ({ data, primaryColor = '#2d3748' })
             {certifications.filter(c => c.enabled && c.certificateTitle).map((c, i) => (
               <p key={i} style={{ fontSize: 8, color: '#e2e8f0', margin: '0 0 2px' }}>• {c.certificateTitle}</p>
             ))}
+          </>
+        )}
+        {languages.length > 0 && (
+          <>
+            <p style={sidebarSectionTitle}>Languages</p>
+            <div style={{ height: 1, backgroundColor: '#e2e8f0', marginBottom: 6 }} />
+            {languages.map((l, i) => <p key={i} style={{ fontSize: 8, color: '#e2e8f0', margin: '0 0 2px' }}>• {l}</p>)}
           </>
         )}
       </div>
@@ -122,9 +133,13 @@ const AiTemplate3Display: React.FC<Props> = ({ data, primaryColor = '#2d3748' })
             <div style={{ height: 1, backgroundColor: primaryColor, marginBottom: 6 }} />
             {projects.filter(p => p.enabled).map((p: any, i) => (
               <div key={i} style={{ marginBottom: 10 }}>
-                <strong style={{ fontSize: 10 }}>{p.projectTitle}</strong>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                  <strong style={{ fontSize: 10 }}>{p.projectTitle}</strong>
+                  {(p.startDate || p.endDate || p.currentlyWorking) && <span style={{ fontSize: 9, color: '#555' }}>{fmtDate(p.startDate)}{(p.currentlyWorking || p.endDate) ? ` – ${p.currentlyWorking ? 'Present' : fmtDate(p.endDate)}` : ''}</span>}
+                </div>
                 <ul style={{ margin: '2px 0 0 16px', padding: 0, fontSize: 9, color: '#333' }}>
                   {htmlToLines(p.description).map((line, j) => <li key={j} style={{ marginBottom: 1 }}>{line.replace(/^[•\-]\s*/, '')}</li>)}
+                  {htmlToLines(p.rolesResponsibilities).map((line, j) => <li key={j} style={{ marginBottom: 1 }}>{line.replace(/^[•\-]\s*/, '')}</li>)}
                 </ul>
               </div>
             ))}

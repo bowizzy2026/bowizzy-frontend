@@ -17,15 +17,20 @@ export function mapInfoJsonToResumeData(info: any): ResumeData {
   const links = info.links || [];
   const techSummary = info.enhanced_technical_summary || info.technical_summary_generated || info.technical_summary || "";
 
-  // Extract linkedin/github from links array
+  // Extract linkedin/github from links array (first of each type)
   const linkedinLink = links.find((l: any) => l.link_type === "linkedin");
   const githubLink = links.find((l: any) => l.link_type === "github");
   const portfolioLink = links.find((l: any) => l.link_type === "portfolio");
 
-  // Parse education into sslc, puc, higher
+  // Parse education into sslc, puc, higher (include "other" as higher education)
   const sslcEdu = eduList.find((e: any) => e.education_type === "sslc");
   const pucEdu = eduList.find((e: any) => e.education_type === "puc");
-  const higherEdus = eduList.filter((e: any) => e.education_type === "higher");
+  const higherEdus = eduList.filter((e: any) => e.education_type === "higher" || e.education_type === "other");
+
+  // Merge user skills + AI-generated skills
+  const rawSkills: any[] = info.skills || [];
+  const aiSkills: any[] = info.ai_skills || [];
+  const allSkills = [...rawSkills, ...aiSkills];
 
   return {
     personal: {
@@ -95,7 +100,9 @@ export function mapInfoJsonToResumeData(info: any): ResumeData {
         startDate: exp.start_date || "",
         endDate: exp.end_date || "",
         currentlyWorking: exp.currently_working_here || false,
-        description: exp.enhanced_description || exp.description || "",
+        description: Array.isArray(exp.enhanced_description)
+          ? exp.enhanced_description.map((d: string) => `• ${d}`).join("\n")
+          : exp.enhanced_description || exp.description || "",
         enabled: true,
       })),
     },
@@ -110,11 +117,18 @@ export function mapInfoJsonToResumeData(info: any): ResumeData {
       description: Array.isArray(p.enhanced_description)
         ? p.enhanced_description.map((d: string) => `• ${d}`).join("\n")
         : p.enhanced_description || p.description || "",
-      rolesResponsibilities: p.roles_responsibilities || "",
+      rolesResponsibilities: Array.isArray(p.roles_responsibilities)
+        ? p.roles_responsibilities.map((r: string) => `• ${r}`).join("\n")
+        : p.roles_responsibilities || "",
       enabled: true,
     })),
     skillsLinks: {
-      skills: [], // infoJson doesn't have a separate skills array
+      skills: allSkills.map((s: any, i: number) => ({
+          id: `skill-${i}`,
+          skillName: s.skill_name || "",
+          skillLevel: s.skill_level === "N/A" ? "" : (s.skill_level || ""),
+          enabled: true,
+        })),
       links: {
         linkedinProfile: linkedinLink?.url || pd.linkedin_url || "",
         linkedinEnabled: !!(linkedinLink?.url || pd.linkedin_url),
@@ -137,7 +151,7 @@ export function mapInfoJsonToResumeData(info: any): ResumeData {
       certificateType: c.certificate_type || "",
       certificateTitle: c.certificate_title || c.title || "",
       domain: c.domain || "",
-      providedBy: c.provided_by || "",
+      providedBy: c.certificate_provided_by || c.provided_by || "",
       date: c.date || "",
       description: c.description || "",
       certificateUrl: c.certificate_url || "",

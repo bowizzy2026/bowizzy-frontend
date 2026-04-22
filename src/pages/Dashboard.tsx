@@ -428,8 +428,11 @@ export default function Dashboard() {
                   </div>
                 </div>
                 <p className="text-center text-xs text-gray-600 mt-3">
-                  {profileProgress.message ||
-                    "Complete your profile to improve score"}
+                  {
+                    profileProgress.percentage ?
+                      `${profileProgress.percentage}% Complete` :
+                      "Complete your profile to improve score"
+                  }
                 </p>
                 <button
                   type="button"

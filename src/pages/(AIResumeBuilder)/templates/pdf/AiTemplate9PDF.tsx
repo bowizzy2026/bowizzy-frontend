@@ -46,6 +46,9 @@ const AiTemplate9PDF: React.FC<Props> = ({ data, primaryColor = '#334155' }) => 
   const { personal, experience, education, projects, skillsLinks, certifications } = data;
   const contactParts = [personal.email, personal.mobileNumber, personal.address].filter(Boolean);
   const linkedin = skillsLinks?.links?.linkedinProfile || '';
+  const github = skillsLinks?.links?.githubProfile || '';
+  const portfolio = skillsLinks?.links?.portfolioUrl || '';
+  const languages: string[] = (personal as any).languagesKnown || [];
   const initials = `${(personal.firstName || '')[0] || ''}${(personal.lastName || '')[0] || ''}`.toUpperCase();
 
   return (
@@ -64,7 +67,7 @@ const AiTemplate9PDF: React.FC<Props> = ({ data, primaryColor = '#334155' }) => 
           </View>
           <View style={{ alignItems: 'flex-end' }}>
             {contactParts.map((c, i) => <Text key={i} style={{ fontSize: 8.5, color: '#e2e8f0' }}>{c}</Text>)}
-            {linkedin && <Text style={{ fontSize: 8, color: '#93c5fd' }}>{linkedin}</Text>}
+            {[linkedin, github, portfolio].filter(Boolean).map((c, i) => <Text key={i} style={{ fontSize: 8, color: '#93c5fd' }}>{c}</Text>)}
           </View>
         </View>
 
@@ -97,8 +100,12 @@ const AiTemplate9PDF: React.FC<Props> = ({ data, primaryColor = '#334155' }) => 
               <SectionTitle title="Projects" color={primaryColor} />
               {projects.filter(p => p.enabled).map((p: any, i) => (
                 <View key={i} style={{ marginBottom: 12 }}>
-                  <Text style={{ fontSize: 10.5, fontFamily: 'Helvetica-Bold', color: '#0f172a' }}>{p.projectTitle}</Text>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                    <Text style={{ fontSize: 10.5, fontFamily: 'Helvetica-Bold', color: '#0f172a' }}>{p.projectTitle}</Text>
+                    {(p.startDate || p.endDate || p.currentlyWorking) ? <Text style={{ fontSize: 8.5, color: '#94a3b8' }}>{fmtDate(p.startDate)}{(p.currentlyWorking || p.endDate) ? ` – ${p.currentlyWorking ? 'Present' : fmtDate(p.endDate)}` : ''}</Text> : null}
+                  </View>
                   {p.description && renderBullets(p.description)}
+                  {p.rolesResponsibilities && renderBullets(p.rolesResponsibilities)}
                 </View>
               ))}
             </>
@@ -112,6 +119,7 @@ const AiTemplate9PDF: React.FC<Props> = ({ data, primaryColor = '#334155' }) => 
                 <View key={i} style={{ marginBottom: 7 }}>
                   <Text style={{ fontSize: 10, fontFamily: 'Helvetica-Bold', color: '#0f172a' }}>{edu.degree} — {edu.fieldOfStudy}</Text>
                   <Text style={{ fontSize: 9, color: '#64748b' }}>{edu.instituteName}</Text>
+                  {edu.universityBoard ? <Text style={{ fontSize: 9, color: '#64748b' }}>{edu.universityBoard}</Text> : null}
                   <Text style={{ fontSize: 8.5, color: '#94a3b8' }}>{fmtYear(edu.startYear)} – {edu.currentlyPursuing ? 'Present' : fmtYear(edu.endYear)}</Text>
                   {edu.resultFormat && edu.result && <Text style={{ fontSize: 8.5, color: '#475569' }}>{edu.resultFormat}: {edu.result}</Text>}
                 </View>
@@ -152,6 +160,18 @@ const AiTemplate9PDF: React.FC<Props> = ({ data, primaryColor = '#334155' }) => 
                       • {c.certificateTitle}{c.providedBy ? ` — ${c.providedBy}` : ''}
                     </Text>
                   ))}
+                </>
+              )}
+              {languages.length > 0 && (
+                <>
+                  <SectionTitle title="Languages" color={primaryColor} />
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
+                    {languages.map((l, i) => (
+                      <View key={i} style={{ backgroundColor: primaryColor, paddingVertical: 2, paddingHorizontal: 8, borderRadius: 10 }}>
+                        <Text style={{ fontSize: 8, color: '#fff' }}>{l}</Text>
+                      </View>
+                    ))}
+                  </View>
                 </>
               )}
             </View>

@@ -45,6 +45,9 @@ const AiTemplate8PDF: React.FC<Props> = ({ data, primaryColor = '#1e293b' }) => 
   const { personal, experience, education, projects, skillsLinks, certifications } = data;
   const contactParts = [personal.email, personal.mobileNumber, personal.address].filter(Boolean);
   const linkedin = skillsLinks?.links?.linkedinProfile || '';
+  const github = skillsLinks?.links?.githubProfile || '';
+  const portfolio = skillsLinks?.links?.portfolioUrl || '';
+  const languages: string[] = (personal as any).languagesKnown || [];
 
   return (
     <Document>
@@ -60,7 +63,7 @@ const AiTemplate8PDF: React.FC<Props> = ({ data, primaryColor = '#1e293b' }) => 
             </View>
             <View style={{ alignItems: 'flex-end' }}>
               {contactParts.map((c, i) => <Text key={i} style={{ fontSize: 8.5, color: '#475569' }}>{c}</Text>)}
-              {linkedin && <Text style={{ fontSize: 8, color: primaryColor }}>{linkedin}</Text>}
+              {[linkedin, github, portfolio].filter(Boolean).map((c, i) => <Text key={i} style={{ fontSize: 8, color: primaryColor }}>{c}</Text>)}
             </View>
           </View>
         </View>
@@ -93,8 +96,12 @@ const AiTemplate8PDF: React.FC<Props> = ({ data, primaryColor = '#1e293b' }) => 
             <SectionTitle title="Projects" color={primaryColor} />
             {projects.filter(p => p.enabled).map((p: any, i) => (
               <View key={i} style={{ marginBottom: 10, paddingLeft: 10, borderLeftWidth: 2, borderLeftColor: '#e2e8f0' }}>
-                <Text style={{ fontSize: 10.5, fontFamily: 'Helvetica-Bold', color: '#0f172a' }}>{p.projectTitle}</Text>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                  <Text style={{ fontSize: 10.5, fontFamily: 'Helvetica-Bold', color: '#0f172a' }}>{p.projectTitle}</Text>
+                  {(p.startDate || p.endDate || p.currentlyWorking) ? <Text style={{ fontSize: 8.5, color: '#94a3b8' }}>{fmtDate(p.startDate)}{(p.currentlyWorking || p.endDate) ? ` – ${p.currentlyWorking ? 'Present' : fmtDate(p.endDate)}` : ''}</Text> : null}
+                </View>
                 {p.description && renderBullets(p.description)}
+                {p.rolesResponsibilities && renderBullets(p.rolesResponsibilities)}
               </View>
             ))}
           </>
@@ -108,6 +115,7 @@ const AiTemplate8PDF: React.FC<Props> = ({ data, primaryColor = '#1e293b' }) => 
               <Text style={{ fontSize: 8.5, color: '#94a3b8' }}>{fmtYear(edu.startYear)} – {edu.currentlyPursuing ? 'Present' : fmtYear(edu.endYear)}</Text>
             </View>
             <Text style={{ fontSize: 9, color: '#64748b' }}>{edu.instituteName}</Text>
+            {edu.universityBoard ? <Text style={{ fontSize: 9, color: '#64748b' }}>{edu.universityBoard}</Text> : null}
             {edu.resultFormat && edu.result && <Text style={{ fontSize: 9, color: '#475569' }}>{edu.resultFormat}: {edu.result}</Text>}
           </View>
         ))}
@@ -134,6 +142,14 @@ const AiTemplate8PDF: React.FC<Props> = ({ data, primaryColor = '#1e293b' }) => 
                 </View>
               ))}
             </View>
+          </>
+        )}
+
+        {/* Languages */}
+        {languages.length > 0 && (
+          <>
+            <SectionTitle title="Languages" color={primaryColor} />
+            <Text style={{ fontSize: 9.5, color: '#334155' }}>{languages.join(', ')}</Text>
           </>
         )}
 

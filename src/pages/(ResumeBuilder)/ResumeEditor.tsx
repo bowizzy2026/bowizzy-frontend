@@ -316,6 +316,15 @@ export const ResumeEditor: React.FC = () => {
   const [colorDropdownOpen, setColorDropdownOpen] = useState(false);
   const fontDropdownRef = useRef<HTMLDivElement>(null);
   const colorDropdownRef = useRef<HTMLDivElement>(null);
+  const templateImportDoneRef = useRef(false);
+
+  // Determines whether fetchAllData is allowed to run.
+  // Starts as false when a template import is expected, flipped to true once import finishes.
+  const [importReady, setImportReady] = useState<boolean>(() => {
+    const rtId = new URLSearchParams(window.location.search).get("resumeTemplateId");
+    if (rtId && !sessionStorage.getItem(`imported_template_${rtId}`)) return false;
+    return true;
+  });
 
   const location = useLocation();
 
@@ -409,6 +418,9 @@ export const ResumeEditor: React.FC = () => {
   useEffect(() => {
     const resumeTemplate = (location && (location as any).state && (location as any).state.resumeTemplate) || null;
     const resumeTemplateId = searchParams.get("resumeTemplateId");
+    const importKey = resumeTemplateId ? `imported_template_${resumeTemplateId}` : null;
+    if (templateImportDoneRef.current) return;
+    if (importKey && sessionStorage.getItem(importKey)) return;
 
     const doImport = async (tmpl: any) => {
       if (!tmpl || !tmpl.pdfUrl) return;
@@ -424,16 +436,23 @@ export const ResumeEditor: React.FC = () => {
           const imported = uploadRes.data;
           applyImported(imported);
         }
+        // Signal that import is done so fetchAllData can run via its useEffect
+        setImportReady(true);
       } catch (err) {
         console.error("Failed to import template for editing:", err);
+        setImportReady(true); // allow fetchAllData even on error
       } finally {
         setLoading(false);
       }
     };
 
     if (resumeTemplate && resumeTemplate.pdfUrl && userId && token) {
+      templateImportDoneRef.current = true;
+      setImportReady(false);
       doImport(resumeTemplate);
     } else if (resumeTemplateId && userId && token) {
+      templateImportDoneRef.current = true;
+      if (importKey) sessionStorage.setItem(importKey, "true");
       (async () => {
         try {
           setLoading(true);
@@ -627,10 +646,10 @@ export const ResumeEditor: React.FC = () => {
   };
 
   useEffect(() => {
-    if (userId && token) {
+    if (userId && token && importReady) {
       fetchAllData(userId, token);
     }
-  }, [userId, token, fetchAllData]);
+  }, [userId, token, fetchAllData, importReady]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

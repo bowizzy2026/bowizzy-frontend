@@ -22,6 +22,9 @@ const AiTemplate2Display: React.FC<Props> = ({ data, primaryColor = '#1e3a5f' })
   const { personal, experience, education, projects, skillsLinks, certifications } = data;
   const contactParts = [personal.email, personal.mobileNumber, personal.address].filter(Boolean);
   const linkedin = skillsLinks?.links?.linkedinProfile || '';
+  const github = skillsLinks?.links?.githubProfile || '';
+  const portfolio = skillsLinks?.links?.portfolioUrl || '';
+  const languages: string[] = (personal as any).languagesKnown || [];
 
   const sectionStyle: React.CSSProperties = { fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase' as const, color: primaryColor, marginTop: 14, marginBottom: 0 };
   const dividerStyle: React.CSSProperties = { height: 1.5, backgroundColor: primaryColor, width: '100%', marginBottom: 6 };
@@ -33,7 +36,7 @@ const AiTemplate2Display: React.FC<Props> = ({ data, primaryColor = '#1e3a5f' })
         <h1 style={{ fontSize: 28, fontWeight: 700, color: '#fff', margin: 0, letterSpacing: 1 }}>
           {personal.firstName} {personal.middleName || ''} {personal.lastName}
         </h1>
-        <p style={{ fontSize: 10, color: '#c4d9f2', margin: '4px 0 0' }}>{contactParts.join('  •  ')}{linkedin ? `  •  ${linkedin}` : ''}</p>
+        <p style={{ fontSize: 10, color: '#c4d9f2', margin: '4px 0 0' }}>{[...contactParts, linkedin, github, portfolio].filter(Boolean).join('  •  ')}</p>
       </div>
 
       <div style={{ padding: '16px 40px 24px' }}>
@@ -41,7 +44,7 @@ const AiTemplate2Display: React.FC<Props> = ({ data, primaryColor = '#1e3a5f' })
           <>
             <p style={sectionStyle}>Professional Summary</p>
             <div style={dividerStyle} />
-            <p style={{ fontSize: 9, color: '#333', lineHeight: 1.5, margin: 0 }}>{htmlToLines(personal.aboutCareerObjective).join(' ')}</p>
+            <p style={{ fontSize: 9, color: '#333', lineHeight: 1.5, margin: 0,textAlign: 'justify' }}>{htmlToLines(personal.aboutCareerObjective).join(' ')}</p>
           </>
         )}
 
@@ -57,7 +60,7 @@ const AiTemplate2Display: React.FC<Props> = ({ data, primaryColor = '#1e3a5f' })
                 </div>
                 <p style={{ fontSize: 9, color: '#555', margin: 0 }}>{w.companyName}{w.location ? `, ${w.location}` : ''}</p>
                 <ul style={{ margin: '2px 0 0 16px', padding: 0, fontSize: 9, color: '#333' }}>
-                  {htmlToLines(w.description).map((line, j) => <li key={j} style={{ marginBottom: 1 }}>{line.replace(/^[•\-]\s*/, '')}</li>)}
+                  {htmlToLines(w.description).map((line, j) => <li key={j} style={{ marginBottom: 1, textAlign: 'justify' }}>{line.replace(/^[•\-]\s*/, '')}</li>)}
                 </ul>
               </div>
             ))}
@@ -70,9 +73,13 @@ const AiTemplate2Display: React.FC<Props> = ({ data, primaryColor = '#1e3a5f' })
             <div style={dividerStyle} />
             {projects.filter(p => p.enabled).map((p: any, i) => (
               <div key={i} style={{ marginBottom: 8 }}>
-                <strong style={{ fontSize: 10 }}>{p.projectTitle}</strong>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                  <strong style={{ fontSize: 10 }}>{p.projectTitle}</strong>
+                  {(p.startDate || p.endDate || p.currentlyWorking) && <span style={{ fontSize: 9, color: '#555' }}>{fmtDate(p.startDate)}{(p.currentlyWorking || p.endDate) ? ` – ${p.currentlyWorking ? 'Present' : fmtDate(p.endDate)}` : ''}</span>}
+                </div>
                 <ul style={{ margin: '2px 0 0 16px', padding: 0, fontSize: 9, color: '#333' }}>
-                  {htmlToLines(p.description).map((line, j) => <li key={j} style={{ marginBottom: 1 }}>{line.replace(/^[•\-]\s*/, '')}</li>)}
+                  {htmlToLines(p.description).map((line, j) => <li key={j} style={{ marginBottom: 1, textAlign: 'justify' }}>{line.replace(/^[•\-]\s*/, '')}</li>)}
+                  {htmlToLines(p.rolesResponsibilities).map((line, j) => <li key={j} style={{ marginBottom: 1, textAlign: 'justify' }}>{line.replace(/^[•\-]\s*/, '')}</li>)}
                 </ul>
               </div>
             ))}
@@ -88,18 +95,30 @@ const AiTemplate2Display: React.FC<Props> = ({ data, primaryColor = '#1e3a5f' })
               <span style={{ fontSize: 9, color: '#555' }}>{fmtYear(edu.startYear)} – {edu.currentlyPursuing ? 'Present' : fmtYear(edu.endYear)}</span>
             </div>
             <p style={{ fontSize: 9, color: '#555', margin: 0 }}>{edu.instituteName}</p>
+            {edu.universityBoard && <p style={{ fontSize: 9, color: '#555', margin: 0 }}>{edu.universityBoard}</p>}
           </div>
         ))}
         {education.preUniversityEnabled && education.preUniversity?.instituteName && (
-          <div style={{ marginBottom: 6 }}>
-            <strong style={{ fontSize: 10 }}>Pre University (12th)</strong>
-            <p style={{ fontSize: 9, color: '#555', margin: 0 }}>{education.preUniversity.instituteName} | {fmtYear(education.preUniversity.yearOfPassing)}</p>
+          <div style={{ marginBottom: 6 ,display: 'flex', justifyContent: 'space-between' }}>
+            <div>
+                <strong style={{ fontSize: 10 }}>Pre University (12th)</strong>
+                <p style={{ fontSize: 9, color: '#555', margin: 0 }}>{education.preUniversity.instituteName} </p>
+            </div>
+            <div>
+                <p style={{fontSize:9,color:"#555"}}>{fmtYear(education.preUniversity.yearOfPassing)}</p>
+            </div>
           </div>
         )}
         {education.sslcEnabled && education.sslc?.instituteName && (
-          <div style={{ marginBottom: 6 }}>
-            <strong style={{ fontSize: 10 }}>SSLC (10th)</strong>
-            <p style={{ fontSize: 9, color: '#555', margin: 0 }}>{education.sslc.instituteName} | {fmtYear(education.sslc.yearOfPassing)}</p>
+          <div style={{ marginBottom: 6 ,display: 'flex', justifyContent: 'space-between' }}>
+            <div>
+                 <strong style={{ fontSize: 10 }}>SSLC (10th)</strong>
+            <p style={{ fontSize: 9, color: '#555', margin: 0 }}>{education.sslc.instituteName}
+            </p>
+            </div>
+            <div>
+                <p style={{fontSize:9,color:"#555"}}>{fmtYear(education.sslc.yearOfPassing)}</p>
+            </div>
           </div>
         )}
 
@@ -108,6 +127,14 @@ const AiTemplate2Display: React.FC<Props> = ({ data, primaryColor = '#1e3a5f' })
             <p style={sectionStyle}>Skills</p>
             <div style={dividerStyle} />
             <p style={{ fontSize: 9, color: '#333', margin: 0 }}>{skillsLinks.skills.filter(s => s.enabled && s.skillName).map(s => s.skillName).join(', ')}</p>
+          </>
+        )}
+
+        {languages.length > 0 && (
+          <>
+            <p style={sectionStyle}>Languages</p>
+            <div style={dividerStyle} />
+            <p style={{ fontSize: 9, color: '#333', margin: 0 }}>{languages.join(', ')}</p>
           </>
         )}
 
