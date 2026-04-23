@@ -222,6 +222,9 @@ const Template11Display: React.FC<Template11DisplayProps> = ({
                     <div style={{ fontSize: 11, color: '#000000', fontWeight: 'normal', marginTop: 4 }}>
                       {getFullDegreeName(edu.degree)}{edu.fieldOfStudy ? ` in ${edu.fieldOfStudy}` : ''}
                     </div>
+                    {edu.resultFormat && edu.result && (
+                      <div style={{ marginTop: 6, color: '#000000', fontSize: 11 }}>{edu.resultFormat}: {edu.result}</div>
+                    )}
                   </div>
                 ))}
               </>
@@ -238,7 +241,7 @@ const Template11Display: React.FC<Template11DisplayProps> = ({
                   Pre University (12th Standard){education.preUniversity.subjectStream ? ` — ${education.preUniversity.subjectStream}` : ''}
                 </div>
                 {education.preUniversity.resultFormat && education.preUniversity.result && (
-                  <div style={{ marginTop: 6, color: '#000000' }}>{education.preUniversity.resultFormat}: {education.preUniversity.result}</div>
+                  <div style={{ marginTop: 6, color: '#000000', fontSize: 11 }}>{education.preUniversity.resultFormat}: {education.preUniversity.result}</div>
                 )}
               </div>
             )}
@@ -253,6 +256,9 @@ const Template11Display: React.FC<Template11DisplayProps> = ({
                 <div style={{ fontSize: 11, color: '#000000', fontWeight: 'normal', marginTop: 4 }}>
                   SSLC (10th Standard){education.sslc.boardType ? ` — ${education.sslc.boardType}` : ''}
                 </div>
+                {education.sslc.resultFormat && education.sslc.result && (
+                  <div style={{ marginTop: 6, color: '#000000', fontSize: 11 }}>{education.sslc.resultFormat}: {education.sslc.result}</div>
+                )}
               </div>
             )}
 

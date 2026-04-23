@@ -170,6 +170,27 @@ const Template12Display: React.FC<Template12DisplayProps> = ({
           </div>
         </div>
         </>)}
+        {skillsLinks.linksEnabled && (
+          <>
+            <hr style={{ border: 'none', borderTop: '1px solid #333', margin: '12px 0', width: '100%' }} />
+            <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '16px', padding: '0 8px' }}>
+              <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.5, color: primaryColor, fontWeight: 700 }}>Links</div>
+              <div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', color: '#2b2a2a', fontSize: 11 }}>
+                  {skillsLinks.links?.linkedinEnabled && skillsLinks.links?.linkedinProfile && (
+                    <a href={skillsLinks.links.linkedinProfile} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }}>LinkedIn: {skillsLinks.links.linkedinProfile}</a>
+                  )}
+                  {skillsLinks.links?.githubEnabled && skillsLinks.links?.githubProfile && (
+                    <a href={skillsLinks.links.githubProfile} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }}>GitHub: {skillsLinks.links.githubProfile}</a>
+                  )}
+                  {skillsLinks.links?.portfolioEnabled && skillsLinks.links?.portfolioUrl && (
+                    <a href={skillsLinks.links.portfolioUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }}>Portfolio: {skillsLinks.links.portfolioUrl}</a>
+                  )}
+                </div>
+              </div>
+            </div>
+          </>
+        )}
 
         {hasSkills && (<>
           <hr style={{ border: 'none', borderTop: '1px solid #333', margin: '12px 0', width: '100%' }} />

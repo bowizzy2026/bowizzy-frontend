@@ -1,6 +1,6 @@
 import React from 'react';
 import DOMPurify from 'dompurify';
-import { Document, Page, View, Text, StyleSheet } from '@react-pdf/renderer';
+import { Document, Page, View, Text, StyleSheet, Link } from '@react-pdf/renderer';
 import type { ResumeData } from '@/types/resume';
 
 const styles = StyleSheet.create({
@@ -255,6 +255,30 @@ const Template12PDF: React.FC<Template12PDFProps> = ({ data, primaryColor = '#11
           </View>
         </View>
         </>)}
+
+        {skillsLinks.linksEnabled && (
+          <>
+            <View style={{ height: 1, backgroundColor: '#333', width: '100%', marginVertical: 12 }} />
+            <View style={styles.grid}>
+              <View style={styles.leftCol}>
+                <Text style={{ ...styles.sectionHeading, fontSize: 10, fontFamily: pdfFontFamilyBold, color: primaryColor }}>LINKS</Text>
+              </View>
+              <View style={styles.rightCol}>
+                <View style={{ flexDirection: 'column' }}>
+                  {skillsLinks.links?.linkedinEnabled && skillsLinks.links?.linkedinProfile && (
+                    <Link src={skillsLinks.links.linkedinProfile} style={{ color: '#2b2a2a', textDecoration: 'none', marginBottom: 4 }}>LinkedIn: {skillsLinks.links.linkedinProfile}</Link>
+                  )}
+                  {skillsLinks.links?.githubEnabled && skillsLinks.links?.githubProfile && (
+                    <Link src={skillsLinks.links.githubProfile} style={{ color: '#2b2a2a', textDecoration: 'none', marginBottom: 4 }}>GitHub: {skillsLinks.links.githubProfile}</Link>
+                  )}
+                  {skillsLinks.links?.portfolioEnabled && skillsLinks.links?.portfolioUrl && (
+                    <Link src={skillsLinks.links.portfolioUrl} style={{ color: '#2b2a2a', textDecoration: 'none' }}>Portfolio: {skillsLinks.links.portfolioUrl}</Link>
+                  )}
+                </View>
+              </View>
+            </View>
+          </>
+        )}
 
         {hasSkills && (<>
         {/* divider before skills */}

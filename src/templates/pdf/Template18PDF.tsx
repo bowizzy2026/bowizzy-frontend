@@ -37,27 +37,27 @@ const htmlToLines = (html?: string) => {
 
 const formatMonthYear = (s?: string) => {
   if (!s) return '';
-  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
   try {
     const str = String(s).trim();
     const ymd = str.match(/^(\d{4})-(\d{2})(?:-\d{2})?$/);
-    if (ymd) return `${months[parseInt(ymd[2],10)-1]} ${ymd[1]}`;
+    if (ymd) return `${months[parseInt(ymd[2], 10) - 1]} ${ymd[1]}`;
     const mY = str.match(/^(\d{2})\/(\d{4})$/);
-    if (mY) return `${months[parseInt(mY[1],10)-1]} ${mY[2]}`;
-  } catch (e) {}
+    if (mY) return `${months[parseInt(mY[1], 10) - 1]} ${mY[2]}`;
+  } catch (e) { }
   return String(s);
 };
 
 const formatMonthYearParts = (s?: string) => {
   if (!s) return { month: '', year: '' };
-  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
   try {
     const str = String(s).trim();
     const ymd = str.match(/^(\d{4})-(\d{2})(?:-\d{2})?$/);
-    if (ymd) return { month: months[parseInt(ymd[2],10)-1], year: ymd[1] };
+    if (ymd) return { month: months[parseInt(ymd[2], 10) - 1], year: ymd[1] };
     const mY = str.match(/^(\d{2})\/(\d{4})$/);
-    if (mY) return { month: months[parseInt(mY[1],10)-1], year: mY[2] };
-  } catch (e) {}
+    if (mY) return { month: months[parseInt(mY[1], 10) - 1], year: mY[2] };
+  } catch (e) { }
   const yearMatch = String(s).match(/(\d{4})/);
   if (yearMatch) {
     return { month: String(s).replace(yearMatch[1], '').trim(), year: yearMatch[1] };
@@ -86,9 +86,9 @@ const renderBulletedParagraph = (html?: string) => {
     .replace(/&gt;/g, '>')
     .replace(/&amp;/g, '&')
     .trim();
-  
+
   const lines = text.split('\n').filter((l) => l.trim());
-  
+
   return (
     <View style={{ marginTop: 6 }}>
       {lines.map((line, idx) => (
@@ -159,13 +159,12 @@ const Template18PDF: React.FC<Template18PDFProps> = ({ data, primaryColor = '#11
     return trimmed;
   };
 
-  const locationPart = personal.city || personal.address || '';
-  const locNat = [locationPart, personal.nationality].filter(Boolean).join(', ');
+  const locationPart = [personal.city, personal.state].filter(Boolean).join(', ') || personal.address || '';
   const links = skillsLinks?.links;
   const linkedinLabel = links?.linkedinEnabled !== false ? extractHandle(links?.linkedinProfile || (personal as any).linkedinProfile) : '';
   const githubLabel = links?.githubEnabled !== false ? extractHandle(links?.githubProfile) : '';
   const portfolioLabel = links?.portfolioEnabled ? links?.portfolioUrl : '';
-  const contactLine = [locNat, personal.email, formatMobile(personal.mobileNumber), linkedinLabel, githubLabel, portfolioLabel].filter(Boolean).join(' | ');
+  const contactLine = [locationPart, personal.email, formatMobile(personal.mobileNumber), linkedinLabel, githubLabel, portfolioLabel].filter(Boolean).join(' | ');
 
   return (
     <Document>
@@ -184,144 +183,155 @@ const Template18PDF: React.FC<Template18PDFProps> = ({ data, primaryColor = '#11
           </View>
 
           {experience.workExperiences.some((exp: any) => exp.enabled) && (
-          <View style={styles.section}>
-            <Text style={{ ...styles.sectionHeading, fontFamily: pdfFontFamilyBold, color: primaryColor }}>Work Experience</Text>
-            <View style={{ ...styles.divider, backgroundColor: primaryColor }} />
-            <View style={{ marginTop: 8 }}>
-              {experience.workExperiences.filter((w:any)=>w.enabled).map((w:any,i:number)=> (
-                <View key={i} style={{ marginBottom: 10 }}>
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                    <Text style={{ fontSize: 11, fontFamily: pdfFontFamilyBold }}>{w.jobTitle}</Text>
-                    <View style={{ flexDirection: 'row' }}>
-                      {(() => {
-                        const sParts = formatMonthYearParts(w.startDate);
-                        return (
-                          <>
-                            <Text style={{ fontSize: 11, color: '#000' }}>{sParts.month}{sParts.month ? ' ' : ''}</Text>
-                            <Text style={{ fontSize: 11, color: '#000' }}>{sParts.year}</Text>
-                          </>
-                        );
-                      })()}
+            <View style={styles.section}>
+              <Text style={{ ...styles.sectionHeading, fontFamily: pdfFontFamilyBold, color: primaryColor }}>Work Experience</Text>
+              <View style={{ ...styles.divider, backgroundColor: primaryColor }} />
+              <View style={{ marginTop: 8 }}>
+                {experience.workExperiences.filter((w: any) => w.enabled).map((w: any, i: number) => (
+                  <View key={i} style={{ marginBottom: 10 }}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                      <Text style={{ fontSize: 11, fontFamily: pdfFontFamilyBold }}>{w.companyName}</Text>
+                      <View style={{ flexDirection: 'row' }}>
+                        {(() => {
+                          const sParts = formatMonthYearParts(w.startDate);
+                          return (
+                            <>
+                              <Text style={{ fontSize: 11, color: '#000' }}>{sParts.month}{sParts.month ? ' ' : ''}</Text>
+                              <Text style={{ fontSize: 11, color: '#000' }}>{sParts.year}</Text>
+                            </>
+                          );
+                        })()}
 
-                      <Text style={{ fontSize: 11, color: '#000' }}> {' '}-{' '}</Text>
+                        <Text style={{ fontSize: 11, color: '#000' }}> {' '}-{' '}</Text>
 
-                      {w.currentlyWorking ? (
-                        <Text style={{ fontSize: 11, color: '#000' }}>Present</Text>
-                      ) : (() => {
-                        const eParts = formatMonthYearParts(w.endDate);
-                        return (
-                          <>
-                            <Text style={{ fontSize: 11, color: '#000' }}>{eParts.month}{eParts.month ? ' ' : ''}</Text>
-                            <Text style={{ fontSize: 11, color: '#000' }}>{eParts.year}</Text>
-                          </>
-                        );
-                      })()}
+                        {w.currentlyWorking ? (
+                          <Text style={{ fontSize: 11, color: '#000' }}>Present</Text>
+                        ) : (() => {
+                          const eParts = formatMonthYearParts(w.endDate);
+                          return (
+                            <>
+                              <Text style={{ fontSize: 11, color: '#000' }}>{eParts.month}{eParts.month ? ' ' : ''}</Text>
+                              <Text style={{ fontSize: 11, color: '#000' }}>{eParts.year}</Text>
+                            </>
+                          );
+                        })()}
+                      </View>
                     </View>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 }}>
+                      <Text style={{ fontSize: 11, color: '#000' }}>{w.jobTitle}</Text>
+                      <Text style={{ fontSize: 11, color: '#000' }}>{w.location}</Text>
+                    </View>
+                    {w.description && renderBulletedParagraph(w.description)}
                   </View>
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 }}>
-                    <Text style={{ fontSize: 11, color: '#000' }}>{w.companyName}</Text>
-                    <Text style={{ fontSize: 11, color: '#000' }}>{w.location}</Text>
-                  </View>
-                  {w.description && renderBulletedParagraph(w.description)}
-                </View>
-              ))}
+                ))}
+              </View>
             </View>
-          </View>
           )}
 
           {(education.higherEducation.some(edu => edu.enabled) || (education.preUniversityEnabled && education.preUniversity.instituteName) || (education.sslcEnabled && education.sslc.instituteName)) && (
-          <View style={styles.section}>
-            <Text style={styles.sectionHeading}>Education</Text>
-            <View style={styles.divider} />
-            <View style={{ marginTop: 8 }}>
-              {education.higherEducation.filter(edu => edu.enabled).map((edu:any,i:number)=>(
-                <View key={i} style={{ marginBottom: 10 }}>
-                  <Text style={{ marginTop: 6, color: '#000', fontFamily: 'Times-Bold' }}>{edu.degree}</Text>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 4 }}>
-                  <Text style={{ fontSize: 11, color: '#000' }}>{edu.instituteName}</Text>
-                  <Text style={{ fontSize: 11, color: '#000' }}>{edu.endYear ? `Graduated: ${formatYear(edu.endYear)}` : ''}</Text>
-                </View>
-                </View>
-              ))}
-
-              {/* Pre University */}
-              {education.preUniversityEnabled && education.preUniversity.instituteName && (
-                <View style={{ marginBottom: 10 }}>
-                  <Text style={{ marginTop: 6, color: '#000', fontFamily: 'Times-Bold' }}>{education.preUniversity.instituteName || 'Pre University'}</Text>
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 4 }}>
-                    <Text style={{ fontSize: 11, color: '#000' }}>Pre University (12th Standard){education.preUniversity.subjectStream ? ` — ${education.preUniversity.subjectStream}` : ''}</Text>
-                    <Text style={{ fontSize: 11, color: '#000' }}>{education.preUniversity.yearOfPassing ? String(education.preUniversity.yearOfPassing).match(/(\d{4})/)?.[1] : ''}</Text>
+            <View style={styles.section}>
+              <Text style={styles.sectionHeading}>Education</Text>
+              <View style={styles.divider} />
+              <View style={{ marginTop: 8 }}>
+                {education.higherEducation.filter(edu => edu.enabled).map((edu: any, i: number) => (
+                  <View key={i} style={{ marginBottom: 10 }}>
+                    <Text style={{ marginTop: 6, color: '#000', fontFamily: 'Times-Bold' }}>{edu.instituteName}{edu.universityBoard ? ` — ${edu.universityBoard}` : ''}</Text>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 4 }}>
+                      <Text style={{ fontSize: 11, color: '#000' }}>{edu.degree}</Text>
+                      <Text style={{ fontSize: 11, color: '#000' }}>
+                        {edu.startYear ? formatYear(edu.startYear) : ''}
+                        {edu.startYear && (edu.endYear || edu.currentlyPursuing) ? ' — ' : ''}
+                        {edu.currentlyPursuing ? 'Present' : (edu.endYear ? formatYear(edu.endYear) : '')}
+                      </Text>
+                    </View>
+                    {edu.resultFormat && edu.result && (<Text style={{ fontSize: 10, color: '#000', marginTop: 4 }}>{edu.resultFormat}: {edu.result}</Text>)}
                   </View>
-                  {education.preUniversity.resultFormat && education.preUniversity.result && (<Text style={{ fontSize: 10, color: '#444', marginTop: 4 }}>{education.preUniversity.resultFormat}: {education.preUniversity.result}</Text>)}
-                </View>
-              )}
+                ))}
 
-              {/* SSLC */}
-              {education.sslcEnabled && education.sslc.instituteName && (
-                <View style={{ marginBottom: 10 }}>
-                  <Text style={{ marginTop: 6, color: '#000', fontFamily: 'Times-Bold' }}>{education.sslc.instituteName || 'SSLC'}</Text>
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 4 }}>
-                    <Text style={{ fontSize: 11, color: '#000' }}>SSLC (10th Standard){education.sslc.boardType ? ` — ${education.sslc.boardType}` : ''}</Text>
-                    <Text style={{ fontSize: 11, color: '#000' }}>{education.sslc.yearOfPassing ? String(education.sslc.yearOfPassing).match(/(\d{4})/)?.[1] : ''}</Text>
+                {/* Pre University */}
+                {education.preUniversityEnabled && education.preUniversity.instituteName && (
+                  <View style={{ marginBottom: 10 }}>
+                    <Text style={{ marginTop: 6, color: '#000', fontFamily: 'Times-Bold' }}>{education.preUniversity.instituteName || 'Pre University'}</Text>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 4 }}>
+                      <Text style={{ fontSize: 11, color: '#000' }}>Pre University (12th Standard){education.preUniversity.boardType ? ` — ${education.preUniversity.boardType}` : ''}{education.preUniversity.subjectStream ? ` (${education.preUniversity.subjectStream})` : ''}</Text>
+                      <Text style={{ fontSize: 11, color: '#000' }}>{education.preUniversity.yearOfPassing ? String(education.preUniversity.yearOfPassing).match(/(\d{4})/)?.[1] : ''}</Text>
+                    </View>
+                    {education.preUniversity.resultFormat && education.preUniversity.result && (<Text style={{ fontSize: 10, color: '#444', marginTop: 4 }}>{education.preUniversity.resultFormat}: {education.preUniversity.result}</Text>)}
                   </View>
-                  {education.sslc.resultFormat && education.sslc.result && (<Text style={{ fontSize: 10, color: '#444', marginTop: 4 }}>{education.sslc.resultFormat}: {education.sslc.result}</Text>)}
-                </View>
-              )}
+                )}
+
+                {/* SSLC */}
+                {education.sslcEnabled && education.sslc.instituteName && (
+                  <View style={{ marginBottom: 10 }}>
+                    <Text style={{ marginTop: 6, color: '#000', fontFamily: 'Times-Bold' }}>{education.sslc.instituteName || 'SSLC'}</Text>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 4 }}>
+                      <Text style={{ fontSize: 11, color: '#000' }}>SSLC (10th Standard){education.sslc.boardType ? ` — ${education.sslc.boardType}` : ''}</Text>
+                      <Text style={{ fontSize: 11, color: '#000' }}>{education.sslc.yearOfPassing ? String(education.sslc.yearOfPassing).match(/(\d{4})/)?.[1] : ''}</Text>
+                    </View>
+                    {education.sslc.resultFormat && education.sslc.result && (<Text style={{ fontSize: 10, color: '#444', marginTop: 4 }}>{education.sslc.resultFormat}: {education.sslc.result}</Text>)}
+                  </View>
+                )}
+              </View>
             </View>
-          </View>
           )}
 
-          {(skillsLinks.skills || []).some((s:any) => s.enabled && s.skillName) && (
-          <View style={styles.section}>
-            <Text style={styles.sectionHeading}>Skills</Text>
-            <View style={styles.divider} />
-            <View style={{ marginTop: 8 }}>
-              {(skillsLinks.skills || []).filter((s:any)=>s.enabled && s.skillName).map((s:any,i:number)=>(
-                <View key={i} style={{ flexDirection: 'row', marginBottom: 6 }}>
-                  <Text style={{ width: 12 }}>•</Text>
-                  <Text style={{ flex: 1, color: '#444' }}>{s.skillName}</Text>
-                </View>
-              ))}
+          {(skillsLinks.skills || []).some((s: any) => s.enabled && s.skillName) && (
+            <View style={styles.section}>
+              <Text style={styles.sectionHeading}>Skills</Text>
+              <View style={styles.divider} />
+              <View style={{ marginTop: 8 }}>
+                {(skillsLinks.skills || []).filter((s: any) => s.enabled && s.skillName).map((s: any, i: number) => (
+                  <View key={i} style={{ flexDirection: 'row', marginBottom: 6 }}>
+                    <Text style={{ width: 12 }}>•</Text>
+                    <Text style={{ flex: 1, color: '#444' }}>{s.skillName}</Text>
+                  </View>
+                ))}
+              </View>
             </View>
-          </View>
           )}
 
-          {(certifications || []).some((c:any) => c.enabled && c.certificateTitle) && (
-          <View style={styles.section}>
-            <Text style={styles.sectionHeading}>Certifications</Text>
-            <View style={styles.divider} />
-            <View style={{ marginTop: 8 }}>
-              {(certifications || []).filter((c:any)=>c.enabled && c.certificateTitle).map((c:any,i:number)=>(
-                <View key={i} style={{ flexDirection: 'row', marginBottom: 6 }}>
-                  <Text style={{ width: 12 }}>•</Text>
-                  <Text style={{ flex: 1, color: '#444' }}>{c.certificateTitle}{c.providedBy ? ` — ${c.providedBy}` : ''}</Text>
-                </View>
-              ))}
+          {(certifications || []).some((c: any) => c.enabled && c.certificateTitle) && (
+            <View style={styles.section}>
+              <Text style={styles.sectionHeading}>Certifications</Text>
+              <View style={styles.divider} />
+              <View style={{ marginTop: 8 }}>
+                {(certifications || []).filter((c: any) => c.enabled && c.certificateTitle).map((c: any, i: number) => (
+                  <View key={i} style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 }}>
+                    <View style={{ flexDirection: 'row', flex: 1, marginRight: 12 }}>
+                      <Text style={{ width: 12 }}>•</Text>
+                      <Text style={{ flex: 1, color: '#444' }}>
+                        <Text style={{ color: '#000' }}>{c.certificateTitle}</Text>
+                        {c.providedBy ? ` — ${c.providedBy}` : ''}
+                      </Text>
+                    </View>
+                    <Text style={{ fontSize: 10, color: '#000' }}>{c.date ? formatYear(c.date) : ''}</Text>
+                  </View>
+                ))}
+              </View>
             </View>
-          </View>
           )}
 
 
         </View>
-      {/* Footer */}
-      <View style={{
-        position: 'absolute',
-        left: 0,
-        right: 0,
-        bottom: 12,
-        paddingHorizontal: 36,
-        paddingVertical: 8,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        fontSize: 10,
-        color: '#B0B0B0',
-      }} fixed>
-        <Text style={{ color: '#B0B0B0', fontSize: 10, letterSpacing: 0.5 }}>bowizzy.com</Text>
-        <Text style={{ color: '#B0B0B0', fontSize: 10, letterSpacing: 0.5 }}>Powered by Wizzybox</Text>
-      </View>
-    </Page>
-  </Document>
+        {/* Footer */}
+        <View style={{
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          bottom: 12,
+          paddingHorizontal: 36,
+          paddingVertical: 8,
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          fontSize: 10,
+          color: '#B0B0B0',
+        }} fixed>
+          <Text style={{ color: '#B0B0B0', fontSize: 10, letterSpacing: 0.5 }}>bowizzy.com</Text>
+          <Text style={{ color: '#B0B0B0', fontSize: 10, letterSpacing: 0.5 }}>Powered by Wizzybox</Text>
+        </View>
+      </Page>
+    </Document>
   );
 };
 

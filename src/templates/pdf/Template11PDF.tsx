@@ -355,6 +355,11 @@ const Template11PDF: React.FC<Template11PDFProps> = ({ data, primaryColor = '#11
                   <Text style={{ fontSize: 11, color: '#000000', fontFamily: pdfFontFamily, marginTop: 3 }}>
                     {getFullDegreeName(edu.degree)}{edu.fieldOfStudy ? ` in ${edu.fieldOfStudy}` : ''}
                   </Text>
+                  {edu.resultFormat && edu.result ? (
+                    <Text style={{ fontSize: 10, color: '#000000', fontFamily: pdfFontFamily, marginTop: 3 }}>
+                      {edu.resultFormat}: {edu.result}
+                    </Text>
+                  ) : null}
                 </View>
               ))}
                 </>

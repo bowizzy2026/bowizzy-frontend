@@ -82,6 +82,19 @@ const Template16Display: React.FC<Template16DisplayProps> = ({
         </div>
         <div style={{ textAlign: 'right', fontSize: 11, color: '#000' }}>
           {personal.email && <div>{personal.email}</div>}
+          {skillsLinks.linksEnabled && (
+            <>
+              {skillsLinks.links?.linkedinEnabled && skillsLinks.links?.linkedinProfile && (
+                <div style={{ marginTop: 2 }}>{skillsLinks.links.linkedinProfile}</div>
+              )}
+              {skillsLinks.links?.githubEnabled && skillsLinks.links?.githubProfile && (
+                <div style={{ marginTop: 2 }}>{skillsLinks.links.githubProfile}</div>
+              )}
+              {skillsLinks.links?.portfolioEnabled && skillsLinks.links?.portfolioUrl && (
+                <div style={{ marginTop: 2 }}>{skillsLinks.links.portfolioUrl}</div>
+              )}
+            </>
+          )}
         </div>
       </div>
 

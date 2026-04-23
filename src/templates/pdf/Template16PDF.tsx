@@ -153,6 +153,19 @@ const Template16PDF: React.FC<Template16PDFProps> = ({ data, primaryColor = '#11
           </View>
           <View style={{ width: 180 }}>
             {email && <Text style={{ ...styles.contact, color: '#000' }}>{email}</Text>}
+            {skillsLinks.linksEnabled && (
+              <>
+                {skillsLinks.links?.linkedinEnabled && skillsLinks.links?.linkedinProfile && (
+                  <Text style={{ ...styles.contact, color: '#000', marginTop: 2 }}>{skillsLinks.links.linkedinProfile}</Text>
+                )}
+                {skillsLinks.links?.githubEnabled && skillsLinks.links?.githubProfile && (
+                  <Text style={{ ...styles.contact, color: '#000', marginTop: 2 }}>{skillsLinks.links.githubProfile}</Text>
+                )}
+                {skillsLinks.links?.portfolioEnabled && skillsLinks.links?.portfolioUrl && (
+                  <Text style={{ ...styles.contact, color: '#000', marginTop: 2 }}>{skillsLinks.links.portfolioUrl}</Text>
+                )}
+              </>
+            )}
           </View>
         </View>
 

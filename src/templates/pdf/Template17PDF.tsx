@@ -175,10 +175,10 @@ const Template17PDF: React.FC<Template17PDFProps> = ({ data, primaryColor = '#11
                 {experience.workExperiences.filter((w: any) => w.enabled).map((w: any, i: number) => (
                   <View key={i} style={{ marginBottom: 10 }}>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                      <Text style={{ fontSize: 11, fontFamily: pdfFontFamilyBold }}>{w.jobTitle}</Text>
+                      <Text style={{ fontSize: 11, fontFamily: pdfFontFamilyBold }}>{w.companyName}</Text>
                       <Text style={{ fontSize: 10, color: '#000' }}>{formatMonthYear(w.startDate)} — {w.currentlyWorking ? 'Present' : formatMonthYear(w.endDate)}</Text>
                     </View>
-                    <Text style={{ marginTop: 6, fontSize: 9, color: '#000' }}>{w.companyName}{w.location ? ` — ${w.location}` : ''}</Text>
+                    <Text style={{ marginTop: 6, fontSize: 9, color: '#000' }}>{w.jobTitle}{w.location ? ` — ${w.location}` : ''}</Text>
                     {w.description && <View style={{ marginTop: 6, paddingLeft: 10 }}>{htmlToPlainText(w.description).split('\n').filter(Boolean).map((line, idx) => <Text key={idx} style={{ fontSize: 9, color: '#444', marginTop: 6 }}>• {line}</Text>)}</View>}
                   </View>
                 ))}
@@ -216,7 +216,10 @@ const Template17PDF: React.FC<Template17PDFProps> = ({ data, primaryColor = '#11
                       <Text style={{ fontSize: 11, fontFamily: pdfFontFamilyBold }}>{edu.instituteName}</Text>
                       <Text style={{ fontSize: 9, color: '#000' }}>{formatYear(edu.endYear)}</Text>
                     </View>
-                    <Text style={{ marginTop: 4, fontSize: 9, color: '#000' }}>{edu.degree}{edu.fieldOfStudy ? ` in ${edu.fieldOfStudy}` : ''}</Text>
+                    <Text style={{ marginTop: 4, fontSize: 9, color: '#000' }}>
+                      {edu.degree}{edu.fieldOfStudy ? ` in ${edu.fieldOfStudy}` : ''}
+                      {edu.universityBoard ? ` — ${edu.universityBoard}` : ''}
+                    </Text>
                     {edu.resultFormat && edu.result ? (
                       <Text style={{ fontSize: 9, color: '#444', fontFamily: pdfFontFamilyBold, marginTop: 4 }}>{edu.resultFormat}: {edu.result}</Text>
                     ) : null}
@@ -230,7 +233,11 @@ const Template17PDF: React.FC<Template17PDFProps> = ({ data, primaryColor = '#11
                       <Text style={{ fontSize: 11, fontFamily: pdfFontFamilyBold }}>{education.preUniversity.instituteName || 'Pre University'}</Text>
                       <Text style={{ fontSize: 9, color: '#000' }}>{education.preUniversity.yearOfPassing ? String(education.preUniversity.yearOfPassing).match(/(\d{4})/)?.[1] : ''}</Text>
                     </View>
-                    <Text style={{ marginTop: 4, fontSize: 9, color: '#000' }}>Pre University (12th Standard){education.preUniversity.subjectStream ? ` — ${education.preUniversity.subjectStream}` : ''}</Text>
+                    <Text style={{ marginTop: 4, fontSize: 9, color: '#000' }}>
+                      Pre University (12th Standard)
+                      {education.preUniversity.subjectStream ? ` — ${education.preUniversity.subjectStream}` : ''}
+                      {education.preUniversity.boardType ? ` — ${education.preUniversity.boardType}` : ''}
+                    </Text>
                     {education.preUniversity.resultFormat && education.preUniversity.result && (
                       <Text style={{ fontSize: 9, color: '#444', fontFamily: pdfFontFamilyBold, marginTop: 4 }}>{education.preUniversity.resultFormat}: {education.preUniversity.result}</Text>
                     )}

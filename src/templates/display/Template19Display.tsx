@@ -39,7 +39,7 @@ const Template19Display: React.FC<Template19DisplayProps> = ({
   fontFamily = 'Georgia, serif',
   primaryColor = '#111827',
 }) => {
-  const { personal, experience, education, skillsLinks, certifications } = data;
+  const { personal, experience, education, projects, skillsLinks, certifications } = data;
   const role = (experience && (experience as any).jobRole) || (experience.workExperiences && experience.workExperiences.find((w: any) => w.enabled && w.jobTitle) && experience.workExperiences.find((w: any) => w.enabled && w.jobTitle).jobTitle) || '';
   const contactLine = [personal.email, personal.mobileNumber, (skillsLinks && skillsLinks.links && skillsLinks.links.linkedinProfile) || ''].filter(Boolean).join(' | ');
 
@@ -109,12 +109,12 @@ const Template19Display: React.FC<Template19DisplayProps> = ({
               </div>
             )}
 
-            {(((personal as any).languagesKnown || (personal as any).languages || [])).length > 0 && (
+            {(((personal as any).languagesKnown || (personal as any).languages || [])).filter((l: string) => l && l.trim()).length > 0 && (
               <div style={{ marginTop: 18 }}>
                 <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.2, color: primaryColor, fontWeight: 700 }}>Language</div>
                 <div style={{ height: 1, background: '#999', marginTop: 6, width: '60%' }} />
                 <div style={{ marginTop: 8 }}>
-                  {(((personal as any).languagesKnown || (personal as any).languages || [])).map((l: string, i: number) => (<div key={i} style={{ marginBottom: 6 }}>• {l}</div>))}
+                  {(((personal as any).languagesKnown || (personal as any).languages || [])).filter((l: string) => l && l.trim()).map((l: string, i: number) => (<div key={i} style={{ marginBottom: 6 }}>• {l}</div>))}
                 </div>
               </div>
             )}
@@ -145,7 +145,7 @@ const Template19Display: React.FC<Template19DisplayProps> = ({
                       <div style={{ color: '#000', fontWeight: 400 }}>{formatMonthYear(w.startDate)} — {w.currentlyWorking ? 'Present' : formatMonthYear(w.endDate)}</div>
                     </div>
                     <div style={{ color: '#000', marginTop: 6 }}>{w.companyName}{w.location ? ` — ${w.location}` : ''}</div>
-                    {w.description && (
+                    {w.description && htmlToLines(w.description).length > 0 && (
                       <div style={{ marginTop: 6, paddingLeft: 12 }}>
                         {htmlToLines(w.description).map((ln, idx) => <div key={idx} style={{ marginTop: 6 }}>• {ln}</div>)}
                       </div>
@@ -154,6 +154,30 @@ const Template19Display: React.FC<Template19DisplayProps> = ({
                 ))}
               </div>
             </>)}
+
+            {(projects || []).some((p: any) => p.enabled) && (
+              <div style={{ marginTop: 24 }}>
+                <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.2, color: primaryColor, fontWeight: 700 }}>Projects</div>
+                <div style={{ height: 1, background: '#999', marginTop: 6, width: '100%' }} />
+                <div style={{ marginTop: 8 }}>
+                  {(projects || []).filter((p: any) => p.enabled).map((p: any, i: number) => (
+                    <div key={i} style={{ marginBottom: 18 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <div style={{ fontWeight: 800 }}>{p.projectTitle}</div>
+                        <div style={{ color: '#000', fontWeight: 400 }}>{formatMonthYear(p.startDate)} — {p.currentlyWorking ? 'Present' : formatMonthYear(p.endDate)}</div>
+                      </div>
+                      {p.description && htmlToLines(p.description).length > 0 && (
+                        <div style={{ marginTop: 6, paddingLeft: 12 }}>
+                          {htmlToLines(p.description).map((ln: any, idx: number) => (
+                            <div key={idx} style={{ marginTop: 6 }}>• {ln}</div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

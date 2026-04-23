@@ -189,8 +189,13 @@ const Template13Display: React.FC<Template13DisplayProps> = ({
               {/* Higher Education (BE/Bachelor etc.) */}
               {education.higherEducation.filter(edu => edu.enabled).sort((a, b) => educationPriority(a.degree) - educationPriority(b.degree)).map((edu, i) => (
                 <div key={`he-${i}`} style={{ marginBottom: 12 }}>
-                  <div style={{ fontWeight: 700 }}>{edu.instituteName}</div>
-                  <div style={{ fontSize: 11, color: '#111827', fontWeight: 700 }}>{edu.degree} — {edu.currentlyPursuing ? 'Present' : formatYear(edu.endYear)}</div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <div style={{ fontWeight: 700 }}>{edu.instituteName}</div>
+                    <div style={{ fontSize: 11, color: '#111827', fontWeight: 700 }}>{edu.currentlyPursuing ? 'Present' : formatYear(edu.endYear)}</div>
+                  </div>
+                  <div style={{ fontSize: 11, color: '#111827', fontWeight: 700 }}>
+                    {edu.degree}{edu.fieldOfStudy ? ` in ${edu.fieldOfStudy}` : ''}{edu.universityBoard ? ` — ${edu.universityBoard}` : ''}
+                  </div>
                   {edu.resultFormat && edu.result && (<div style={{ marginTop: 6, color: '#2b2a2a' }}>{edu.resultFormat}: {edu.result}</div>)}
                 </div>
               ))}
@@ -198,8 +203,13 @@ const Template13Display: React.FC<Template13DisplayProps> = ({
               {/* Pre University (12th) */}
               {education.preUniversityEnabled && education.preUniversity && (education.preUniversity.instituteName || education.preUniversity.yearOfPassing) && (
                 <div style={{ marginBottom: 12 }}>
-                  <div style={{ fontWeight: 700 }}>{education.preUniversity.instituteName || 'Pre University'}</div>
-                  <div style={{ fontSize: 11, color: '#111827', fontWeight: 700 }}>Pre University (12th Standard) — {formatYear(education.preUniversity.yearOfPassing)}</div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <div style={{ fontWeight: 700 }}>{education.preUniversity.instituteName || 'Pre University'}</div>
+                    <div style={{ fontSize: 11, color: '#111827', fontWeight: 700 }}>{formatYear(education.preUniversity.yearOfPassing)}</div>
+                  </div>
+                  <div style={{ fontSize: 11, color: '#111827', fontWeight: 700 }}>
+                    Pre University (12th Standard){education.preUniversity.subjectStream ? ` — ${education.preUniversity.subjectStream}` : ''}{education.preUniversity.boardType ? ` — ${education.preUniversity.boardType}` : ''}
+                  </div>
                   {education.preUniversity.resultFormat && education.preUniversity.result && (<div style={{ marginTop: 6, color: '#2b2a2a' }}>{education.preUniversity.resultFormat}: {education.preUniversity.result}</div>)}
                 </div>
               )}
@@ -207,8 +217,13 @@ const Template13Display: React.FC<Template13DisplayProps> = ({
               {/* SSLC (10th) */}
               {education.sslcEnabled && education.sslc && (education.sslc.instituteName || education.sslc.yearOfPassing) && (
                 <div style={{ marginBottom: 12 }}>
-                  <div style={{ fontWeight: 700 }}>{education.sslc.instituteName || 'SSLC'}</div>
-                  <div style={{ fontSize: 11, color: '#111827', fontWeight: 700 }}>SSLC (10th Standard) — {formatYear(education.sslc.yearOfPassing)}</div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <div style={{ fontWeight: 700 }}>{education.sslc.instituteName || 'SSLC'}</div>
+                    <div style={{ fontSize: 11, color: '#111827', fontWeight: 700 }}>{formatYear(education.sslc.yearOfPassing)}</div>
+                  </div>
+                  <div style={{ fontSize: 11, color: '#111827', fontWeight: 700 }}>
+                    SSLC (10th Standard){education.sslc.boardType ? ` — ${education.sslc.boardType}` : ''}
+                  </div>
                   {education.sslc.resultFormat && education.sslc.result && (<div style={{ marginTop: 6, color: '#2b2a2a' }}>{education.sslc.resultFormat}: {education.sslc.result}</div>)}
                 </div>
               )}

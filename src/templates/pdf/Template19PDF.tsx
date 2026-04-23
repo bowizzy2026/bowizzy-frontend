@@ -69,7 +69,7 @@ const formatMonthYearParts = (s?: string) => {
 interface Template19PDFProps { data: ResumeData; primaryColor?: string; fontFamily?: string }
 
 const Template19PDF: React.FC<Template19PDFProps> = ({ data, primaryColor = '#111827', fontFamily = 'Times-Roman, serif' }) => {
-  const { personal, experience, education, skillsLinks, certifications } = data;
+  const { personal, experience, education, projects, skillsLinks, certifications } = data;
   const getPdfFontFamily = (cssFont?: string): string => {
     if (!cssFont) return 'Times-Roman';
     const fontLower = cssFont.toLowerCase();
@@ -161,11 +161,11 @@ const Template19PDF: React.FC<Template19PDFProps> = ({ data, primaryColor = '#11
                 </View>
               )}
 
-              {(((personal as any).languagesKnown || (personal as any).languages || [])).length > 0 && (
+              {(((personal as any).languagesKnown || (personal as any).languages || [])).filter((l: string) => l && l.trim()).length > 0 && (
                 <View style={{ marginTop: 12 }}>
                   <Text style={styles.sectionHeading}>Language</Text>
                   <View style={{ ...styles.divider, backgroundColor: '#999' }} />
-                  <View style={{ marginTop: 8 }}>{(((personal as any).languagesKnown || (personal as any).languages || [])).map((l: string, i: number) => (<Text key={i} style={{ marginBottom: 6 }}>• {l}</Text>))}</View>
+                  <View style={{ marginTop: 8 }}>{(((personal as any).languagesKnown || (personal as any).languages || [])).filter((l: string) => l && l.trim()).map((l: string, i: number) => (<Text key={i} style={{ marginBottom: 6 }}>• {l}</Text>))}</View>
                 </View>
               )}
 
@@ -219,7 +219,7 @@ const Template19PDF: React.FC<Template19PDFProps> = ({ data, primaryColor = '#11
 
                       <Text style={{ marginTop: 6, color: '#000' }}>{w.companyName}{w.location ? ` — ${w.location}` : ''}</Text>
 
-                      {w.description && (
+                      {w.description && htmlToLines(w.description).length > 0 && (
                         <View style={{ marginTop: 6 }}>
                           {htmlToLines(w.description).map((ln: any, idx: number) => (
                             <View key={idx} style={{ flexDirection: 'row', marginBottom: 4 }}>
@@ -234,6 +234,33 @@ const Template19PDF: React.FC<Template19PDFProps> = ({ data, primaryColor = '#11
                   ))}
                 </View>
               </>)}
+
+              {(projects || []).some((p: any) => p.enabled) && (
+                <View style={{ marginTop: 12 }}>
+                  <Text style={styles.sectionHeading}>Projects</Text>
+                  <View style={{ ...styles.divider, backgroundColor: '#999' }} />
+                  <View style={{ marginTop: 8 }}>
+                    {(projects || []).filter((p: any) => p.enabled).map((p: any, i: number) => (
+                      <View key={i} style={{ marginBottom: 10 }}>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                          <Text style={{ fontSize: 11, fontFamily: 'Times-Bold' }}>{p.projectTitle}</Text>
+                          <Text style={{ fontSize: 11, color: '#000' }}>{formatMonthYear(p.startDate)} — {p.currentlyWorking ? 'Present' : formatMonthYear(p.endDate)}</Text>
+                        </View>
+                        {p.description && htmlToLines(p.description).length > 0 && (
+                          <View style={{ marginTop: 6 }}>
+                            {htmlToLines(p.description).map((ln: any, idx: number) => (
+                              <View key={idx} style={{ flexDirection: 'row', marginBottom: 4 }}>
+                                <Text style={{ width: 12 }}>•</Text>
+                                <Text style={{ flex: 1, color: '#444' }}>{ln}</Text>
+                              </View>
+                            ))}
+                          </View>
+                        )}
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              )}
 
             </View>
           </View>

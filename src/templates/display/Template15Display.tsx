@@ -63,8 +63,10 @@ const Template15Display: React.FC<Template15DisplayProps> = ({
 
   const mobile = personal.mobileNumber;
   const email = personal.email;
-  const linkedin = (skillsLinks && (skillsLinks as any).links && (skillsLinks as any).links.linkedinProfile) || (personal as any).linkedinProfile;
-  const github = (skillsLinks && (skillsLinks as any).links && (skillsLinks as any).links.githubProfile) || (personal as any).githubProfile;
+  const linksEnabled = skillsLinks?.linksEnabled ?? true;
+  const linkedin = linksEnabled && (skillsLinks?.links?.linkedinEnabled ?? true) ? ((skillsLinks as any).links?.linkedinProfile || (personal as any).linkedinProfile) : null;
+  const github = linksEnabled && (skillsLinks?.links?.githubEnabled ?? true) ? ((skillsLinks as any).links?.githubProfile || (personal as any).githubProfile) : null;
+  const portfolio = linksEnabled && (skillsLinks?.links?.portfolioEnabled ?? true) ? (skillsLinks as any).links?.portfolioUrl : null;
 
   // Extract a short handle to display for profile URLs (e.g., username from URL)
   const extractHandle = (s?: string) => {
@@ -87,6 +89,7 @@ const Template15Display: React.FC<Template15DisplayProps> = ({
   if (email) contactNodes.push(email);
   if (linkedin) contactNodes.push(<a href={(skillsLinks as any).links?.linkedinProfile || (personal as any).linkedinProfile} target="_blank" rel="noreferrer" style={{ color: '#0a66c2', textDecoration: 'none' }}>{extractHandle(linkedin)}</a>);
   if (github) contactNodes.push(<a href={(skillsLinks as any).links?.githubProfile || (personal as any).githubProfile} target="_blank" rel="noreferrer" style={{ color: '#111', textDecoration: 'none' }}>{extractHandle(github)}</a>);
+  if (portfolio) contactNodes.push(<a href={(skillsLinks as any).links?.portfolioUrl} target="_blank" rel="noreferrer" style={{ color: '#000', textDecoration: 'none' }}>{extractHandle(portfolio)}</a>);
 
   return (
     <div style={{ width: '210mm', minHeight: '297mm', fontFamily: fontFamily, background: '#fff' }}>
@@ -117,55 +120,55 @@ const Template15Display: React.FC<Template15DisplayProps> = ({
           </div>
 
           {(education.higherEducation.some(edu => edu.enabled) || education.preUniversityEnabled || education.sslcEnabled) && (<>
-          <div style={{ marginTop: 12 }}>
-            <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.2, color: primaryColor, fontWeight: 700 }}>Education</div>
-            <div style={{ height: 1, background: '#ddd', marginTop: 4, width: '100%' }} />
-          </div>
+            <div style={{ marginTop: 12 }}>
+              <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.2, color: primaryColor, fontWeight: 700 }}>Education</div>
+              <div style={{ height: 1, background: '#ddd', marginTop: 4, width: '100%' }} />
+            </div>
 
-          <div style={{ marginTop: 8 }}>
-            {education.higherEducation.filter(edu => edu.enabled).sort((a: any, b: any) => 0).map((edu, i) => (
-              <div key={`he-${i}`} style={{ marginBottom: 8 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <div style={{ fontWeight: 700 }}>{edu.instituteName}</div>
-                  <div style={{ fontSize: 12, color: '#101113ff', fontWeight: 700 }}>{formatMonthYear(edu.startYear)} — {edu.currentlyPursuing ? 'Present' : formatMonthYear(edu.endYear)}</div>
+            <div style={{ marginTop: 8 }}>
+              {education.higherEducation.filter(edu => edu.enabled).sort((a: any, b: any) => 0).map((edu, i) => (
+                <div key={`he-${i}`} style={{ marginBottom: 8 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <div style={{ fontWeight: 700 }}>{edu.instituteName}</div>
+                    <div style={{ fontSize: 12, color: '#101113ff', fontWeight: 700 }}>{formatMonthYear(edu.startYear)} — {edu.currentlyPursuing ? 'Present' : formatMonthYear(edu.endYear)}</div>
 
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6 }}>
+                    <div style={{ fontSize: 11, color: '#6b7280' }}>{edu.degree}{edu.fieldOfStudy ? ` — ${edu.fieldOfStudy}` : ''}</div>
+                    {edu.resultFormat && edu.result ? (
+                      <div style={{ fontWeight: 700, fontSize: 11, color: '#6b7280' }}>{edu.resultFormat}: {edu.result}</div>
+                    ) : null}
+                  </div>
+                  {edu.universityBoard && <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>{edu.universityBoard}</div>}
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6 }}>
-                  <div style={{ fontSize: 11, color: '#6b7280' }}>{edu.degree}{edu.fieldOfStudy ? ` — ${edu.fieldOfStudy}` : ''}</div>
-                  {edu.resultFormat && edu.result ? (
-                    <div style={{ fontWeight: 700, fontSize: 11, color: '#6b7280' }}>{edu.resultFormat}: {edu.result}</div>
-                  ) : null}
-                </div>
-                {edu.universityBoard && <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>{edu.universityBoard}</div>}
-              </div>
-            ))}
+              ))}
 
-            {education.preUniversityEnabled && (
-              <div style={{ marginBottom: 8 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <div style={{ fontWeight: 700 }}>{education.preUniversity.instituteName || 'Pre University'}</div>
-                  <div style={{ fontSize: 12, color: '#101113ff', fontWeight: 700 }}>{formatMonthYear(education.preUniversity.yearOfPassing) || ''}</div>
+              {education.preUniversityEnabled && (
+                <div style={{ marginBottom: 8 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <div style={{ fontWeight: 700 }}>{education.preUniversity.instituteName || 'Pre University'}</div>
+                    <div style={{ fontSize: 12, color: '#101113ff', fontWeight: 700 }}>{formatMonthYear(education.preUniversity.yearOfPassing) || ''}</div>
+                  </div>
+                  <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2, display: 'flex', justifyContent: 'space-between' }}>
+                    Pre University (12th Standard){education.preUniversity.subjectStream ? ` — ${education.preUniversity.subjectStream}` : ''}
+                    {education.preUniversity.resultFormat && education.preUniversity.result && (<div style={{ fontWeight: 700, color: '#6b7280', fontSize: 11 }}>{education.preUniversity.resultFormat}: {education.preUniversity.result}</div>)}
+                  </div>
                 </div>
-                <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2, display: 'flex', justifyContent: 'space-between' }}>
-                  Pre University (12th Standard){education.preUniversity.subjectStream ? ` — ${education.preUniversity.subjectStream}` : ''}
-                  {education.preUniversity.resultFormat && education.preUniversity.result && (<div style={{ fontWeight: 700, color: '#6b7280', fontSize: 11 }}>{education.preUniversity.resultFormat}: {education.preUniversity.result}</div>)}
-                </div>
-              </div>
-            )}
+              )}
 
-            {education.sslcEnabled && (
-              <div style={{ marginBottom: 8 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <div style={{ fontWeight: 700 }}>{education.sslc.instituteName || 'SSLC'}</div>
-                  <div style={{ fontSize: 11, color: '#101113ff', fontWeight: 700 }}>{education.sslc.yearOfPassing ? formatMonthYear(education.sslc.yearOfPassing) : ''}</div>
+              {education.sslcEnabled && (
+                <div style={{ marginBottom: 8 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <div style={{ fontWeight: 700 }}>{education.sslc.instituteName || 'SSLC'}</div>
+                    <div style={{ fontSize: 11, color: '#101113ff', fontWeight: 700 }}>{education.sslc.yearOfPassing ? formatMonthYear(education.sslc.yearOfPassing) : ''}</div>
+                  </div>
+                  <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2, display: 'flex', justifyContent: 'space-between' }}>
+                    SSLC (10th Standard){education.sslc.boardType ? ` — ${education.sslc.boardType}` : ''}
+                    {education.sslc.resultFormat && education.sslc.result && (<div style={{ fontWeight: 700, color: '#6b7280' }}>{education.sslc.resultFormat}: {education.sslc.result}</div>)}
+                  </div>
                 </div>
-                <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2, display: 'flex', justifyContent: 'space-between' }}>
-                  SSLC (10th Standard){education.sslc.boardType ? ` — ${education.sslc.boardType}` : ''}
-                  {education.sslc.resultFormat && education.sslc.result && (<div style={{ fontWeight: 700, color: '#6b7280' }}>{education.sslc.resultFormat}: {education.sslc.result}</div>)}
-                </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
           </>)}
 
           {skillsLinks.skills.some((s: any) => s.enabled && s.skillName) && (<>
@@ -216,7 +219,7 @@ const Template15Display: React.FC<Template15DisplayProps> = ({
 
           {experience.workExperiences.some(exp => exp.enabled) && (<>
             <div style={{ marginTop: 12 }}>
-              <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.2, color: primaryColor, fontWeight: 700 }}>Internships</div>
+              <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.2, color: primaryColor, fontWeight: 700 }}>EXPERIENCE</div>
               <div style={{ height: 1, background: '#ddd', marginTop: 4, width: '100%' }} />
             </div>
 

@@ -117,10 +117,10 @@ const Template17Display: React.FC<Template17DisplayProps> = ({
                 {experience.workExperiences.filter((w: any) => w.enabled).map((w: any, i: number) => (
                   <div key={i} style={{ marginBottom: 12 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <div style={{ fontWeight: 700, fontSize: 12 }}>{w.jobTitle}</div>
+                      <div style={{ fontWeight: 700, fontSize: 12 }}>{w.companyName}</div>
                       <div style={{ color: '#000', fontSize: 11 }}>{formatMonthYear(w.startDate)} — {w.currentlyWorking ? 'Present' : formatMonthYear(w.endDate)}</div>
                     </div>
-                    <div style={{ color: '#000', marginTop: 6, fontSize: 11 }}>{w.companyName}{w.location ? ` — ${w.location}` : ''}</div>
+                    <div style={{ color: '#000', marginTop: 6, fontSize: 11 }}>{w.jobTitle}{w.location ? ` — ${w.location}` : ''}</div>
                     {w.description && <div style={{ marginTop: 6, paddingLeft: 10 }}>{htmlToLines(w.description).map((ln, idx) => <div key={idx} style={{ marginTop: 6, fontSize: 11 }}>• {ln}</div>)}</div>}
                   </div>
                 ))}
@@ -161,7 +161,10 @@ const Template17Display: React.FC<Template17DisplayProps> = ({
                     <div style={{ fontWeight: 700, fontSize: 12 }}>{edu.instituteName}</div>
                     <div style={{ color: '#000', fontSize: 11 }}>{(edu.endYear ? String(edu.endYear).match(/(\d{4})/)?.[1] : '')}</div>
                   </div>
-                  <div style={{ color: '#000', marginTop: 4, fontSize: 11 }}>{edu.degree}{edu.fieldOfStudy ? ` in ${edu.fieldOfStudy}` : ''}</div>
+                  <div style={{ color: '#000', marginTop: 4, fontSize: 11 }}>
+                    {edu.degree}{edu.fieldOfStudy ? ` in ${edu.fieldOfStudy}` : ''}
+                    {edu.universityBoard ? ` — ${edu.universityBoard}` : ''}
+                  </div>
                   {edu.resultFormat && edu.result ? (
                     <div style={{ marginTop: 6, color: '#444', fontWeight: 700, fontSize: 11 }}>{edu.resultFormat}: {edu.result}</div>
                   ) : null}
@@ -174,7 +177,11 @@ const Template17Display: React.FC<Template17DisplayProps> = ({
                     <div style={{ fontWeight: 700, fontSize: 12 }}>{education.preUniversity.instituteName || 'Pre University'}</div>
                     <div style={{ color: '#000', fontSize: 11 }}>{education.preUniversity.yearOfPassing ? String(education.preUniversity.yearOfPassing).match(/(\d{4})/)?.[1] : ''}</div>
                   </div>
-                  <div style={{ color: '#000', marginTop: 4, fontSize: 11 }}>Pre University (12th Standard){education.preUniversity.subjectStream ? ` — ${education.preUniversity.subjectStream}` : ''}</div>
+                  <div style={{ color: '#000', marginTop: 4, fontSize: 11 }}>
+                    Pre University (12th Standard)
+                    {education.preUniversity.subjectStream ? ` — ${education.preUniversity.subjectStream}` : ''}
+                    {education.preUniversity.boardType ? ` — ${education.preUniversity.boardType}` : ''}
+                  </div>
                   {education.preUniversity.resultFormat && education.preUniversity.result && (<div style={{ marginTop: 6, color: '#444', fontWeight: 700, fontSize: 11 }}>{education.preUniversity.resultFormat}: {education.preUniversity.result}</div>)}
                 </div>
               )}

@@ -251,24 +251,39 @@ const Template13PDF: React.FC<Template13PDFProps> = ({ data, primaryColor = '#11
           <View>
             {education.higherEducation.filter(edu => edu.enabled).sort((a: any, b: any) => educationPriority(a.degree) - educationPriority(b.degree)).map((edu: any, i: number) => (
               <View key={`he-${i}`} style={{ marginBottom: 12 }}>
-                <Text style={{ ...styles.itemTitle, fontFamily: pdfFontFamilyBold }}>{edu.instituteName}</Text>
-                <Text style={{ ...styles.itemSub, fontFamily: pdfFontFamilyBold }}>{edu.degree} — {edu.currentlyPursuing ? 'Present' : formatYear(edu.endYear)}</Text>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                  <Text style={{ ...styles.itemTitle, fontFamily: pdfFontFamilyBold }}>{edu.instituteName}</Text>
+                  <Text style={{ ...styles.itemSub, fontFamily: pdfFontFamilyBold }}>{edu.currentlyPursuing ? 'Present' : formatYear(edu.endYear)}</Text>
+                </View>
+                <Text style={{ ...styles.itemSub, fontFamily: pdfFontFamilyBold }}>
+                  {edu.degree}{edu.fieldOfStudy ? ` in ${edu.fieldOfStudy}` : ''}{edu.universityBoard ? ` — ${edu.universityBoard}` : ''}
+                </Text>
                 {edu.resultFormat && edu.result && (<Text style={{ fontSize: 10, color: '#2b2a2a', marginTop: 6 }}>{edu.resultFormat}: {edu.result}</Text>)}
               </View>
             ))}
 
             {education.preUniversityEnabled && education.preUniversity && (education.preUniversity.instituteName || education.preUniversity.yearOfPassing) && (
               <View style={{ marginBottom: 12 }}>
-                <Text style={{ ...styles.itemTitle, fontFamily: pdfFontFamilyBold }}>{education.preUniversity.instituteName || 'Pre University'}</Text>
-                <Text style={{ ...styles.itemSub, fontFamily: pdfFontFamilyBold }}>Pre University (12th Standard) — {formatYear(education.preUniversity.yearOfPassing)}</Text>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                  <Text style={{ ...styles.itemTitle, fontFamily: pdfFontFamilyBold }}>{education.preUniversity.instituteName || 'Pre University'}</Text>
+                  <Text style={{ ...styles.itemSub, fontFamily: pdfFontFamilyBold }}>{formatYear(education.preUniversity.yearOfPassing)}</Text>
+                </View>
+                <Text style={{ ...styles.itemSub, fontFamily: pdfFontFamilyBold }}>
+                  Pre University (12th Standard){education.preUniversity.subjectStream ? ` — ${education.preUniversity.subjectStream}` : ''}{education.preUniversity.boardType ? ` — ${education.preUniversity.boardType}` : ''}
+                </Text>
                 {education.preUniversity.resultFormat && education.preUniversity.result && (<Text style={{ fontSize: 10, color: '#2b2a2a', marginTop: 6 }}>{education.preUniversity.resultFormat}: {education.preUniversity.result}</Text>)}
               </View>
             )}
 
             {education.sslcEnabled && education.sslc && (education.sslc.instituteName || education.sslc.yearOfPassing) && (
               <View style={{ marginBottom: 12 }}>
-                <Text style={{ ...styles.itemTitle, fontFamily: pdfFontFamilyBold }}>{education.sslc.instituteName || 'SSLC'}</Text>
-                <Text style={{ ...styles.itemSub, fontFamily: pdfFontFamilyBold }}>SSLC (10th Standard) — {formatYear(education.sslc.yearOfPassing)}</Text>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                  <Text style={{ ...styles.itemTitle, fontFamily: pdfFontFamilyBold }}>{education.sslc.instituteName || 'SSLC'}</Text>
+                  <Text style={{ ...styles.itemSub, fontFamily: pdfFontFamilyBold }}>{formatYear(education.sslc.yearOfPassing)}</Text>
+                </View>
+                <Text style={{ ...styles.itemSub, fontFamily: pdfFontFamilyBold }}>
+                  SSLC (10th Standard){education.sslc.boardType ? ` — ${education.sslc.boardType}` : ''}
+                </Text>
                 {education.sslc.resultFormat && education.sslc.result && (<Text style={{ fontSize: 10, color: '#2b2a2a', marginTop: 6 }}>{education.sslc.resultFormat}: {education.sslc.result}</Text>)}
               </View>
             )}
