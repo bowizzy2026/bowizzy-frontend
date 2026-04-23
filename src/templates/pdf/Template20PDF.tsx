@@ -204,7 +204,7 @@ const Template20PDF: React.FC<Template20PDFProps> = ({ data, primaryColor = '#11
             ))}
 
             {/* Pre University */}
-            {(education.preUniversityEnabled || education.preUniversity.instituteName || education.higherEducation.length > 0) && (
+            {education.preUniversityEnabled && (
               <View style={{ marginBottom: 12 }}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                   <Text style={{ fontFamily: 'Times-Bold' }}>{education.preUniversity.instituteName || 'Pre University'}</Text>
@@ -218,7 +218,7 @@ const Template20PDF: React.FC<Template20PDFProps> = ({ data, primaryColor = '#11
             )}
 
             {/* SSLC */}
-            {(education.sslcEnabled || education.sslc.instituteName || education.higherEducation.length > 0) && (
+            {education.sslcEnabled && (
               <View style={{ marginBottom: 12 }}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                   <Text style={{ fontFamily: 'Times-Bold' }}>{education.sslc.instituteName || 'SSLC'}</Text>

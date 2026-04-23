@@ -116,6 +116,7 @@ const Template15Display: React.FC<Template15DisplayProps> = ({
             {personal.aboutCareerObjective && (<div style={{ color: '#444', lineHeight: 1.4 }}>{DOMPurify.sanitize(personal.aboutCareerObjective).replace(/<[^>]+>/g, '')}</div>)}
           </div>
 
+          {(education.higherEducation.some(edu => edu.enabled) || education.preUniversityEnabled || education.sslcEnabled) && (<>
           <div style={{ marginTop: 12 }}>
             <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.2, color: primaryColor, fontWeight: 700 }}>Education</div>
             <div style={{ height: 1, background: '#ddd', marginTop: 4, width: '100%' }} />
@@ -139,38 +140,33 @@ const Template15Display: React.FC<Template15DisplayProps> = ({
               </div>
             ))}
 
-            {/** Pre University (PUC/12th) */}
-            {(education.preUniversityEnabled || education.preUniversity.instituteName || education.higherEducation.length > 0) && (
+            {education.preUniversityEnabled && (
               <div style={{ marginBottom: 8 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <div style={{ fontWeight: 700 }}>{education.preUniversity.instituteName || 'Pre University'}</div>
                   <div style={{ fontSize: 12, color: '#101113ff', fontWeight: 700 }}>{formatMonthYear(education.preUniversity.yearOfPassing) || ''}</div>
                 </div>
-                <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2, display: 'flex', justifyContent: 'space-between', }}>
+                <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2, display: 'flex', justifyContent: 'space-between' }}>
                   Pre University (12th Standard){education.preUniversity.subjectStream ? ` — ${education.preUniversity.subjectStream}` : ''}
-                  {education.preUniversity.resultFormat && education.preUniversity.result && (<div style={{ fontWeight: 700, color: '#6b7280', fontSize: 11, }}>{education.preUniversity.resultFormat}: {education.preUniversity.result}</div>)}
+                  {education.preUniversity.resultFormat && education.preUniversity.result && (<div style={{ fontWeight: 700, color: '#6b7280', fontSize: 11 }}>{education.preUniversity.resultFormat}: {education.preUniversity.result}</div>)}
                 </div>
-
-
               </div>
             )}
 
-            {/** SSLC (10th) */}
-            {(education.sslcEnabled || education.sslc.instituteName || education.higherEducation.length > 0) && (
+            {education.sslcEnabled && (
               <div style={{ marginBottom: 8 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <div style={{ fontWeight: 700 }}>{education.sslc.instituteName || 'SSLC'}</div>
                   <div style={{ fontSize: 11, color: '#101113ff', fontWeight: 700 }}>{education.sslc.yearOfPassing ? formatMonthYear(education.sslc.yearOfPassing) : ''}</div>
                 </div>
-                <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2, display: 'flex', justifyContent: 'space-between', }}>
+                <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2, display: 'flex', justifyContent: 'space-between' }}>
                   SSLC (10th Standard){education.sslc.boardType ? ` — ${education.sslc.boardType}` : ''}
-
                   {education.sslc.resultFormat && education.sslc.result && (<div style={{ fontWeight: 700, color: '#6b7280' }}>{education.sslc.resultFormat}: {education.sslc.result}</div>)}
                 </div>
-
               </div>
             )}
           </div>
+          </>)}
 
           {skillsLinks.skills.some((s: any) => s.enabled && s.skillName) && (<>
             <div style={{ marginTop: 12 }}>

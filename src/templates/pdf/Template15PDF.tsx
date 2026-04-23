@@ -175,6 +175,7 @@ const Template15PDF: React.FC<Template15PDFProps> = ({ data, primaryColor = '#0b
         </View>
         {personal.aboutCareerObjective ? <Text style={{ fontSize: 10, color: '#444', marginTop: 6 }}>{htmlToPlainText(personal.aboutCareerObjective)}</Text> : null}
 
+        {(education.higherEducation.some(edu => edu.enabled) || education.preUniversityEnabled || education.sslcEnabled) && (<>
         <View style={{ marginTop: 12 }}>
           <Text style={{ ...styles.sectionHeading, fontFamily: pdfFontFamilyBold, color: primaryColor }}>EDUCATION</Text>
           <View style={{ height: 1, backgroundColor: primaryColor, width: '100%', marginTop: 4, marginBottom: 0 }} />
@@ -198,7 +199,7 @@ const Template15PDF: React.FC<Template15PDFProps> = ({ data, primaryColor = '#0b
           ))}
 
           {/* Pre University (PUC/12th) */}
-          {(education.preUniversityEnabled || education.preUniversity.instituteName || education.higherEducation.length > 0) && (
+          {education.preUniversityEnabled && (
             <View style={{ marginBottom: 8 }}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                 <Text style={{ ...styles.itemTitle, fontFamily: pdfFontFamilyBold }}>{education.preUniversity.instituteName || 'Pre University'}</Text>
@@ -214,7 +215,7 @@ const Template15PDF: React.FC<Template15PDFProps> = ({ data, primaryColor = '#0b
           )}
 
           {/* SSLC (10th) */}
-          {(education.sslcEnabled || education.sslc.instituteName || education.higherEducation.length > 0) && (
+          {education.sslcEnabled && (
             <View style={{ marginBottom: 8 }}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                 <Text style={{ ...styles.itemTitle, fontFamily: pdfFontFamilyBold }}>{education.sslc.instituteName || 'SSLC'}</Text>
@@ -229,6 +230,7 @@ const Template15PDF: React.FC<Template15PDFProps> = ({ data, primaryColor = '#0b
             </View>
           )}
         </View>
+        </>)}
 
         {(skillsLinks.skills || []).some((s: any) => s.enabled && s.skillName) && (<>
         <View style={{ marginTop: 12 }}>

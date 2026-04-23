@@ -117,7 +117,7 @@ const Template14PDF: React.FC<Template14PDFProps> = ({ data, primaryColor = '#11
   // Use the separate jobRole if set by the user; otherwise fall back to first work experience jobTitle
   const profession = (experience && (experience as any).jobRole) || (experience.workExperiences && experience.workExperiences.find((w: any) => w.enabled && w.jobTitle) && experience.workExperiences.find((w: any) => w.enabled && w.jobTitle).jobTitle) || '';
 
-  const contactParts = [personal.address && String(personal.address).split(',')[0], personal.email, personal.mobileNumber].filter(Boolean);
+  const contactParts = [personal.address, personal.email, personal.mobileNumber].filter(Boolean);
   const links = skillsLinks && (skillsLinks as any).links;
   const linkedinPresent = links?.linkedinEnabled !== false && (links?.linkedinProfile || (personal as any).linkedinProfile);
   const githubPresent = links?.githubEnabled !== false && (links?.githubProfile || (personal as any).githubProfile);
@@ -171,6 +171,7 @@ const Template14PDF: React.FC<Template14PDFProps> = ({ data, primaryColor = '#11
         </View>
         </>)}
 
+        {(education.higherEducation.some(edu => edu.enabled) || education.preUniversityEnabled || education.sslcEnabled) && (<>
         <View style={{ marginTop: 16 }}>
           <Text style={{ ...styles.sectionHeading, fontFamily: pdfFontFamilyBold, color: primaryColor }}>EDUCATION</Text>
           <View style={{ height: 1.5, backgroundColor: primaryColor, width: '100%', marginTop: 4, marginBottom: 0 }} />
@@ -210,6 +211,7 @@ const Template14PDF: React.FC<Template14PDFProps> = ({ data, primaryColor = '#11
             </View>
           )}
         </View>
+        </>)}
 
         {skillsLinks.skills.some((s: any) => s.enabled && s.skillName) && (<>
         <View style={{ marginTop: 16 }}>

@@ -81,7 +81,7 @@ const Template18Display: React.FC<Template18DisplayProps> = ({
     return trimmed;
   };
 
-  const locationPart = personal.city || (personal.address && String(personal.address).split(',')[0]) || '';
+  const locationPart = personal.city || personal.address || '';
   const locNat = [locationPart, personal.nationality].filter(Boolean).join(', ');
   const links = skillsLinks?.links;
   const linkedinLabel = links?.linkedinEnabled !== false ? extractHandle(links?.linkedinProfile || (personal as any).linkedinProfile) : '';

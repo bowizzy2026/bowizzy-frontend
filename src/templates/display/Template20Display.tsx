@@ -167,7 +167,7 @@ const Template20Display: React.FC<Template20DisplayProps> = ({
               </div>
             ))}
 
-            {(education.preUniversityEnabled || education.preUniversity.instituteName || education.higherEducation.length > 0) && (
+            {education.preUniversityEnabled && (
               <div style={{ marginBottom: 12 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <div style={{ fontWeight: 800, color: '#000' }}>{education.preUniversity.instituteName || 'Pre University'}</div>
@@ -180,7 +180,7 @@ const Template20Display: React.FC<Template20DisplayProps> = ({
               </div>
             )}
 
-            {(education.sslcEnabled || education.sslc.instituteName || education.higherEducation.length > 0) && (
+            {education.sslcEnabled && (
               <div style={{ marginBottom: 12 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <div style={{ fontWeight: 800, color: '#000' }}>{education.sslc.instituteName || 'SSLC'}</div>

@@ -141,7 +141,7 @@ const Template4PDF: React.FC<Template4PDFProps> = ({ data }) => {
               {personal.address && (
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                   <Svg width={10} height={10} viewBox="0 0 24 24"><Path d={ICON_PATHS.location} fill="#4a5568" /></Svg>
-                  <Text style={{ fontSize: 9, color: '#4a5568', marginLeft: 4 }}>{personal.address.split(',')[0]}</Text>
+                  <Text style={{ fontSize: 9, color: '#4a5568', marginLeft: 4 }}>{personal.address}</Text>
                 </View>
               )}
 

@@ -67,7 +67,7 @@ const Template5PDF: React.FC<Template5PDFProps> = ({ data }) => {
           <View style={styles.contactBox}>
             {personal.email && <Text style={styles.text}>{personal.email}</Text>}
             {personal.mobileNumber && <Text style={styles.text}>{personal.mobileNumber}</Text>}
-            {personal.address && <Text style={styles.text}>{personal.address.split(',')[0]}</Text>}
+            {personal.address && <Text style={styles.text}>{personal.address}</Text>}
           </View>
 
           {personal.aboutCareerObjective ? (

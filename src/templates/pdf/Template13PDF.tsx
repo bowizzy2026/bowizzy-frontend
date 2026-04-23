@@ -49,9 +49,9 @@ const renderBulletedParagraph = (html?: string) => {
     .replace(/&gt;/g, '>')
     .replace(/&amp;/g, '&')
     .trim();
-  
+
   const lines = text.split('\n').filter((l) => l.trim());
-  
+
   return (
     <View style={{ marginTop: 2 }}>
       {lines.map((line, idx) => (
@@ -70,7 +70,7 @@ const renderBulletedParagraph = (html?: string) => {
 
 const formatMonthYear = (s?: string) => {
   if (!s) return '';
-  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
   try {
     const str = String(s).trim();
     const ymd = str.match(/^(\d{4})-(\d{2})(?:-\d{2})?$/);
@@ -120,35 +120,35 @@ const Template13PDF: React.FC<Template13PDFProps> = ({ data, primaryColor = '#11
   const getPdfFontFamily = (cssFont?: string): string => {
     if (!cssFont) return 'Times-Roman';
     const fontLower = cssFont.toLowerCase();
-    
+
     if (fontLower.includes('arial')) return 'Helvetica';
     if (fontLower.includes('times')) return 'Times-Roman';
     if (fontLower.includes('georgia')) return 'Times-Roman';
     if (fontLower.includes('calibri')) return 'Helvetica';
     if (fontLower.includes('roboto')) return 'Helvetica';
     if (fontLower.includes('inter')) return 'Helvetica';
-    
+
     return 'Times-Roman';
   };
 
   const getPdfFontFamilyBold = (cssFont?: string): string => {
     if (!cssFont) return 'Times-Bold';
     const fontLower = cssFont.toLowerCase();
-    
+
     if (fontLower.includes('arial')) return 'Helvetica-Bold';
     if (fontLower.includes('times')) return 'Times-Bold';
     if (fontLower.includes('georgia')) return 'Times-Bold';
     if (fontLower.includes('calibri')) return 'Helvetica-Bold';
     if (fontLower.includes('roboto')) return 'Helvetica-Bold';
     if (fontLower.includes('inter')) return 'Helvetica-Bold';
-    
+
     return 'Times-Bold';
   };
 
   const pdfFontFamily = getPdfFontFamily(fontFamily);
   const pdfFontFamilyBold = getPdfFontFamilyBold(fontFamily);
 
-  const contactParts = [personal.address && String(personal.address).split(',')[0], personal.email, personal.mobileNumber].filter(Boolean);
+  const contactParts = [personal.address, personal.email, personal.mobileNumber].filter(Boolean);
   const linkedinPresent = (skillsLinks && (skillsLinks as any).links && (skillsLinks as any).links.linkedinProfile) || (personal as any).linkedinProfile;
   const githubPresent = (skillsLinks && (skillsLinks as any).links && (skillsLinks as any).links.githubProfile) || (personal as any).githubProfile;
   const pdfContactLine = [...contactParts, ...(linkedinPresent ? [linkedinPresent] : []), ...(githubPresent ? [githubPresent] : [])].join(' | ');
@@ -161,31 +161,31 @@ const Template13PDF: React.FC<Template13PDFProps> = ({ data, primaryColor = '#11
           <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap' }}>
             {personal.address && (
               <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 8 }}>
-                <Svg width={10} height={10} viewBox="0 0 24 24"><Path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z" fill="#6b7280"/></Svg>
-                <Text style={[styles.contact, { marginLeft: 6 }]}>{String(personal.address).split(',')[0]}</Text>
+                <Svg width={10} height={10} viewBox="0 0 24 24"><Path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z" fill="#6b7280" /></Svg>
+                <Text style={[styles.contact, { marginLeft: 6 }]}>{String(personal.address)}</Text>
               </View>
             )}
             {personal.email && (
               <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 8 }}>
-                <Svg width={10} height={10} viewBox="0 0 24 24"><Path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1 .9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z" fill="#6b7280"/></Svg>
+                <Svg width={10} height={10} viewBox="0 0 24 24"><Path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1 .9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z" fill="#6b7280" /></Svg>
                 <Text style={[styles.contact, { marginLeft: 6 }]}>{personal.email}</Text>
               </View>
             )}
             {personal.mobileNumber && (
               <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 8 }}>
-                <Svg width={10} height={10} viewBox="0 0 24 24"><Path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24c1.12.37 2.33.57 3.57.57a1 1 0 011 1v3.5a1 1 0 01-1 1C10.07 21 3 13.93 3 4.5A1 1 0 014 3.5H7.5a1 1 0 011 1c0 1.24.2 2.45.57 3.57a1 1 0 01-.24 1.01l-2.2 2.2z" fill="#6b7280"/></Svg>
+                <Svg width={10} height={10} viewBox="0 0 24 24"><Path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24c1.12.37 2.33.57 3.57.57a1 1 0 011 1v3.5a1 1 0 01-1 1C10.07 21 3 13.93 3 4.5A1 1 0 014 3.5H7.5a1 1 0 011 1c0 1.24.2 2.45.57 3.57a1 1 0 01-.24 1.01l-2.2 2.2z" fill="#6b7280" /></Svg>
                 <Text style={[styles.contact, { marginLeft: 6 }]}>{personal.mobileNumber}</Text>
               </View>
             )}
             {linkedinPresent && (
               <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 8 }}>
-                <Svg width={10} height={10} viewBox="0 0 24 24"><Path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1 .9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9.5 14H7.5V10h2v7zM8.5 9.5c-.66 0-1.2-.54-1.2-1.2S7.84 7.1 8.5 7.1s1.2.54 1.2 1.2-.54 1.2-1.2 1.2zM17.5 17h-2v-3.5c0-.93-.03-2.12-1.29-2.12-1.29 0-1.49 1.01-1.49 2.06V17h-2V10h1.92v1.05h.03c.27-.51.94-1.05 1.93-1.05 2.06 0 2.44 1.36 2.44 3.13V17z" fill="#0A66C2"/></Svg>
+                <Svg width={10} height={10} viewBox="0 0 24 24"><Path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1 .9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9.5 14H7.5V10h2v7zM8.5 9.5c-.66 0-1.2-.54-1.2-1.2S7.84 7.1 8.5 7.1s1.2.54 1.2 1.2-.54 1.2-1.2 1.2zM17.5 17h-2v-3.5c0-.93-.03-2.12-1.29-2.12-1.29 0-1.49 1.01-1.49 2.06V17h-2V10h1.92v1.05h.03c.27-.51.94-1.05 1.93-1.05 2.06 0 2.44 1.36 2.44 3.13V17z" fill="#0A66C2" /></Svg>
                 <Text style={[styles.contact, { marginLeft: 6 }]}>{linkedinPresent}</Text>
               </View>
             )}
             {githubPresent && (
               <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 8 }}>
-                <Svg width={10} height={10} viewBox="0 0 24 24"><Path d="M12 .5C5.73 .5 .5 5.73 .5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.27-.01-1-.02-1.96-3.2.7-3.88-1.55-3.88-1.55-.53-1.35-1.3-1.71-1.3-1.71-1.06-.72.08-.71.08-.71 1.18.08 1.8 1.21 1.8 1.21 1.04 1.78 2.73 1.27 3.4.97.11-.76.41-1.27.74-1.56-2.55-.29-5.23-1.28-5.23-5.68 0-1.25.45-2.27 1.2-3.07-.12-.29-.52-1.45.11-3.02 0 0 .98-.31 3.2 1.17.93-.26 1.93-.39 2.92-.39.99 0 1.99.13 2.92.39 2.22-1.48 3.2-1.17 3.2-1.17.63 1.57.23 2.73.11 3.02.75.8 1.2 1.82 1.2 3.07 0 4.41-2.69 5.39-5.25 5.67.42.36.8 1.08.8 2.18 0 1.57-.01 2.84-.01 3.23 0 .31.21.68.8.56C20.71 21.39 24 17.08 24 12c0-6.27-5.23-11.5-12-11.5z" fill="#111827"/></Svg>
+                <Svg width={10} height={10} viewBox="0 0 24 24"><Path d="M12 .5C5.73 .5 .5 5.73 .5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.27-.01-1-.02-1.96-3.2.7-3.88-1.55-3.88-1.55-.53-1.35-1.3-1.71-1.3-1.71-1.06-.72.08-.71.08-.71 1.18.08 1.8 1.21 1.8 1.21 1.04 1.78 2.73 1.27 3.4.97.11-.76.41-1.27.74-1.56-2.55-.29-5.23-1.28-5.23-5.68 0-1.25.45-2.27 1.2-3.07-.12-.29-.52-1.45.11-3.02 0 0 .98-.31 3.2 1.17.93-.26 1.93-.39 2.92-.39.99 0 1.99.13 2.92.39 2.22-1.48 3.2-1.17 3.2-1.17.63 1.57.23 2.73.11 3.02.75.8 1.2 1.82 1.2 3.07 0 4.41-2.69 5.39-5.25 5.67.42.36.8 1.08.8 2.18 0 1.57-.01 2.84-.01 3.23 0 .31.21.68.8.56C20.71 21.39 24 17.08 24 12c0-6.27-5.23-11.5-12-11.5z" fill="#111827" /></Svg>
                 <Text style={[styles.contact, { marginLeft: 6 }]}>{githubPresent}</Text>
               </View>
             )}
@@ -202,11 +202,11 @@ const Template13PDF: React.FC<Template13PDFProps> = ({ data, primaryColor = '#11
         </View>
 
         {experience.workExperiences.some((exp: any) => exp.enabled) && (<>
-        <View style={{ marginTop: 8 }}>
-          <Text style={{ ...styles.sectionHeading, fontFamily: pdfFontFamilyBold, color: primaryColor }}>EXPERIENCE</Text>
-          <View style={{ height: 1, backgroundColor: primaryColor, width: '100%', marginTop: 0, marginBottom: 6 }} />
-        </View>
-        <View>
+          <View style={{ marginTop: 8 }}>
+            <Text style={{ ...styles.sectionHeading, fontFamily: pdfFontFamilyBold, color: primaryColor }}>EXPERIENCE</Text>
+            <View style={{ height: 1, backgroundColor: primaryColor, width: '100%', marginTop: 0, marginBottom: 6 }} />
+          </View>
+          <View>
             {experience.workExperiences.filter((w: any) => w.enabled).map((w: any, i: number) => (
               <View key={i} style={{ marginBottom: 12 }}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
@@ -216,15 +216,15 @@ const Template13PDF: React.FC<Template13PDFProps> = ({ data, primaryColor = '#11
                 {w.description && renderBulletedParagraph(w.description)}
               </View>
             ))}
-        </View>
+          </View>
         </>)}
 
         {projects.some((p: any) => p.enabled) && (<>
-        <View style={{ marginTop: 12 }}>
-          <Text style={{ ...styles.sectionHeading, fontFamily: pdfFontFamilyBold, color: primaryColor }}>PROJECTS</Text>
-          <View style={{ height: 1, backgroundColor: primaryColor, width: '100%', marginTop: 0, marginBottom: 6 }} />
-        </View>
-        <View>
+          <View style={{ marginTop: 12 }}>
+            <Text style={{ ...styles.sectionHeading, fontFamily: pdfFontFamilyBold, color: primaryColor }}>PROJECTS</Text>
+            <View style={{ height: 1, backgroundColor: primaryColor, width: '100%', marginTop: 0, marginBottom: 6 }} />
+          </View>
+          <View>
             {projects && projects.filter((p: any) => p.enabled).map((p: any, i: number) => (
               <View key={i} style={{ marginBottom: 12 }}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
@@ -232,16 +232,23 @@ const Template13PDF: React.FC<Template13PDFProps> = ({ data, primaryColor = '#11
                   <Text style={{ ...styles.itemSub, fontFamily: pdfFontFamilyBold }}>{formatMonthYear(p.startDate)} — {p.currentlyWorking ? 'Present' : formatMonthYear(p.endDate)}</Text>
                 </View>
                 {p.description && renderBulletedParagraph(p.description)}
+                {p.rolesResponsibilities && (
+                  <View style={{ marginTop: 2 }}>
+                    <Text style={{ fontSize: 10, fontFamily: pdfFontFamilyBold, color: '#111827' }}>Roles & Responsibilities:</Text>
+                    {renderBulletedParagraph(p.rolesResponsibilities)}
+                  </View>
+                )}
               </View>
             ))}
-        </View>
+          </View>
         </>)}
 
-        <View style={{ marginTop: 12 }}>
-          <Text style={{ ...styles.sectionHeading, fontFamily: pdfFontFamilyBold, color: primaryColor }}>EDUCATION</Text>
-          <View style={{ height: 1, backgroundColor: primaryColor, width: '100%', marginTop: 0, marginBottom: 6 }} />
-        </View>
-        <View>
+        {(education.higherEducation.some(edu => edu.enabled) || education.preUniversityEnabled || education.sslcEnabled) && (<>
+          <View style={{ marginTop: 12 }}>
+            <Text style={{ ...styles.sectionHeading, fontFamily: pdfFontFamilyBold, color: primaryColor }}>EDUCATION</Text>
+            <View style={{ height: 1, backgroundColor: primaryColor, width: '100%', marginTop: 0, marginBottom: 6 }} />
+          </View>
+          <View>
             {education.higherEducation.filter(edu => edu.enabled).sort((a: any, b: any) => educationPriority(a.degree) - educationPriority(b.degree)).map((edu: any, i: number) => (
               <View key={`he-${i}`} style={{ marginBottom: 12 }}>
                 <Text style={{ ...styles.itemTitle, fontFamily: pdfFontFamilyBold }}>{edu.instituteName}</Text>
@@ -265,44 +272,45 @@ const Template13PDF: React.FC<Template13PDFProps> = ({ data, primaryColor = '#11
                 {education.sslc.resultFormat && education.sslc.result && (<Text style={{ fontSize: 10, color: '#2b2a2a', marginTop: 6 }}>{education.sslc.resultFormat}: {education.sslc.result}</Text>)}
               </View>
             )}
-        </View>
+          </View>
+        </>)}
 
         {skillsLinks.skills.some((s: any) => s.enabled && s.skillName) && (<>
-        <View style={{ marginTop: 12 }}>
-          <Text style={{ ...styles.sectionHeading, fontFamily: pdfFontFamilyBold, color: primaryColor }}>SKILLS</Text>
-          <View style={{ height: 1, backgroundColor: primaryColor, width: '100%', marginTop: 0, marginBottom: 6 }} />
-        </View>
-        <View><Text style={{ fontSize: 10, color: '#2b2a2a' }}>{skillsLinks.skills.filter((s: any) => s.enabled && s.skillName).map((s: any) => s.skillName).join(', ')}</Text></View>
+          <View style={{ marginTop: 12 }}>
+            <Text style={{ ...styles.sectionHeading, fontFamily: pdfFontFamilyBold, color: primaryColor }}>SKILLS</Text>
+            <View style={{ height: 1, backgroundColor: primaryColor, width: '100%', marginTop: 0, marginBottom: 6 }} />
+          </View>
+          <View><Text style={{ fontSize: 10, color: '#2b2a2a' }}>{skillsLinks.skills.filter((s: any) => s.enabled && s.skillName).map((s: any) => s.skillName).join(', ')}</Text></View>
         </>)}
 
         {certifications.some((c: any) => c.enabled && c.certificateTitle) && (<>
-        <View style={{ height: 4 }} />
-        <View style={{ marginTop: 12 }}>
-          <Text style={{ ...styles.sectionHeading, fontFamily: pdfFontFamilyBold, color: primaryColor }}>CERTIFICATIONS</Text>
-          <View style={{ height: 1, backgroundColor: primaryColor, width: '100%', marginTop: 0, marginBottom: 6 }} />
-        </View>
-        <View><Text style={{ fontSize: 10, color: '#2b2a2a' }}>{certifications.filter((c: any) => c.enabled && c.certificateTitle).map((c: any) => c.certificateTitle).join(', ')}</Text></View>
+          <View style={{ height: 4 }} />
+          <View style={{ marginTop: 12 }}>
+            <Text style={{ ...styles.sectionHeading, fontFamily: pdfFontFamilyBold, color: primaryColor }}>CERTIFICATIONS</Text>
+            <View style={{ height: 1, backgroundColor: primaryColor, width: '100%', marginTop: 0, marginBottom: 6 }} />
+          </View>
+          <View><Text style={{ fontSize: 10, color: '#2b2a2a' }}>{certifications.filter((c: any) => c.enabled && c.certificateTitle).map((c: any) => c.certificateTitle).join(', ')}</Text></View>
         </>)}
 
-      {/* Footer */}
-      <View style={{
-        position: 'absolute',
-        left: 0,
-        right: 0,
-        bottom: 12,
-        paddingHorizontal: 36,
-        paddingVertical: 8,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        fontSize: 10,
-        color: '#B0B0B0',
-      }} fixed>
-        <Text style={{ color: '#B0B0B0', fontSize: 10, letterSpacing: 0.5 }}>bowizzy.com</Text>
-        <Text style={{ color: '#B0B0B0', fontSize: 10, letterSpacing: 0.5 }}>Powered by Wizzybox</Text>
-      </View>
-    </Page>
-  </Document>
+        {/* Footer */}
+        <View style={{
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          bottom: 12,
+          paddingHorizontal: 36,
+          paddingVertical: 8,
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          fontSize: 10,
+          color: '#B0B0B0',
+        }} fixed>
+          <Text style={{ color: '#B0B0B0', fontSize: 10, letterSpacing: 0.5 }}>bowizzy.com</Text>
+          <Text style={{ color: '#B0B0B0', fontSize: 10, letterSpacing: 0.5 }}>Powered by Wizzybox</Text>
+        </View>
+      </Page>
+    </Document>
   );
 };
 

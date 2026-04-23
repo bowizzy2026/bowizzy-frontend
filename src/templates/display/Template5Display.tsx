@@ -47,7 +47,7 @@ const Template5Display: React.FC<Template5DisplayProps> = ({ data }) => {
           <div style={{ marginTop: 12, border: '1px solid #ddd6cf', padding: '8px 10px', display: 'flex', gap: 18, alignItems: 'center', maxWidth: 760 }}>
             {personal.email && <div style={{ fontSize: 13 }}>{personal.email}</div>}
             {personal.mobileNumber && <div style={{ fontSize: 13 }}>{personal.mobileNumber}</div>}
-            {personal.address && <div style={{ fontSize: 13 }}>{personal.address.split(',')[0]}</div>}
+            {personal.address && <div style={{ fontSize: 13 }}>{personal.address}</div>}
           </div>
         </header>
 

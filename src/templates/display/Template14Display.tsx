@@ -70,7 +70,7 @@ const Template14Display: React.FC<Template14DisplayProps> = ({
           {profession && <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>{profession}</div>}
           <div style={{ marginTop: 6, fontSize: 11, color: '#6b7280' }}>
             {(() => {
-              const contactParts = [personal.address && String(personal.address).split(',')[0], personal.email, personal.mobileNumber].filter(Boolean);
+              const contactParts = [personal.address, personal.email, personal.mobileNumber].filter(Boolean);
               const links = skillsLinks && (skillsLinks as any).links;
               const linkedin = links?.linkedinEnabled !== false && (links?.linkedinProfile || (personal as any).linkedinProfile);
               const github = links?.githubEnabled !== false && (links?.githubProfile || (personal as any).githubProfile);
@@ -147,6 +147,7 @@ const Template14Display: React.FC<Template14DisplayProps> = ({
           </div>
           </>)}
 
+          {(education.higherEducation.some(edu => edu.enabled) || education.preUniversityEnabled || education.sslcEnabled) && (<>
           <div style={{ marginTop: 16 }}>
             <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.5, color: primaryColor, fontWeight: 700 }}>Education</div>
             <div style={{ height: 1.5, background: '#999', marginTop: 4, width: '100%' }} />
@@ -190,6 +191,7 @@ const Template14Display: React.FC<Template14DisplayProps> = ({
               </div>
             )}
           </div>
+          </>)}
 
           {skillsLinks.skills.some(s => s.enabled && s.skillName) && (<>
           <div style={{ marginTop: 16 }}>

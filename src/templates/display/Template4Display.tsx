@@ -123,7 +123,7 @@ const Template4Display: React.FC<Template4DisplayProps> = ({ data }) => {
               {personal.address && (
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
                   <FiMapPin color="#4a5568" size={14} />
-                  <span>{personal.address.split(',')[0]}</span>
+                  <span>{personal.address}</span>
                 </span>
               )}
               {((skillsLinks && skillsLinks.links && skillsLinks.links.linkedinProfile) || (personal as any).linkedinProfile) && (

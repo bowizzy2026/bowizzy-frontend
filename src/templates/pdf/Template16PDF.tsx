@@ -135,7 +135,7 @@ const Template16PDF: React.FC<Template16PDFProps> = ({ data, primaryColor = '#11
   const pdfFontFamilyBold = getPdfFontFamilyBold(fontFamily);
   const role = (experience && (experience as any).jobRole) || (experience.workExperiences && experience.workExperiences.find((w: any) => w.enabled && w.jobTitle) && experience.workExperiences.find((w: any) => w.enabled && w.jobTitle).jobTitle) || '';
 
-  const addressLine = personal.address && String(personal.address).split(',')[0];
+  const addressLine = personal.address && String(personal.address);
   const phone = personal.mobileNumber;
   const email = personal.email;
 
@@ -204,6 +204,7 @@ const Template16PDF: React.FC<Template16PDFProps> = ({ data, primaryColor = '#11
           </>
         )}
 
+        {(education.higherEducation.some(edu => edu.enabled) || education.preUniversityEnabled || education.sslcEnabled) && (<>
         <View style={{ marginTop: 12 }}>
           <Text style={styles.sectionHeading}>Education</Text>
           <View style={{ height: 1, backgroundColor: '#ddd', width: '100%', marginTop: 4, marginBottom: 0 }} />
@@ -224,7 +225,7 @@ const Template16PDF: React.FC<Template16PDFProps> = ({ data, primaryColor = '#11
           ))}
 
           {/* Pre University */}
-          {(education.preUniversityEnabled || education.preUniversity.instituteName || education.higherEducation.length > 0) && (
+          {education.preUniversityEnabled && (
             <View style={{ marginBottom: 8 }}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                 <Text style={styles.itemTitle}>{education.preUniversity.instituteName || 'Pre University'}</Text>
@@ -238,7 +239,7 @@ const Template16PDF: React.FC<Template16PDFProps> = ({ data, primaryColor = '#11
           )}
 
           {/* SSLC */}
-          {(education.sslcEnabled || education.sslc.instituteName || education.higherEducation.length > 0) && (
+          {education.sslcEnabled && (
             <View style={{ marginBottom: 8 }}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                 <Text style={styles.itemTitle}>{education.sslc.instituteName || 'SSLC'}</Text>
@@ -251,7 +252,9 @@ const Template16PDF: React.FC<Template16PDFProps> = ({ data, primaryColor = '#11
             </View>
           )}
         </View>
+        </>)}
 
+        {(skillsLinks.skills || []).some((s: any) => s.enabled && s.skillName) && (<>
         <View style={{ marginTop: 12 }}>
           <Text style={styles.sectionHeading}>Skills</Text>
           <View style={{ height: 1, backgroundColor: '#ddd', width: '100%', marginTop: 4, marginBottom: 0 }} />
@@ -262,6 +265,7 @@ const Template16PDF: React.FC<Template16PDFProps> = ({ data, primaryColor = '#11
             <Text style={{ fontSize: 10, color: '#111827', textAlign: 'right', width: 60 }}>{getStarsByLevel(s.skillLevel)}</Text>
           </View>
         ))}</View>
+        </>)}
 
         <View style={{ marginTop: 12 }}>
           <Text style={styles.sectionHeading}>Languages</Text>

@@ -48,9 +48,6 @@ const AiTemplate7PDF: React.FC<Props> = ({ data, primaryColor = '#374151' }) => 
   const github = skillsLinks?.links?.githubProfile || '';
   const portfolio = skillsLinks?.links?.portfolioUrl || '';
   const languages: string[] = (personal as any).languagesKnown || [];
-  const github = skillsLinks?.links?.githubProfile || '';
-  const portfolio = skillsLinks?.links?.portfolioUrl || '';
-  const languages: string[] = (personal as any).languagesKnown || [];
 
   return (
     <Document>
@@ -139,14 +136,7 @@ const AiTemplate7PDF: React.FC<Props> = ({ data, primaryColor = '#374151' }) => 
         {skillsLinks.skills.some(s => s.enabled && s.skillName) && (
           <>
             <SectionHeader title="Skills" color={primaryColor} />
-         languages.length > 0 && (
-          <>
-            <SectionHeader title="Languages" color={primaryColor} />
-            <Text style={{ fontSize: 9.5, color: '#4b5563' }}>{languages.join('  ·  ')}</Text>
-          </>
-        )}
-
-        {   <Text style={{ fontSize: 9.5, color: '#4b5563', lineHeight: 1.6 }}>
+            <Text style={{ fontSize: 9.5, color: '#4b5563', lineHeight: 1.6 }}>
               {skillsLinks.skills.filter(s => s.enabled && s.skillName).map(s => s.skillName).join('  ·  ')}
             </Text>
           </>
