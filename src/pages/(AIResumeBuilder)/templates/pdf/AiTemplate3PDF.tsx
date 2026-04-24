@@ -1,13 +1,11 @@
 import React from 'react';
 import { Document, Page, View, Text, StyleSheet } from '@react-pdf/renderer';
 import type { ResumeData } from '@/types/resume';
-
 const htmlToPlain = (html?: string) => {
   if (!html) return '';
   let t = html.replace(/<br\s*\/?>/gi, '\n').replace(/<\/p>|<\/li>/gi, '\n').replace(/<li>/gi, '• ').replace(/<[^>]+>/g, '');
   return t.replace(/&nbsp;/g, ' ').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&').trim();
 };
-
 const renderBullets = (html?: string) => {
   if (!html) return null;
   const lines = htmlToPlain(html).split('\n').filter(l => l.trim());
@@ -16,34 +14,28 @@ const renderBullets = (html?: string) => {
       {lines.map((line, i) => (
         <View key={i} style={{ flexDirection: 'row', marginTop: i > 0 ? 1 : 0 }}>
           <Text style={{ width: 10, flexShrink: 0, fontSize: 9, color: '#333', textAlign: 'justify' }}>{line.startsWith('•') ? '•' : ''}</Text>
-          <Text style={{ flex: 1, fontSize: 9, color: '#333', lineHeight: 1.5 ,textAlign: 'justify'}}>{line.startsWith('•') ? line.substring(1).trim() : line}</Text>
+          <Text style={{ flex: 1, fontSize: 9, color: '#333', lineHeight: 1.5, textAlign: 'justify' }}>{line.startsWith('•') ? line.substring(1).trim() : line}</Text>
         </View>
       ))}
     </View>
   );
 };
-
 const fmtDate = (s?: string) => {
   if (!s) return '';
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   const m = String(s).match(/^(\d{4})-(\d{2})/);
-  if (m) { const mm = parseInt(m[2], 10); return mm >= 1 && mm <= 12 ? `${months[mm-1]} ${m[1]}` : m[1]; }
+  if (m) { const mm = parseInt(m[2], 10); return mm >= 1 && mm <= 12 ? `${months[mm - 1]} ${m[1]}` : m[1]; }
   return String(s);
 };
-
 const fmtYear = (s?: string) => { if (!s) return ''; const m = String(s).match(/(\d{4})/); return m ? m[1] : String(s); };
-
 const SIDEBAR_WIDTH = 170;
-
 interface Props { data: ResumeData; primaryColor?: string; }
-
 const AiTemplate3PDF: React.FC<Props> = ({ data, primaryColor = '#2d3748' }) => {
   const { personal, experience, education, projects, skillsLinks, certifications } = data;
   const linkedin = skillsLinks?.links?.linkedinProfile || '';
   const github = skillsLinks?.links?.githubProfile || '';
   const portfolio = skillsLinks?.links?.portfolioUrl || '';
   const languages: string[] = (personal as any).languagesKnown || [];
-
   return (
     <Document>
       <Page size="A4" style={{ paddingTop: 0, paddingBottom: 0, paddingLeft: 0, paddingRight: 0, fontSize: 9 }}>
@@ -54,7 +46,6 @@ const AiTemplate3PDF: React.FC<Props> = ({ data, primaryColor = '#2d3748' }) => 
           <View style={{ width: SIDEBAR_WIDTH, paddingTop: 28, paddingHorizontal: 18 }}>
             <Text style={{ fontSize: 20, fontFamily: 'Helvetica-Bold', color: '#fff', marginBottom: 4 }}>{personal.firstName}</Text>
             <Text style={{ fontSize: 20, fontFamily: 'Helvetica-Bold', color: '#fff', marginBottom: 12 }}>{personal.lastName}</Text>
-
             {/* Contact */}
             <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#e2e8f0', letterSpacing: 1.5, textTransform: 'uppercase', marginTop: 14, marginBottom: 4 }}>Contact</Text>
             <View style={{ height: 1, backgroundColor: '#e2e8f0', marginBottom: 6 }} />
@@ -64,35 +55,38 @@ const AiTemplate3PDF: React.FC<Props> = ({ data, primaryColor = '#2d3748' }) => 
             {linkedin && <Text style={{ fontSize: 7, color: '#90cdf4', marginBottom: 3 }}>{linkedin}</Text>}
             {github && <Text style={{ fontSize: 7, color: '#90cdf4', marginBottom: 3 }}>{github}</Text>}
             {portfolio && <Text style={{ fontSize: 7, color: '#90cdf4', marginBottom: 3 }}>{portfolio}</Text>}
-
             {/* Education in sidebar */}
             <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#e2e8f0', letterSpacing: 1.5, textTransform: 'uppercase', marginTop: 18, marginBottom: 4 }}>Education</Text>
             <View style={{ height: 1, backgroundColor: '#e2e8f0', marginBottom: 6 }} />
             {education.higherEducation.filter(e => e.enabled).map((edu: any, i) => (
               <View key={i} style={{ marginBottom: 8 }}>
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#fff' }}>{edu.degree}</Text>
+                <View style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#fff' }}>{edu.degree}</Text>
+                  <Text style={{ fontSize: 7, color: '#a0aec0' }}>{fmtYear(edu.startYear)} – {edu.currentlyPursuing ? 'Present' : fmtYear(edu.endYear)}</Text>
+                </View>
                 <Text style={{ fontSize: 8, color: '#e2e8f0' }}>{edu.fieldOfStudy}</Text>
                 <Text style={{ fontSize: 8, color: '#e2e8f0' }}>{edu.instituteName}</Text>
                 {edu.universityBoard ? <Text style={{ fontSize: 8, color: '#e2e8f0' }}>{edu.universityBoard}</Text> : null}
-                <Text style={{ fontSize: 7, color: '#a0aec0' }}>{fmtYear(edu.startYear)} – {edu.currentlyPursuing ? 'Present' : fmtYear(edu.endYear)}</Text>
-                {edu.resultFormat && edu.result && <Text style={{ fontSize: 7, color: '#a0aec0' }}>{edu.resultFormat}: {edu.result}</Text>}
               </View>
             ))}
             {education.preUniversityEnabled && education.preUniversity?.instituteName && (
               <View style={{ marginBottom: 8 }}>
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#fff' }}>Pre University</Text>
+                <View style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#fff' }}>Pre University</Text>
+                  <Text style={{ fontSize: 7, color: '#a0aec0' }}>{fmtYear(education.preUniversity.yearOfPassing)}</Text>
+                </View>
                 <Text style={{ fontSize: 8, color: '#e2e8f0' }}>{education.preUniversity.instituteName}</Text>
-                <Text style={{ fontSize: 7, color: '#a0aec0' }}>{fmtYear(education.preUniversity.yearOfPassing)}</Text>
               </View>
             )}
             {education.sslcEnabled && education.sslc?.instituteName && (
               <View style={{ marginBottom: 8 }}>
-                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#fff' }}>SSLC</Text>
+                <View style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#fff' }}>SSLC</Text>
+                  <Text style={{ fontSize: 7, color: '#a0aec0' }}>{fmtYear(education.sslc.yearOfPassing)}</Text>
+                </View>
                 <Text style={{ fontSize: 8, color: '#e2e8f0' }}>{education.sslc.instituteName}</Text>
-                <Text style={{ fontSize: 7, color: '#a0aec0' }}>{fmtYear(education.sslc.yearOfPassing)}</Text>
               </View>
             )}
-
             {/* Skills in sidebar */}
             {skillsLinks.skills.some(s => s.enabled && s.skillName) && (
               <>
@@ -103,7 +97,6 @@ const AiTemplate3PDF: React.FC<Props> = ({ data, primaryColor = '#2d3748' }) => 
                 ))}
               </>
             )}
-
             {/* Certifications in sidebar */}
             {certifications.some(c => c.enabled && c.certificateTitle) && (
               <>
@@ -122,7 +115,6 @@ const AiTemplate3PDF: React.FC<Props> = ({ data, primaryColor = '#2d3748' }) => 
               </>
             )}
           </View>
-
           {/* Main content */}
           <View style={{ flex: 1, paddingTop: 28, paddingHorizontal: 24 }}>
             {/* Summary */}
@@ -133,7 +125,6 @@ const AiTemplate3PDF: React.FC<Props> = ({ data, primaryColor = '#2d3748' }) => 
                 <Text style={{ fontSize: 9, color: '#333', lineHeight: 1.5, textAlign: 'justify' }}>{htmlToPlain(personal.aboutCareerObjective)}</Text>
               </>
             )}
-
             {/* Experience */}
             {experience.workExperiences.some(w => w.enabled) && (
               <>
@@ -151,7 +142,6 @@ const AiTemplate3PDF: React.FC<Props> = ({ data, primaryColor = '#2d3748' }) => 
                 ))}
               </>
             )}
-
             {/* Projects */}
             {projects.some(p => p.enabled) && (
               <>
@@ -175,5 +165,4 @@ const AiTemplate3PDF: React.FC<Props> = ({ data, primaryColor = '#2d3748' }) => 
     </Document>
   );
 };
-
 export default AiTemplate3PDF;

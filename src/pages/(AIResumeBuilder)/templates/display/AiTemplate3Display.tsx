@@ -9,9 +9,9 @@ const htmlToLines = (s?: string) => {
 
 const fmtDate = (s?: string) => {
   if (!s) return '';
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   const m = String(s).match(/^(\d{4})-(\d{2})/);
-  if (m) { const mm = parseInt(m[2], 10); return mm >= 1 && mm <= 12 ? `${months[mm-1]} ${m[1]}` : m[1]; }
+  if (m) { const mm = parseInt(m[2], 10); return mm >= 1 && mm <= 12 ? `${months[mm - 1]} ${m[1]}` : m[1]; }
   return String(s);
 };
 const fmtYear = (s?: string) => { if (!s) return ''; const m = String(s).match(/(\d{4})/); return m ? m[1] : String(s); };
@@ -48,25 +48,31 @@ const AiTemplate3Display: React.FC<Props> = ({ data, primaryColor = '#2d3748' })
         <div style={{ height: 1, backgroundColor: '#e2e8f0', marginBottom: 6 }} />
         {education.higherEducation.filter(e => e.enabled).map((edu: any, i) => (
           <div key={i} style={{ marginBottom: 8 }}>
-            <p style={{ fontSize: 9, fontWeight: 700, color: '#fff', margin: 0 }}>{edu.degree}</p>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <p style={{ fontSize: 9, fontWeight: 700, color: '#fff', margin: 0 }}>{edu.degree}</p>
+              <span style={{ fontSize: 7, color: '#a0aec0' }}>{fmtYear(edu.startYear)} – {edu.currentlyPursuing ? 'Present' : fmtYear(edu.endYear)}</span>
+            </div>
             <p style={{ fontSize: 8, color: '#e2e8f0', margin: 0 }}>{edu.fieldOfStudy}</p>
             <p style={{ fontSize: 8, color: '#e2e8f0', margin: 0 }}>{edu.instituteName}</p>
             {edu.universityBoard && <p style={{ fontSize: 8, color: '#e2e8f0', margin: 0 }}>{edu.universityBoard}</p>}
-            <p style={{ fontSize: 7, color: '#a0aec0', margin: 0 }}>{fmtYear(edu.startYear)} – {edu.currentlyPursuing ? 'Present' : fmtYear(edu.endYear)}</p>
           </div>
         ))}
         {education.preUniversityEnabled && education.preUniversity?.instituteName && (
           <div style={{ marginBottom: 8 }}>
-            <p style={{ fontSize: 9, fontWeight: 700, color: '#fff', margin: 0 }}>Pre University</p>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <p style={{ fontSize: 9, fontWeight: 700, color: '#fff', margin: 0 }}>Pre University</p>
+              <span style={{ fontSize: 7, color: '#a0aec0' }}>{fmtYear(education.preUniversity.yearOfPassing)}</span>
+            </div>
             <p style={{ fontSize: 8, color: '#e2e8f0', margin: 0 }}>{education.preUniversity.instituteName}</p>
-            <p style={{ fontSize: 7, color: '#a0aec0', margin: 0 }}>{fmtYear(education.preUniversity.yearOfPassing)}</p>
           </div>
         )}
         {education.sslcEnabled && education.sslc?.instituteName && (
           <div style={{ marginBottom: 8 }}>
-            <p style={{ fontSize: 9, fontWeight: 700, color: '#fff', margin: 0 }}>SSLC</p>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <p style={{ fontSize: 9, fontWeight: 700, color: '#fff', margin: 0 }}>SSLC</p>
+              <span style={{ fontSize: 7, color: '#a0aec0' }}>{fmtYear(education.sslc.yearOfPassing)}</span>
+            </div>
             <p style={{ fontSize: 8, color: '#e2e8f0', margin: 0 }}>{education.sslc.instituteName}</p>
-            <p style={{ fontSize: 7, color: '#a0aec0', margin: 0 }}>{fmtYear(education.sslc.yearOfPassing)}</p>
           </div>
         )}
 

@@ -1,23 +1,19 @@
 import React from 'react';
 import type { ResumeData } from '@/types/resume';
-
 const htmlToLines = (s?: string) => {
   if (!s) return [] as string[];
   const text = String(s).replace(/<\/p>|<\/li>/gi, '\n').replace(/<br\s*\/?>(?:\s*)/gi, '\n').replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&');
   return text.split(/\n|\r\n/).map(l => l.trim()).filter(Boolean);
 };
-
 const fmtDate = (s?: string) => {
   if (!s) return '';
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   const m = String(s).match(/^(\d{4})-(\d{2})/);
-  if (m) { const mm = parseInt(m[2], 10); return mm >= 1 && mm <= 12 ? `${months[mm-1]} ${m[1]}` : m[1]; }
+  if (m) { const mm = parseInt(m[2], 10); return mm >= 1 && mm <= 12 ? `${months[mm - 1]} ${m[1]}` : m[1]; }
   return String(s);
 };
 const fmtYear = (s?: string) => { if (!s) return ''; const m = String(s).match(/(\d{4})/); return m ? m[1] : String(s); };
-
 interface Props { data: ResumeData; primaryColor?: string; }
-
 const AiTemplate9Display: React.FC<Props> = ({ data, primaryColor = '#334155' }) => {
   const { personal, experience, education, projects, skillsLinks, certifications } = data;
   const contactParts = [personal.email, personal.mobileNumber, personal.address].filter(Boolean);
@@ -26,7 +22,6 @@ const AiTemplate9Display: React.FC<Props> = ({ data, primaryColor = '#334155' })
   const portfolio = skillsLinks?.links?.portfolioUrl || '';
   const languages: string[] = (personal as any).languagesKnown || [];
   const initials = `${(personal.firstName || '')[0] || ''}${(personal.lastName || '')[0] || ''}`.toUpperCase();
-
   const SectionTitle = ({ title }: { title: string }) => (
     <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 16, marginBottom: 8 }}>
       <div style={{ width: 22, height: 22, borderRadius: '50%', backgroundColor: primaryColor, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -36,7 +31,6 @@ const AiTemplate9Display: React.FC<Props> = ({ data, primaryColor = '#334155' })
       <div style={{ flex: 1, height: 1, backgroundColor: '#e2e8f0' }} />
     </div>
   );
-
   return (
     <div style={{ width: '210mm', minHeight: '297mm', fontFamily: '"Open Sans", sans-serif', background: '#fff' }}>
       {/* Top banner */}
@@ -55,7 +49,6 @@ const AiTemplate9Display: React.FC<Props> = ({ data, primaryColor = '#334155' })
           {[linkedin, github, portfolio].filter(Boolean).map((c, i) => <p key={i} style={{ fontSize: 8, color: '#93c5fd', margin: 0 }}>{c}</p>)}
         </div>
       </div>
-
       <div style={{ padding: '12px 40px 32px' }}>
         {/* Summary */}
         {personal.aboutCareerObjective && (
@@ -64,7 +57,6 @@ const AiTemplate9Display: React.FC<Props> = ({ data, primaryColor = '#334155' })
             <p style={{ fontSize: 9.5, color: '#475569', lineHeight: 1.7, margin: 0 }}>{htmlToLines(personal.aboutCareerObjective).join(' ')}</p>
           </>
         )}
-
         {/* Experience */}
         {experience.workExperiences.some(w => w.enabled) && (
           <>
@@ -83,7 +75,6 @@ const AiTemplate9Display: React.FC<Props> = ({ data, primaryColor = '#334155' })
             ))}
           </>
         )}
-
         {/* Projects */}
         {projects.some(p => p.enabled) && (
           <>
@@ -102,7 +93,6 @@ const AiTemplate9Display: React.FC<Props> = ({ data, primaryColor = '#334155' })
             ))}
           </>
         )}
-
         {/* Two-column: Education + Skills/Certs */}
         <div style={{ display: 'flex', gap: 30, marginTop: 4 }}>
           <div style={{ flex: 1 }}>
@@ -113,13 +103,13 @@ const AiTemplate9Display: React.FC<Props> = ({ data, primaryColor = '#334155' })
                 <p style={{ fontSize: 9, color: '#64748b', margin: 0 }}>{edu.instituteName}</p>
                 {edu.universityBoard && <p style={{ fontSize: 9, color: '#64748b', margin: 0 }}>{edu.universityBoard}</p>}
                 <p style={{ fontSize: 8.5, color: '#94a3b8', margin: 0 }}>{fmtYear(edu.startYear)} – {edu.currentlyPursuing ? 'Present' : fmtYear(edu.endYear)}</p>
-                {edu.resultFormat && edu.result && <p style={{ fontSize: 8.5, color: '#475569', margin: 0 }}>{edu.resultFormat}: {edu.result}</p>}
               </div>
             ))}
             {education.preUniversityEnabled && education.preUniversity?.instituteName && (
               <div style={{ marginBottom: 6 }}>
                 <strong style={{ fontSize: 10, color: '#0f172a' }}>Pre University (12th)</strong>
-                <p style={{ fontSize: 9, color: '#64748b', margin: 0 }}>{education.preUniversity.instituteName} | {fmtYear(education.preUniversity.yearOfPassing)}</p>
+                <p style={{ fontSize: 9, color: '#64748b', margin: 0 }}>{education.preUniversity.instituteName}</p>
+                <p style={{ fontSize: 8.5, color: '#94a3b8', margin: 0 }}>{fmtYear(education.preUniversity.yearOfPassing)}</p>
               </div>
             )}
             {education.sslcEnabled && education.sslc?.instituteName && (
@@ -129,7 +119,6 @@ const AiTemplate9Display: React.FC<Props> = ({ data, primaryColor = '#334155' })
               </div>
             )}
           </div>
-
           <div style={{ flex: 1 }}>
             {skillsLinks.skills.some(s => s.enabled && s.skillName) && (
               <>
@@ -143,7 +132,6 @@ const AiTemplate9Display: React.FC<Props> = ({ data, primaryColor = '#334155' })
                 </div>
               </>
             )}
-
             {certifications.some(c => c.enabled && c.certificateTitle) && (
               <>
                 <SectionTitle title="Certifications" />
@@ -170,7 +158,4 @@ const AiTemplate9Display: React.FC<Props> = ({ data, primaryColor = '#334155' })
     </div>
   );
 };
-
 export default AiTemplate9Display;
-
-

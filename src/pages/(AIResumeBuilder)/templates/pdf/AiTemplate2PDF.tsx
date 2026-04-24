@@ -1,13 +1,11 @@
 import React from 'react';
 import { Document, Page, View, Text, StyleSheet } from '@react-pdf/renderer';
 import type { ResumeData } from '@/types/resume';
-
 const htmlToPlain = (html?: string) => {
   if (!html) return '';
   let t = html.replace(/<br\s*\/?>/gi, '\n').replace(/<\/p>|<\/li>/gi, '\n').replace(/<li>/gi, '• ').replace(/<[^>]+>/g, '');
   return t.replace(/&nbsp;/g, ' ').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&').trim();
 };
-
 const renderBullets = (html?: string) => {
   if (!html) return null;
   const lines = htmlToPlain(html).split('\n').filter(l => l.trim());
@@ -22,7 +20,6 @@ const renderBullets = (html?: string) => {
     </View>
   );
 };
-
 const fmtDate = (s?: string) => {
   if (!s) return '';
   const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -30,9 +27,7 @@ const fmtDate = (s?: string) => {
   if (m) { const mm = parseInt(m[2], 10); return mm >= 1 && mm <= 12 ? `${months[mm-1]} ${m[1]}` : m[1]; }
   return String(s);
 };
-
 const fmtYear = (s?: string) => { if (!s) return ''; const m = String(s).match(/(\d{4})/); return m ? m[1] : String(s); };
-
 const styles = StyleSheet.create({
   page: { paddingTop: 28, paddingBottom: 24, paddingLeft: 0, paddingRight: 0, fontSize: 9 },
   header: { backgroundColor: '#1e3a5f', paddingVertical: 24, paddingHorizontal: 40, color: '#fff' },
@@ -45,9 +40,7 @@ const styles = StyleSheet.create({
   itemTitle: { fontSize: 10, fontFamily: 'Helvetica-Bold' },
   itemSub: { fontSize: 9, color: '#555' },
 });
-
 interface Props { data: ResumeData; primaryColor?: string; }
-
 const AiTemplate2PDF: React.FC<Props> = ({ data, primaryColor = '#1e3a5f' }) => {
   const { personal, experience, education, projects, skillsLinks, certifications } = data;
   const contactParts = [personal.email, personal.mobileNumber, personal.address].filter(Boolean);
@@ -55,7 +48,6 @@ const AiTemplate2PDF: React.FC<Props> = ({ data, primaryColor = '#1e3a5f' }) => 
   const github = skillsLinks?.links?.githubProfile || '';
   const portfolio = skillsLinks?.links?.portfolioUrl || '';
   const languages: string[] = (personal as any).languagesKnown || [];
-
   return (
     <Document>
       <Page size="A4" style={styles.page}>
@@ -64,7 +56,6 @@ const AiTemplate2PDF: React.FC<Props> = ({ data, primaryColor = '#1e3a5f' }) => 
           <Text style={styles.name}>{personal.firstName} {personal.middleName || ''} {personal.lastName}</Text>
           <Text style={styles.subtitle}>{[...contactParts, linkedin, github, portfolio].filter(Boolean).join('  •  ')}</Text>
         </View>
-
         <View style={styles.content}>
           {/* Summary */}
           {personal.aboutCareerObjective && (
@@ -74,7 +65,6 @@ const AiTemplate2PDF: React.FC<Props> = ({ data, primaryColor = '#1e3a5f' }) => 
               <Text style={styles.body}>{htmlToPlain(personal.aboutCareerObjective)}</Text>
             </>
           )}
-
           {/* Experience */}
           {experience.workExperiences.some(w => w.enabled) && (
             <>
@@ -92,7 +82,6 @@ const AiTemplate2PDF: React.FC<Props> = ({ data, primaryColor = '#1e3a5f' }) => 
               ))}
             </>
           )}
-
           {/* Projects */}
           {projects.some(p => p.enabled) && (
             <>
@@ -110,7 +99,6 @@ const AiTemplate2PDF: React.FC<Props> = ({ data, primaryColor = '#1e3a5f' }) => 
               ))}
             </>
           )}
-
           {/* Education */}
           <Text style={{ ...styles.sectionHeading, color: primaryColor }}>Education</Text>
           <View style={{ ...styles.divider, backgroundColor: primaryColor }} />
@@ -122,7 +110,6 @@ const AiTemplate2PDF: React.FC<Props> = ({ data, primaryColor = '#1e3a5f' }) => 
               </View>
               <Text style={styles.itemSub}>{edu.instituteName}</Text>
               {edu.universityBoard ? <Text style={styles.itemSub}>{edu.universityBoard}</Text> : null}
-              {edu.resultFormat && edu.result && <Text style={styles.body}>{edu.resultFormat}: {edu.result}</Text>}
             </View>
           ))}
           {education.preUniversityEnabled && education.preUniversity?.instituteName && (
@@ -143,7 +130,6 @@ const AiTemplate2PDF: React.FC<Props> = ({ data, primaryColor = '#1e3a5f' }) => 
               <Text style={styles.itemSub}>{education.sslc.instituteName}</Text>
             </View>
           )}
-
           {/* Skills */}
           {skillsLinks.skills.some(s => s.enabled && s.skillName) && (
             <>
@@ -152,7 +138,6 @@ const AiTemplate2PDF: React.FC<Props> = ({ data, primaryColor = '#1e3a5f' }) => 
               <Text style={styles.body}>{skillsLinks.skills.filter(s => s.enabled && s.skillName).map(s => s.skillName).join(', ')}</Text>
             </>
           )}
-
           {/* Languages */}
           {languages.length > 0 && (
             <>
@@ -161,7 +146,6 @@ const AiTemplate2PDF: React.FC<Props> = ({ data, primaryColor = '#1e3a5f' }) => 
               <Text style={styles.body}>{languages.join(', ')}</Text>
             </>
           )}
-
           {/* Certifications */}
           {certifications.some(c => c.enabled && c.certificateTitle) && (
             <>
@@ -175,5 +159,4 @@ const AiTemplate2PDF: React.FC<Props> = ({ data, primaryColor = '#1e3a5f' }) => 
     </Document>
   );
 };
-
-export default AiTemplate2PDF;
+export default AiTemplate2PDF;

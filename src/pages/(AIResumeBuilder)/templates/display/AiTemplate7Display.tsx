@@ -1,12 +1,10 @@
 import React from 'react';
 import type { ResumeData } from '@/types/resume';
-
 const htmlToLines = (s?: string) => {
   if (!s) return [] as string[];
   const text = String(s).replace(/<\/p>|<\/li>/gi, '\n').replace(/<br\s*\/?>(?:\s*)/gi, '\n').replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&');
   return text.split(/\n|\r\n/).map(l => l.trim()).filter(Boolean);
 };
-
 const fmtDate = (s?: string) => {
   if (!s) return '';
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -15,9 +13,7 @@ const fmtDate = (s?: string) => {
   return String(s);
 };
 const fmtYear = (s?: string) => { if (!s) return ''; const m = String(s).match(/(\d{4})/); return m ? m[1] : String(s); };
-
 interface Props { data: ResumeData; primaryColor?: string; }
-
 const AiTemplate7Display: React.FC<Props> = ({ data, primaryColor = '#374151' }) => {
   const { personal, experience, education, projects, skillsLinks, certifications } = data;
   const contactParts = [personal.email, personal.mobileNumber, personal.address].filter(Boolean);
@@ -25,10 +21,8 @@ const AiTemplate7Display: React.FC<Props> = ({ data, primaryColor = '#374151' })
   const github = skillsLinks?.links?.githubProfile || '';
   const portfolio = skillsLinks?.links?.portfolioUrl || '';
   const languages: string[] = (personal as any).languagesKnown || [];
-
   const sectionStyle: React.CSSProperties = { fontSize: 10, fontWeight: 600, letterSpacing: 3, textTransform: 'uppercase' as const, color: primaryColor, marginTop: 16, marginBottom: 2 };
   const thinLine: React.CSSProperties = { height: 0.5, backgroundColor: '#d1d5db', width: '100%', marginBottom: 8 };
-
   return (
     <div style={{ width: '210mm', minHeight: '297mm', fontFamily: '"DM Sans", sans-serif', background: '#fff', padding: '36px 44px' }}>
       {/* Header */}
@@ -45,7 +39,6 @@ const AiTemplate7Display: React.FC<Props> = ({ data, primaryColor = '#374151' })
         </div>
       </div>
       <div style={{ height: 1.5, backgroundColor: primaryColor, marginBottom: 10 }} />
-
       {/* Summary */}
       {personal.aboutCareerObjective && (
         <>
@@ -54,7 +47,6 @@ const AiTemplate7Display: React.FC<Props> = ({ data, primaryColor = '#374151' })
           <p style={{ fontSize: 9.5, color: '#374151', lineHeight: 1.6, margin: 0 }}>{htmlToLines(personal.aboutCareerObjective).join(' ')}</p>
         </>
       )}
-
       {/* Experience */}
       {experience.workExperiences.some(w => w.enabled) && (
         <>
@@ -74,7 +66,6 @@ const AiTemplate7Display: React.FC<Props> = ({ data, primaryColor = '#374151' })
           ))}
         </>
       )}
-
       {/* Projects */}
       {projects.some(p => p.enabled) && (
         <>
@@ -94,7 +85,6 @@ const AiTemplate7Display: React.FC<Props> = ({ data, primaryColor = '#374151' })
           ))}
         </>
       )}
-
       {/* Education */}
       <p style={sectionStyle}>Education</p>
       <div style={thinLine} />
@@ -105,23 +95,27 @@ const AiTemplate7Display: React.FC<Props> = ({ data, primaryColor = '#374151' })
             <span style={{ fontSize: 8.5, color: '#9ca3af' }}>{fmtYear(edu.startYear)} – {edu.currentlyPursuing ? 'Present' : fmtYear(edu.endYear)}</span>
           </div>
           <p style={{ fontSize: 9, color: '#6b7280', margin: 0 }}>{edu.instituteName}</p>
-          {edu.universityBoard && <p style={{ fontSize: 9, color: '#6b7280', margin: 0 }}>{edu.universityBoard}</p>}
-          {edu.resultFormat && edu.result && <p style={{ fontSize: 9, color: '#4b5563', margin: 0 }}>{edu.resultFormat}: {edu.result}</p>}
+          {/* {edu.universityBoard && <p style={{ fontSize: 9, color: '#6b7280', margin: 0 }}>{edu.universityBoard}</p>} */}
         </div>
       ))}
       {education.preUniversityEnabled && education.preUniversity?.instituteName && (
         <div style={{ marginBottom: 6 }}>
-          <strong style={{ fontSize: 10, color: '#111827' }}>Pre University (12th)</strong>
-          <p style={{ fontSize: 9, color: '#6b7280', margin: 0 }}>{education.preUniversity.instituteName} | {fmtYear(education.preUniversity.yearOfPassing)}</p>
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <strong style={{ fontSize: 10, color: '#111827' }}>Pre University (12th)</strong>
+            <span style={{ fontSize: 8.5, color: '#9ca3af' }}>{fmtYear(education.preUniversity.yearOfPassing)}</span>
+          </div>
+          <p style={{ fontSize: 9, color: '#6b7280', margin: 0 }}>{education.preUniversity.instituteName}</p>
         </div>
       )}
       {education.sslcEnabled && education.sslc?.instituteName && (
         <div style={{ marginBottom: 6 }}>
-          <strong style={{ fontSize: 10, color: '#111827' }}>SSLC (10th)</strong>
-          <p style={{ fontSize: 9, color: '#6b7280', margin: 0 }}>{education.sslc.instituteName} | {fmtYear(education.sslc.yearOfPassing)}</p>
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <strong style={{ fontSize: 10, color: '#111827' }}>SSLC (10th)</strong>
+            <span style={{ fontSize: 8.5, color: '#9ca3af' }}>{fmtYear(education.sslc.yearOfPassing)}</span>
+          </div>
+          <p style={{ fontSize: 9, color: '#6b7280', margin: 0 }}>{education.sslc.instituteName}</p>
         </div>
       )}
-
       {/* Skills */}
       {skillsLinks.skills.some(s => s.enabled && s.skillName) && (
         <>
@@ -132,7 +126,6 @@ const AiTemplate7Display: React.FC<Props> = ({ data, primaryColor = '#374151' })
           </p>
         </>
       )}
-
       {/* Languages */}
       {languages.length > 0 && (
         <>
@@ -141,7 +134,6 @@ const AiTemplate7Display: React.FC<Props> = ({ data, primaryColor = '#374151' })
           <p style={{ fontSize: 9.5, color: '#4b5563', margin: 0 }}>{languages.join('  ·  ')}</p>
         </>
       )}
-
       {/* Certifications */}
       {certifications.some(c => c.enabled && c.certificateTitle) && (
         <>
@@ -157,7 +149,4 @@ const AiTemplate7Display: React.FC<Props> = ({ data, primaryColor = '#374151' })
     </div>
   );
 };
-
 export default AiTemplate7Display;
-
-

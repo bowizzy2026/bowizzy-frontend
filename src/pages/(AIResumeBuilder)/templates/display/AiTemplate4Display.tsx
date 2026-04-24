@@ -9,9 +9,9 @@ const htmlToLines = (s?: string) => {
 
 const fmtDate = (s?: string) => {
   if (!s) return '';
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   const m = String(s).match(/^(\d{4})-(\d{2})/);
-  if (m) { const mm = parseInt(m[2], 10); return mm >= 1 && mm <= 12 ? `${months[mm-1]} ${m[1]}` : m[1]; }
+  if (m) { const mm = parseInt(m[2], 10); return mm >= 1 && mm <= 12 ? `${months[mm - 1]} ${m[1]}` : m[1]; }
   return String(s);
 };
 const fmtYear = (s?: string) => { if (!s) return ''; const m = String(s).match(/(\d{4})/); return m ? m[1] : String(s); };
@@ -101,14 +101,20 @@ const AiTemplate4Display: React.FC<Props> = ({ data, primaryColor = '#b91c1c' })
       ))}
       {education.preUniversityEnabled && education.preUniversity?.instituteName && (
         <div style={{ marginBottom: 6 }}>
-          <strong style={{ fontSize: 10 }}>Pre University (12th)</strong>
-          <p style={{ fontSize: 9, color: '#555', margin: 0 }}>{education.preUniversity.instituteName} | {fmtYear(education.preUniversity.yearOfPassing)}</p>
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <strong style={{ fontSize: 10 }}>Pre University (12th)</strong>
+            <span style={{ fontSize: 9, color: '#555' }}>{fmtYear(education.preUniversity.yearOfPassing)}</span>
+          </div>
+          <p style={{ fontSize: 9, color: '#555', margin: 0 }}>{education.preUniversity.instituteName}</p>
         </div>
       )}
       {education.sslcEnabled && education.sslc?.instituteName && (
         <div style={{ marginBottom: 6 }}>
-          <strong style={{ fontSize: 10 }}>SSLC (10th)</strong>
-          <p style={{ fontSize: 9, color: '#555', margin: 0 }}>{education.sslc.instituteName} | {fmtYear(education.sslc.yearOfPassing)}</p>
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <strong style={{ fontSize: 10 }}>SSLC (10th)</strong>
+            <span style={{ fontSize: 9, color: '#555' }}>{fmtYear(education.sslc.yearOfPassing)}</span>
+          </div>
+          <p style={{ fontSize: 9, color: '#555', margin: 0 }}>{education.sslc.instituteName}</p>
         </div>
       )}
 

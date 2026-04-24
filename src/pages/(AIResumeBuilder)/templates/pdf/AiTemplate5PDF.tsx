@@ -1,13 +1,11 @@
 import React from 'react';
 import { Document, Page, View, Text, StyleSheet } from '@react-pdf/renderer';
 import type { ResumeData } from '@/types/resume';
-
 const htmlToPlain = (html?: string) => {
   if (!html) return '';
   let t = html.replace(/<br\s*\/?>/gi, '\n').replace(/<\/p>|<\/li>/gi, '\n').replace(/<li>/gi, '• ').replace(/<[^>]+>/g, '');
   return t.replace(/&nbsp;/g, ' ').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&').trim();
 };
-
 const renderBullets = (html?: string) => {
   if (!html) return null;
   const lines = htmlToPlain(html).split('\n').filter(l => l.trim());
@@ -22,19 +20,15 @@ const renderBullets = (html?: string) => {
     </View>
   );
 };
-
 const fmtDate = (s?: string) => {
   if (!s) return '';
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   const m = String(s).match(/^(\d{4})-(\d{2})/);
-  if (m) { const mm = parseInt(m[2], 10); return mm >= 1 && mm <= 12 ? `${months[mm-1]} ${m[1]}` : m[1]; }
+  if (m) { const mm = parseInt(m[2], 10); return mm >= 1 && mm <= 12 ? `${months[mm - 1]} ${m[1]}` : m[1]; }
   return String(s);
 };
-
 const fmtYear = (s?: string) => { if (!s) return ''; const m = String(s).match(/(\d{4})/); return m ? m[1] : String(s); };
-
 interface Props { data: ResumeData; primaryColor?: string; }
-
 const AiTemplate5PDF: React.FC<Props> = ({ data, primaryColor = '#0f766e' }) => {
   const { personal, experience, education, projects, skillsLinks, certifications } = data;
   const contactParts = [personal.email, personal.mobileNumber].filter(Boolean);
@@ -42,14 +36,12 @@ const AiTemplate5PDF: React.FC<Props> = ({ data, primaryColor = '#0f766e' }) => 
   const github = skillsLinks?.links?.githubProfile || '';
   const portfolio = skillsLinks?.links?.portfolioUrl || '';
   const languages: string[] = (personal as any).languagesKnown || [];
-
   const SectionTitle = ({ title }: { title: string }) => (
     <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 14, marginBottom: 6 }}>
       <View style={{ width: 4, height: 14, backgroundColor: primaryColor, marginRight: 8 }} />
       <Text style={{ fontSize: 11, fontFamily: 'Helvetica-Bold', letterSpacing: 1.5, textTransform: 'uppercase', color: primaryColor }}>{title}</Text>
     </View>
   );
-
   return (
     <Document>
       <Page size="A4" style={{ paddingTop: 32, paddingBottom: 24, paddingLeft: 40, paddingRight: 40, fontSize: 9, fontFamily: 'Helvetica' }}>
@@ -68,7 +60,6 @@ const AiTemplate5PDF: React.FC<Props> = ({ data, primaryColor = '#0f766e' }) => 
           </View>
         </View>
         <View style={{ height: 2, backgroundColor: primaryColor, marginBottom: 4 }} />
-
         {/* Summary */}
         {personal.aboutCareerObjective && (
           <>
@@ -76,7 +67,6 @@ const AiTemplate5PDF: React.FC<Props> = ({ data, primaryColor = '#0f766e' }) => 
             <Text style={{ fontSize: 9, color: '#333', lineHeight: 1.5 }}>{htmlToPlain(personal.aboutCareerObjective)}</Text>
           </>
         )}
-
         {/* Experience */}
         {experience.workExperiences.some(w => w.enabled) && (
           <>
@@ -93,7 +83,6 @@ const AiTemplate5PDF: React.FC<Props> = ({ data, primaryColor = '#0f766e' }) => 
             ))}
           </>
         )}
-
         {/* Projects */}
         {projects.some(p => p.enabled) && (
           <>
@@ -110,7 +99,6 @@ const AiTemplate5PDF: React.FC<Props> = ({ data, primaryColor = '#0f766e' }) => 
             ))}
           </>
         )}
-
         {/* Education */}
         <SectionTitle title="Education" />
         {education.higherEducation.filter(e => e.enabled).map((edu: any, i) => (
@@ -119,22 +107,27 @@ const AiTemplate5PDF: React.FC<Props> = ({ data, primaryColor = '#0f766e' }) => 
               <Text style={{ fontSize: 10, fontFamily: 'Helvetica-Bold' }}>{edu.degree} — {edu.fieldOfStudy}</Text>
               <Text style={{ fontSize: 9, color: '#555' }}>{fmtYear(edu.startYear)} – {edu.currentlyPursuing ? 'Present' : fmtYear(edu.endYear)}</Text>
             </View>
-            <Text style={{ fontSize: 9, color: '#555' }}>{edu.instituteName}</Text>          {edu.universityBoard ? <Text style={{ fontSize: 9, color: '#555' }}>{edu.universityBoard}</Text> : null}            {edu.resultFormat && edu.result && <Text style={{ fontSize: 9, color: '#333' }}>{edu.resultFormat}: {edu.result}</Text>}
+            <Text style={{ fontSize: 9, color: '#555' }}>{edu.instituteName}</Text>          {edu.universityBoard ? <Text style={{ fontSize: 9, color: '#555' }}>{edu.universityBoard}</Text> : null}
           </View>
         ))}
         {education.preUniversityEnabled && education.preUniversity?.instituteName && (
           <View style={{ marginBottom: 6 }}>
-            <Text style={{ fontSize: 10, fontFamily: 'Helvetica-Bold' }}>Pre University (12th)</Text>
-            <Text style={{ fontSize: 9, color: '#555' }}>{education.preUniversity.instituteName} | {fmtYear(education.preUniversity.yearOfPassing)}</Text>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+              <Text style={{ fontSize: 10, fontFamily: 'Helvetica-Bold' }}>Pre University (12th)</Text>
+              <Text style={{ fontSize: 9, color: '#555' }}>{fmtYear(education.preUniversity.yearOfPassing)}</Text>
+            </View>
+            <Text style={{ fontSize: 9, color: '#555' }}>{education.preUniversity.instituteName}</Text>
           </View>
         )}
         {education.sslcEnabled && education.sslc?.instituteName && (
           <View style={{ marginBottom: 6 }}>
-            <Text style={{ fontSize: 10, fontFamily: 'Helvetica-Bold' }}>SSLC (10th)</Text>
-            <Text style={{ fontSize: 9, color: '#555' }}>{education.sslc.instituteName} | {fmtYear(education.sslc.yearOfPassing)}</Text>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+              <Text style={{ fontSize: 10, fontFamily: 'Helvetica-Bold' }}>SSLC (10th)</Text>
+              <Text style={{ fontSize: 9, color: '#555' }}>{fmtYear(education.sslc.yearOfPassing)}</Text>
+            </View>
+            <Text style={{ fontSize: 9, color: '#555' }}>{education.sslc.instituteName}</Text>
           </View>
         )}
-
         {/* Skills */}
         {skillsLinks.skills.some(s => s.enabled && s.skillName) && (
           <>
@@ -148,7 +141,6 @@ const AiTemplate5PDF: React.FC<Props> = ({ data, primaryColor = '#0f766e' }) => 
             </View>
           </>
         )}
-
         {/* Languages */}
         {languages.length > 0 && (
           <>
@@ -156,7 +148,6 @@ const AiTemplate5PDF: React.FC<Props> = ({ data, primaryColor = '#0f766e' }) => 
             <Text style={{ fontSize: 9, color: '#333' }}>{languages.join(', ')}</Text>
           </>
         )}
-
         {/* Certifications */}
         {certifications.some(c => c.enabled && c.certificateTitle) && (
           <>
@@ -170,5 +161,4 @@ const AiTemplate5PDF: React.FC<Props> = ({ data, primaryColor = '#0f766e' }) => 
     </Document>
   );
 };
-
 export default AiTemplate5PDF;

@@ -1,13 +1,11 @@
 import React from 'react';
 import { Document, Page, View, Text, StyleSheet } from '@react-pdf/renderer';
 import type { ResumeData } from '@/types/resume';
-
 const htmlToPlain = (html?: string) => {
   if (!html) return '';
   let t = html.replace(/<br\s*\/?>/gi, '\n').replace(/<\/p>|<\/li>/gi, '\n').replace(/<li>/gi, '• ').replace(/<[^>]+>/g, '');
   return t.replace(/&nbsp;/g, ' ').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&').trim();
 };
-
 const renderBullets = (html?: string) => {
   if (!html) return null;
   const lines = htmlToPlain(html).split('\n').filter(l => l.trim());
@@ -22,25 +20,21 @@ const renderBullets = (html?: string) => {
     </View>
   );
 };
-
 const fmtDate = (s?: string) => {
   if (!s) return '';
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   const m = String(s).match(/^(\d{4})-(\d{2})/);
-  if (m) { const mm = parseInt(m[2], 10); return mm >= 1 && mm <= 12 ? `${months[mm-1]} ${m[1]}` : m[1]; }
+  if (m) { const mm = parseInt(m[2], 10); return mm >= 1 && mm <= 12 ? `${months[mm - 1]} ${m[1]}` : m[1]; }
   return String(s);
 };
 const fmtYear = (s?: string) => { if (!s) return ''; const m = String(s).match(/(\d{4})/); return m ? m[1] : String(s); };
-
 interface Props { data: ResumeData; primaryColor?: string; }
-
 const SectionTitle = ({ title, color }: { title: string; color: string }) => (
   <View style={{ marginTop: 16, marginBottom: 8 }}>
     <Text style={{ fontSize: 11, fontFamily: 'Helvetica-Bold', textTransform: 'uppercase', letterSpacing: 1.5, color }}>{title}</Text>
     <View style={{ height: 2, backgroundColor: color, width: 40, marginTop: 3 }} />
   </View>
 );
-
 const AiTemplate8PDF: React.FC<Props> = ({ data, primaryColor = '#1e293b' }) => {
   const { personal, experience, education, projects, skillsLinks, certifications } = data;
   const contactParts = [personal.email, personal.mobileNumber, personal.address].filter(Boolean);
@@ -48,7 +42,6 @@ const AiTemplate8PDF: React.FC<Props> = ({ data, primaryColor = '#1e293b' }) => 
   const github = skillsLinks?.links?.githubProfile || '';
   const portfolio = skillsLinks?.links?.portfolioUrl || '';
   const languages: string[] = (personal as any).languagesKnown || [];
-
   return (
     <Document>
       <Page size="A4" style={{ paddingTop: 28, paddingBottom: 28, paddingLeft: 40, paddingRight: 40, fontSize: 9, fontFamily: 'Helvetica' }}>
@@ -67,14 +60,12 @@ const AiTemplate8PDF: React.FC<Props> = ({ data, primaryColor = '#1e293b' }) => 
             </View>
           </View>
         </View>
-
         {personal.aboutCareerObjective && (
           <>
             <SectionTitle title="Professional Summary" color={primaryColor} />
             <Text style={{ fontSize: 9.5, color: '#334155', lineHeight: 1.6 }}>{htmlToPlain(personal.aboutCareerObjective)}</Text>
           </>
         )}
-
         {experience.workExperiences.some(w => w.enabled) && (
           <>
             <SectionTitle title="Work Experience" color={primaryColor} />
@@ -90,7 +81,6 @@ const AiTemplate8PDF: React.FC<Props> = ({ data, primaryColor = '#1e293b' }) => 
             ))}
           </>
         )}
-
         {projects.some(p => p.enabled) && (
           <>
             <SectionTitle title="Projects" color={primaryColor} />
@@ -106,7 +96,6 @@ const AiTemplate8PDF: React.FC<Props> = ({ data, primaryColor = '#1e293b' }) => 
             ))}
           </>
         )}
-
         <SectionTitle title="Education" color={primaryColor} />
         {education.higherEducation.filter(e => e.enabled).map((edu: any, i) => (
           <View key={i} style={{ marginBottom: 6 }}>
@@ -115,8 +104,6 @@ const AiTemplate8PDF: React.FC<Props> = ({ data, primaryColor = '#1e293b' }) => 
               <Text style={{ fontSize: 8.5, color: '#94a3b8' }}>{fmtYear(edu.startYear)} – {edu.currentlyPursuing ? 'Present' : fmtYear(edu.endYear)}</Text>
             </View>
             <Text style={{ fontSize: 9, color: '#64748b' }}>{edu.instituteName}</Text>
-            {edu.universityBoard ? <Text style={{ fontSize: 9, color: '#64748b' }}>{edu.universityBoard}</Text> : null}
-            {edu.resultFormat && edu.result && <Text style={{ fontSize: 9, color: '#475569' }}>{edu.resultFormat}: {edu.result}</Text>}
           </View>
         ))}
         {education.preUniversityEnabled && education.preUniversity?.instituteName && (
@@ -131,7 +118,6 @@ const AiTemplate8PDF: React.FC<Props> = ({ data, primaryColor = '#1e293b' }) => 
             <Text style={{ fontSize: 9, color: '#64748b' }}>{education.sslc.instituteName} | {fmtYear(education.sslc.yearOfPassing)}</Text>
           </View>
         )}
-
         {skillsLinks.skills.some(s => s.enabled && s.skillName) && (
           <>
             <SectionTitle title="Technical Skills" color={primaryColor} />
@@ -144,7 +130,6 @@ const AiTemplate8PDF: React.FC<Props> = ({ data, primaryColor = '#1e293b' }) => 
             </View>
           </>
         )}
-
         {/* Languages */}
         {languages.length > 0 && (
           <>
@@ -152,7 +137,6 @@ const AiTemplate8PDF: React.FC<Props> = ({ data, primaryColor = '#1e293b' }) => 
             <Text style={{ fontSize: 9.5, color: '#334155' }}>{languages.join(', ')}</Text>
           </>
         )}
-
         {certifications.some(c => c.enabled && c.certificateTitle) && (
           <>
             <SectionTitle title="Certifications" color={primaryColor} />
@@ -167,7 +151,4 @@ const AiTemplate8PDF: React.FC<Props> = ({ data, primaryColor = '#1e293b' }) => 
     </Document>
   );
 };
-
 export default AiTemplate8PDF;
-
-

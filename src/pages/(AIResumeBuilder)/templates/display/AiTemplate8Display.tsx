@@ -1,23 +1,19 @@
 import React from 'react';
 import type { ResumeData } from '@/types/resume';
-
 const htmlToLines = (s?: string) => {
   if (!s) return [] as string[];
   const text = String(s).replace(/<\/p>|<\/li>/gi, '\n').replace(/<br\s*\/?>(?:\s*)/gi, '\n').replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&');
   return text.split(/\n|\r\n/).map(l => l.trim()).filter(Boolean);
 };
-
 const fmtDate = (s?: string) => {
   if (!s) return '';
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   const m = String(s).match(/^(\d{4})-(\d{2})/);
-  if (m) { const mm = parseInt(m[2], 10); return mm >= 1 && mm <= 12 ? `${months[mm-1]} ${m[1]}` : m[1]; }
+  if (m) { const mm = parseInt(m[2], 10); return mm >= 1 && mm <= 12 ? `${months[mm - 1]} ${m[1]}` : m[1]; }
   return String(s);
 };
 const fmtYear = (s?: string) => { if (!s) return ''; const m = String(s).match(/(\d{4})/); return m ? m[1] : String(s); };
-
 interface Props { data: ResumeData; primaryColor?: string; }
-
 const AiTemplate8Display: React.FC<Props> = ({ data, primaryColor = '#1e293b' }) => {
   const { personal, experience, education, projects, skillsLinks, certifications } = data;
   const contactParts = [personal.email, personal.mobileNumber, personal.address].filter(Boolean);
@@ -25,14 +21,12 @@ const AiTemplate8Display: React.FC<Props> = ({ data, primaryColor = '#1e293b' })
   const github = skillsLinks?.links?.githubProfile || '';
   const portfolio = skillsLinks?.links?.portfolioUrl || '';
   const languages: string[] = (personal as any).languagesKnown || [];
-
   const SectionTitle = ({ title }: { title: string }) => (
     <div style={{ marginTop: 16, marginBottom: 8 }}>
       <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase' as const, color: primaryColor, letterSpacing: 1.5 }}>{title}</span>
       <div style={{ height: 2, backgroundColor: primaryColor, width: 40, marginTop: 3 }} />
     </div>
   );
-
   return (
     <div style={{ width: '210mm', minHeight: '297mm', fontFamily: '"Source Sans 3", sans-serif', background: '#fff', padding: '28px 40px' }}>
       {/* Double-line header */}
@@ -50,7 +44,6 @@ const AiTemplate8Display: React.FC<Props> = ({ data, primaryColor = '#1e293b' })
           </div>
         </div>
       </div>
-
       {/* Summary */}
       {personal.aboutCareerObjective && (
         <>
@@ -58,7 +51,6 @@ const AiTemplate8Display: React.FC<Props> = ({ data, primaryColor = '#1e293b' })
           <p style={{ fontSize: 9.5, color: '#334155', lineHeight: 1.6, margin: 0 }}>{htmlToLines(personal.aboutCareerObjective).join(' ')}</p>
         </>
       )}
-
       {/* Experience */}
       {experience.workExperiences.some(w => w.enabled) && (
         <>
@@ -77,7 +69,6 @@ const AiTemplate8Display: React.FC<Props> = ({ data, primaryColor = '#1e293b' })
           ))}
         </>
       )}
-
       {/* Projects */}
       {projects.some(p => p.enabled) && (
         <>
@@ -96,7 +87,6 @@ const AiTemplate8Display: React.FC<Props> = ({ data, primaryColor = '#1e293b' })
           ))}
         </>
       )}
-
       {/* Education */}
       <SectionTitle title="Education" />
       {education.higherEducation.filter(e => e.enabled).map((edu: any, i) => (
@@ -106,14 +96,16 @@ const AiTemplate8Display: React.FC<Props> = ({ data, primaryColor = '#1e293b' })
             <span style={{ fontSize: 8.5, color: '#94a3b8' }}>{fmtYear(edu.startYear)} – {edu.currentlyPursuing ? 'Present' : fmtYear(edu.endYear)}</span>
           </div>
           <p style={{ fontSize: 9, color: '#64748b', margin: 0 }}>{edu.instituteName}</p>
-          {edu.universityBoard && <p style={{ fontSize: 9, color: '#64748b', margin: 0 }}>{edu.universityBoard}</p>}
-          {edu.resultFormat && edu.result && <p style={{ fontSize: 9, color: '#475569', margin: 0 }}>{edu.resultFormat}: {edu.result}</p>}
+          {/* {edu.universityBoard && <p style={{ fontSize: 9, color: '#64748b', margin: 0 }}>{edu.universityBoard}</p>} */}
         </div>
       ))}
       {education.preUniversityEnabled && education.preUniversity?.instituteName && (
         <div style={{ marginBottom: 6 }}>
-          <strong style={{ fontSize: 10, color: '#0f172a' }}>Pre University (12th)</strong>
-          <p style={{ fontSize: 9, color: '#64748b', margin: 0 }}>{education.preUniversity.instituteName} | {fmtYear(education.preUniversity.yearOfPassing)}</p>
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <strong style={{ fontSize: 10, color: '#0f172a' }}>Pre University (12th)</strong>
+            <span style={{ fontSize: 8.5, color: '#94a3b8' }}>{fmtYear(education.preUniversity.yearOfPassing)}</span>
+          </div>
+          <p style={{ fontSize: 9, color: '#64748b', margin: 0 }}>{education.preUniversity.instituteName}</p>
         </div>
       )}
       {education.sslcEnabled && education.sslc?.instituteName && (
@@ -122,7 +114,6 @@ const AiTemplate8Display: React.FC<Props> = ({ data, primaryColor = '#1e293b' })
           <p style={{ fontSize: 9, color: '#64748b', margin: 0 }}>{education.sslc.instituteName} | {fmtYear(education.sslc.yearOfPassing)}</p>
         </div>
       )}
-
       {/* Skills */}
       {skillsLinks.skills.some(s => s.enabled && s.skillName) && (
         <>
@@ -136,7 +127,6 @@ const AiTemplate8Display: React.FC<Props> = ({ data, primaryColor = '#1e293b' })
           </div>
         </>
       )}
-
       {/* Languages */}
       {languages.length > 0 && (
         <>
@@ -144,7 +134,6 @@ const AiTemplate8Display: React.FC<Props> = ({ data, primaryColor = '#1e293b' })
           <p style={{ fontSize: 9.5, color: '#334155', margin: 0 }}>{languages.join(', ')}</p>
         </>
       )}
-
       {/* Certifications */}
       {certifications.some(c => c.enabled && c.certificateTitle) && (
         <>
@@ -159,7 +148,4 @@ const AiTemplate8Display: React.FC<Props> = ({ data, primaryColor = '#1e293b' })
     </div>
   );
 };
-
 export default AiTemplate8Display;
-
-
