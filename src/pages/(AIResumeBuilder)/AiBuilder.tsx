@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { Menu } from "lucide-react";
+import { Menu, Sparkles, Wand2, Brain, Rocket, Plus } from "lucide-react";
+import { motion } from "framer-motion";
 import DashNav from "@/components/dashnav/dashnav";
 import ChatList from "./Chatlist";
 import ChatBox from "./Chatbox";
@@ -596,8 +597,39 @@ export default function AIBuilder() {
               chipMessageId={activeChipState?.messageId ?? null}
             />
           ) : (
-            <div className="flex-1 flex items-center justify-center text-gray-400 text-sm">
-              Start a new chat to begin
+            <div className="flex-1 flex items-center justify-center p-6 bg-white">
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.4, ease: "easeOut" }}
+                className="max-w-md w-full text-center flex flex-col items-center"
+              >
+                <motion.div 
+                  animate={{ y: [0, -8, 0] }}
+                  transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+                  className="w-20 h-20 bg-orange-50 rounded-[1.5rem] flex items-center justify-center shadow-sm border border-orange-100 mb-6"
+                >
+                  <Sparkles className="w-10 h-10 text-orange-500" />
+                </motion.div>
+                
+                <h2 className="text-2xl font-bold text-gray-800 mb-3 tracking-tight">
+                  Your AI Career Assistant
+                </h2>
+                
+                <p className="text-gray-500 text-sm mb-8 leading-relaxed max-w-sm mx-auto">
+                  Build a professional, ATS-optimized resume effortlessly. Start a new session to let our intelligent assistant guide you step-by-step.
+                </p>
+
+                <motion.button
+                  whileHover={{ scale: 1.03, y: -1 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={handleNewChat}
+                  className="px-8 py-3.5 bg-orange-500 text-white rounded-2xl font-semibold text-sm shadow-lg shadow-orange-500/25 hover:bg-orange-600 transition-all flex items-center gap-2 group"
+                >
+                  <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform duration-300" />
+                  Create New Resume
+                </motion.button>
+              </motion.div>
             </div>
           )}
         </div>

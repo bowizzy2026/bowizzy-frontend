@@ -102,10 +102,21 @@ const Template17Display: React.FC<Template17DisplayProps> = ({
       <main style={{ flex: 1, padding: '24px 36px', boxSizing: 'border-box' }}>
         <section>
           <div>
-            <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.2, color: primaryColor, fontWeight: 700 }}>Summary</div>
+            <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.2, color: primaryColor, fontWeight: 700 }}>Technical Summary</div>
             <div style={{ height: 1, background: '#ddd', marginTop: 6, width: '100%' }} />
           </div>
-          <div style={{ marginTop: 8, color: '#444', fontSize: 11 }}>{personal.aboutCareerObjective && <div>{DOMPurify.sanitize(personal.aboutCareerObjective).replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').replace(/\s{2,}/g, ' ').trim()}</div>}</div>
+          <div style={{ marginTop: 8, color: '#444', fontSize: 11 }}>
+            {personal.aboutCareerObjective && (
+              <div style={{ marginBottom: (skillsLinks.technicalSummaryEnabled && skillsLinks.technicalSummary) ? 8 : 0 }}>
+                {DOMPurify.sanitize(personal.aboutCareerObjective).replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').replace(/\s{2,}/g, ' ').trim()}
+              </div>
+            )}
+            {skillsLinks.technicalSummaryEnabled && skillsLinks.technicalSummary && (
+              <div>
+                {DOMPurify.sanitize(skillsLinks.technicalSummary).replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').replace(/\s{2,}/g, ' ').trim()}
+              </div>
+            )}
+          </div>
 
           {experience.workExperiences.filter((w: any) => w.enabled).length > 0 && (
             <>

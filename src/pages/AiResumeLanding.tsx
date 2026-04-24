@@ -12,7 +12,9 @@ import {
   X,
   User,
   ChevronRight,
+  Loader2,
 } from "lucide-react";
+import { getProfileProgress } from "@/services/dashboardServices";
 
 const features = [
   {
@@ -139,6 +141,35 @@ function ProfilePopup({
 export default function AiResumeLanding() {
   const navigate = useNavigate();
   const [showPopup, setShowPopup] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleStartBuilding = async () => {
+    try {
+      setIsLoading(true);
+      const userStr = localStorage.getItem("user");
+      const user = userStr ? JSON.parse(userStr) : null;
+      const token = user?.token;
+      const userId = user?.id || user?.user_id || user?.userId;
+
+      if (!token || !userId) {
+        setShowPopup(true);
+        return;
+      }
+
+      const data = await getProfileProgress(userId, token);
+
+      if (data && data.percentage > 80) {
+        navigate("/ai-resume-builder/chat");
+      } else {
+        setShowPopup(true);
+      }
+    } catch (error) {
+      console.error("Failed to fetch profile progress", error);
+      setShowPopup(true);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
@@ -175,11 +206,13 @@ export default function AiResumeLanding() {
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center mt-8">
             <button
-              onClick={() => setShowPopup(true)}
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-orange-500 text-white font-semibold text-sm hover:bg-orange-600 transition cursor-pointer"
+              onClick={handleStartBuilding}
+              disabled={isLoading}
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-orange-500 text-white font-semibold text-sm hover:bg-orange-600 transition cursor-pointer disabled:opacity-70"
             >
-              Start building
-              <ArrowRight className="w-4 h-4" />
+              {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+              AI Builder
+              {!isLoading && <ArrowRight className="w-4 h-4" />}
             </button>
             <button
               onClick={() => navigate("/ResumeBuilder")}
@@ -244,10 +277,11 @@ export default function AiResumeLanding() {
             </ul>
 
             <button
-              onClick={() => setShowPopup(true)}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-orange-500 text-white text-sm font-semibold hover:bg-orange-600 transition cursor-pointer"
+              onClick={handleStartBuilding}
+              disabled={isLoading}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-orange-500 text-white text-sm font-semibold hover:bg-orange-600 transition cursor-pointer disabled:opacity-70"
             >
-              <Upload className="w-4 h-4" />
+              {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
               Try with a job description
             </button>
           </div>

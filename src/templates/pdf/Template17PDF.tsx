@@ -162,9 +162,14 @@ const Template17PDF: React.FC<Template17PDFProps> = ({ data, primaryColor = '#11
 
         <View style={styles.content}>
           <View>
-            <Text style={styles.sectionHeading}>Summary</Text>
+            <Text style={styles.sectionHeading}>Technical Summary</Text>
             <View style={{ height: 1, backgroundColor: '#ddd', marginTop: 6, width: '100%' }} />
             {personal.aboutCareerObjective ? <Text style={{ marginTop: 8, fontSize: 9, color: '#444' }}>{htmlToPlainText(personal.aboutCareerObjective).replace(/\s{2,}/g, ' ')}</Text> : null}
+            {skillsLinks.technicalSummaryEnabled && skillsLinks.technicalSummary ? (
+              <Text style={{ marginTop: personal.aboutCareerObjective ? 6 : 8, fontSize: 9, color: '#444' }}>
+                {htmlToPlainText(skillsLinks.technicalSummary).replace(/\s{2,}/g, ' ')}
+              </Text>
+            ) : null}
           </View>
 
           {experience.workExperiences.filter((w: any) => w.enabled).length > 0 && (
