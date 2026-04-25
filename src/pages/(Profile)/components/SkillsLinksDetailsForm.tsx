@@ -84,13 +84,9 @@ export default function SkillsLinksDetailsForm({
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   // --- Change Tracking / Feedback ---
-  const [skillChanges, setSkillChanges] = useState<Record<string, string[]>>(
-    {}
-  );
+  const [skillChanges, setSkillChanges] = useState<Record<string, string[]>>({});
   const [linkChanges, setLinkChanges] = useState<Record<string, string[]>>({});
-  const [skillFeedback, setSkillFeedback] = useState<Record<string, string>>(
-    {}
-  );
+  const [skillFeedback, setSkillFeedback] = useState<Record<string, string>>({});
   const [linkFeedback, setLinkFeedback] = useState<Record<string, string>>({});
 
   const initialSkillsRef = useRef<Record<string, Skill>>({});
@@ -147,10 +143,7 @@ export default function SkillsLinksDetailsForm({
         changedFields.push("portfolioDescription");
       if (current.publicationUrl !== (initial.publicationUrl || ""))
         changedFields.push("publicationUrl");
-      if (
-        current.publicationDescription !==
-        (initial.publicationDescription || "")
-      )
+      if (current.publicationDescription !== (initial.publicationDescription || ""))
         changedFields.push("publicationDescription");
 
       if (changedFields.length > 0) {
@@ -165,12 +158,9 @@ export default function SkillsLinksDetailsForm({
     if (value && !/^[a-zA-Z0-9\s.+#-]+$/.test(value)) {
       return "Invalid characters in skill name";
     }
-
-    // Require at least one letter so number-only values (e.g., "546746") are rejected.
     if (value && !/[A-Za-z]/.test(value)) {
       return "Skill must contain at least one letter";
     }
-
     return "";
   };
 
@@ -185,30 +175,19 @@ export default function SkillsLinksDetailsForm({
       return `Invalid ${type} URL format`;
     }
 
-    if (
-      type === "LinkedIn" &&
-      value &&
-      !value.toLowerCase().includes("linkedin.com")
-    ) {
+    if (type === "LinkedIn" && value && !value.toLowerCase().includes("linkedin.com")) {
       return "Please enter a valid LinkedIn URL";
     }
 
-    if (
-      type === "GitHub" &&
-      value &&
-      !value.toLowerCase().includes("github.com")
-    ) {
+    if (type === "GitHub" && value && !value.toLowerCase().includes("github.com")) {
       return "Please enter a valid GitHub URL";
     }
-
-
 
     return "";
   };
 
   // --- SKILLS HANDLERS ---
 
-  // Handler for individual skill card change
   const handleSkillChange = (index: number, field: string, value: string) => {
     const updated = [...skills];
     updated[index] = { ...updated[index], [field]: value };
@@ -224,7 +203,6 @@ export default function SkillsLinksDetailsForm({
     }
   };
 
-  // Handler for saving all skills in bulk (individual PUT/POST based on change tracking)
   const handleSaveAllSkills = async () => {
     const changesToSave = Object.keys(skillChanges);
     if (changesToSave.length === 0) {
@@ -260,10 +238,8 @@ export default function SkillsLinksDetailsForm({
         const minimalPayload: Record<string, any> = {};
         if (changes) {
           changes.forEach((field) => {
-            if (field === "skillName")
-              minimalPayload.skill_name = skill.skillName;
-            if (field === "skillLevel")
-              minimalPayload.skill_level = skill.skillLevel;
+            if (field === "skillName") minimalPayload.skill_name = skill.skillName;
+            if (field === "skillLevel") minimalPayload.skill_level = skill.skillLevel;
           });
         }
         updatePromises.push(
@@ -277,10 +253,8 @@ export default function SkillsLinksDetailsForm({
       }
     }
 
-    // Execute updates
     await Promise.all(updatePromises);
 
-    // Execute creates
     if (createPayloads.length > 0) {
       try {
         const response = await saveSkillsDetails(userId, token, createPayloads);
@@ -304,7 +278,6 @@ export default function SkillsLinksDetailsForm({
       }
     }
 
-    // FIX: Simplify feedback message
     const finalMessage =
       failCount === 0
         ? "All skills updated successfully!"
@@ -315,7 +288,6 @@ export default function SkillsLinksDetailsForm({
     setTimeout(() => setSkillFeedback({}), 3000);
   };
 
-  // Handler for deleting skill card
   const removeSkill = async (index: number) => {
     const skill = skills[index];
 
@@ -357,14 +329,12 @@ export default function SkillsLinksDetailsForm({
     });
   };
 
-  // Handler for adding new skill row
   const addSkill = () => {
     const newId = Date.now().toString();
     setSkills([...skills, { id: newId, skillName: "", skillLevel: "" }]);
     setSkillChanges((prev) => ({ ...prev, [newId]: ["new"] }));
   };
 
-  // Handler for resetting all skills
   const resetSkills = () => {
     const initialValues = Object.values(initialSkillsRef.current);
     setSkills(
@@ -385,30 +355,23 @@ export default function SkillsLinksDetailsForm({
     });
   };
 
-  // Handler for toggling skill section
   const toggleSkillsExpand = () => {
     setSkillsExpanded(!skillsExpanded);
   };
 
   // --- LINKS HANDLERS ---
 
-  // Handler for individual link field change
-  const handleLinkChange = (
-    linkIndex: number,
-    field: string,
-    value: string
-  ) => {
+  const handleLinkChange = (linkIndex: number, field: string, value: string) => {
     const updated = [...links];
     updated[linkIndex] = { ...updated[linkIndex], [field]: value };
     setLinks(updated);
 
-    // Validation
     if (field === "linkedinProfile") {
       const error = validateUrl(value, "LinkedIn");
       setErrors((prev) => {
         const next = { ...prev, [`link-${linkIndex}-linkedinProfile`]: error };
         if (value.trim()) {
-          delete next.linkedinProfile; // clear any global 'missing' error
+          delete next.linkedinProfile;
         }
         return next;
       });
@@ -427,7 +390,6 @@ export default function SkillsLinksDetailsForm({
     }
   };
 
-  // Helper to clear single link input field
   const clearLinkField = (linkIndex: number, field: string) => {
     const updated = [...links];
     updated[linkIndex] = { ...updated[linkIndex], [field]: "" };
@@ -440,8 +402,8 @@ export default function SkillsLinksDetailsForm({
     });
   };
 
-  // Handler for saving all changed link fields (PUT/POST/DELETE)
-  const cleanUrl = (url: string) => url.replace(/^https?:\/\//i, '').replace(/^www\./i, '');
+  const cleanUrl = (url: string) =>
+    url.replace(/^https?:\/\//i, "").replace(/^www\./i, "");
 
   const handleSaveAllLinks = async () => {
     const link = links[0];
@@ -457,11 +419,7 @@ export default function SkillsLinksDetailsForm({
     let failCount = 0;
     const promises = [];
     const fieldsToSync = [
-      {
-        field: "linkedinProfile",
-        dbId: "link_id_linkedin",
-        apiType: "linkedin",
-      },
+      { field: "linkedinProfile", dbId: "link_id_linkedin", apiType: "linkedin" },
       { field: "githubProfile", dbId: "link_id_github", apiType: "github" },
       {
         field: "portfolioUrl",
@@ -493,14 +451,12 @@ export default function SkillsLinksDetailsForm({
       }
 
       if (url) {
-        // CREATE or UPDATE
         const payload = {
           url,
           link_type: apiType,
           description: description || null,
         };
         if (dbIdValue) {
-          // PUT (Update)
           promises.push(
             updateLinkDetails(userId, token, dbIdValue as string, payload)
               .then(() => {
@@ -510,7 +466,6 @@ export default function SkillsLinksDetailsForm({
               .catch(() => failCount++)
           );
         } else {
-          // POST (Create)
           promises.push(
             saveLinksDetails(userId, token, [payload])
               .then((response) => {
@@ -525,7 +480,6 @@ export default function SkillsLinksDetailsForm({
           );
         }
       } else if (!url && dbIdValue) {
-        // DELETE (If URL is cleared but DB ID exists)
         promises.push(
           deleteLink(userId, token, dbIdValue as string)
             .then(() => {
@@ -543,7 +497,6 @@ export default function SkillsLinksDetailsForm({
     setLinkChanges({});
     setLinks([...links]);
 
-    // FIX: Simplify feedback message
     const finalMessage =
       failCount === 0
         ? "All links updated successfully!"
@@ -553,7 +506,6 @@ export default function SkillsLinksDetailsForm({
     setTimeout(() => setLinkFeedback({}), 3000);
   };
 
-  // Handler for resetting all links
   const resetLinks = () => {
     const currentLinks = links[0] || initialLinks[0];
     const initial = initialLinksRef.current[currentLinks.id];
@@ -587,58 +539,47 @@ export default function SkillsLinksDetailsForm({
     });
   };
 
-  // Handler for toggling link section
   const toggleLinksExpand = () => {
     setLinksExpanded(!linksExpanded);
   };
 
-  // Check if there are any unsaved changes in any section
   const hasUnsavedChanges =
     Object.keys(skillChanges).length > 0 || Object.keys(linkChanges).length > 0;
 
-  // Final submission handler
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Require at least one skill
     const hasSkill = skills.some((s) => s.skillName && s.skillName.trim());
     if (!hasSkill) {
       setErrors((prev) => ({ ...prev, skills: "At least one skill is required" }));
       setSkillsExpanded(true);
-      const firstSkill = document.querySelector('#skills-links-details-form-root input[aria-required="true"]') as HTMLInputElement | null;
+      const firstSkill = document.querySelector(
+        '#skills-links-details-form-root input[aria-required="true"]'
+      ) as HTMLInputElement | null;
       if (firstSkill) firstSkill.focus();
       return;
     }
 
-    // Require LinkedIn profile (at least one) when Links are present
     const hasLinkedIn = links.some((l) => l.linkedinProfile && l.linkedinProfile.trim());
     if (!hasLinkedIn) {
-      // attach error to the first link linkedin field so UI shows under the input
       setErrors((prev) => ({ ...prev, [`link-0-linkedinProfile`]: "LinkedIn Profile is required" }));
       setLinksExpanded(true);
-      const ln = document.querySelector('#skills-links-details-form-root input[placeholder^="Enter LinkedIn"]') as HTMLInputElement | null;
+      const ln = document.querySelector(
+        '#skills-links-details-form-root input[placeholder^="Enter LinkedIn"]'
+      ) as HTMLInputElement | null;
       if (ln) ln.focus();
       return;
     }
 
-
     if (hasUnsavedChanges) {
       let message = "Please save your changes before proceeding:\n\n";
-
-      if (Object.keys(skillChanges).length > 0) {
-        message += "• Skills (unsaved changes)\n";
-      }
-
-      if (Object.keys(linkChanges).length > 0) {
-        message += "• Links (unsaved changes)\n";
-      }
-
+      if (Object.keys(skillChanges).length > 0) message += "• Skills (unsaved changes)\n";
+      if (Object.keys(linkChanges).length > 0) message += "• Links (unsaved changes)\n";
       setSubmitError(message);
       return;
     }
-    // Filter out completely empty skill cards before sending to next step
-    const validSkills = skills.filter((s) => s.skillName || s.skill_id);
 
+    const validSkills = skills.filter((s) => s.skillName || s.skill_id);
     onNext({
       skills: validSkills,
       links: links,
@@ -647,7 +588,6 @@ export default function SkillsLinksDetailsForm({
     });
   };
 
-  // Helper component to render Link fields with Save/Delete
   const renderLinkField = (
     link: Link,
     linkIndex: number,
@@ -658,22 +598,19 @@ export default function SkillsLinksDetailsForm({
   ) => {
     const urlField = link[fieldName] as string;
 
-    // Check if this is a description field
     const isDescriptionField =
-      fieldName === "portfolioDescription" ||
-      fieldName === "publicationDescription";
+      fieldName === "portfolioDescription" || fieldName === "publicationDescription";
 
     return (
       <div key={fieldName} className={isTextArea ? "sm:col-span-2" : ""}>
         <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5">
-          {label} {fieldName === "linkedinProfile" && <span className="text-red-500">*</span>}
+          {label}{" "}
+          {fieldName === "linkedinProfile" && <span className="text-red-500">*</span>}
         </label>
         {isDescriptionField ? (
           <RichTextEditor
             value={urlField}
-            onChange={(value) =>
-              handleLinkChange(linkIndex, fieldName as string, value)
-            }
+            onChange={(value) => handleLinkChange(linkIndex, fieldName as string, value)}
             placeholder={`Enter ${label}...`}
             rows={5}
           />
@@ -682,9 +619,7 @@ export default function SkillsLinksDetailsForm({
             <input
               type="text"
               value={urlField}
-              onChange={(e) =>
-                handleLinkChange(linkIndex, fieldName as string, e.target.value)
-              }
+              onChange={(e) => handleLinkChange(linkIndex, fieldName as string, e.target.value)}
               required={fieldName === "linkedinProfile"}
               aria-required={fieldName === "linkedinProfile"}
               aria-invalid={!!errors[`link-${linkIndex}-${fieldName}`]}
@@ -694,8 +629,6 @@ export default function SkillsLinksDetailsForm({
                   : "border-gray-300 focus:ring-orange-400 focus:border-transparent"
                 }`}
             />
-
-            {/* Clear Button (Always inside the input) */}
             {urlField && (
               <button
                 type="button"
@@ -718,7 +651,6 @@ export default function SkillsLinksDetailsForm({
   };
 
   useEffect(() => {
-    // Try to scroll the nearest scrollable parent, fallback to window
     setTimeout(() => {
       let scrolled = false;
       let el = document.getElementById("skills-links-details-form-root");
@@ -745,34 +677,29 @@ export default function SkillsLinksDetailsForm({
       id="skills-links-details-form-root"
       onSubmit={handleSubmit}
       className="px-3 sm:px-4 md:px-6 lg:px-8 py-4 md:py-6"
-    >{submitError && (
-      <div className="fixed inset-0 flex items-center justify-center z-50">
-        <div
-          className="absolute inset-0 backdrop-blur-md bg-white/10"
-          onClick={() => setSubmitError("")}
-        ></div>
-
-        <div className="relative bg-white rounded-xl shadow-2xl p-6 w-[90%] max-w-md z-50">
-          <h3 className="text-lg font-semibold text-red-600 mb-2">
-            Error
-          </h3>
-
-          <p className="text-sm text-gray-700 mb-4 whitespace-pre-line">
-            {submitError}
-          </p>
-
-          <div className="flex justify-end">
-            <button
-              type="button"
-              onClick={() => setSubmitError("")}
-              className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition"
-            >
-              OK
-            </button>
+    >
+      {submitError && (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div
+            className="absolute inset-0 backdrop-blur-md bg-white/10"
+            onClick={() => setSubmitError("")}
+          ></div>
+          <div className="relative bg-white rounded-xl shadow-2xl p-6 w-[90%] max-w-md z-50">
+            <h3 className="text-lg font-semibold text-red-600 mb-2">Error</h3>
+            <p className="text-sm text-gray-700 mb-4 whitespace-pre-line">{submitError}</p>
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={() => setSubmitError("")}
+                className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition"
+              >
+                OK
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-    )}
+      )}
+
       <div className="max-w-6xl mx-auto">
         {/* Step Header */}
         <div className="mb-4 md:mb-6">
@@ -780,8 +707,8 @@ export default function SkillsLinksDetailsForm({
             Step 5: Links & Skills
           </h2>
           <p className="text-xs sm:text-sm text-gray-600">
-            Add portfolio links, profile links, publication links and key skills
-            related to your job role.
+            Add portfolio links, profile links, publication links and key skills related to your
+            job role.
           </p>
         </div>
 
@@ -793,19 +720,6 @@ export default function SkillsLinksDetailsForm({
               Skills <span className="text-red-500">*</span>
             </h3>
             <div className="flex gap-2 items-center">
-              {/* SAVE BUTTON FOR SKILLS (Moved to Header) */}
-              {Object.keys(skillChanges).length > 0 && (
-                <button
-                  type="button"
-                  onClick={handleSaveAllSkills}
-                  className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-md text-sm font-medium shadow-sm hover:from-orange-500 hover:to-orange-600 transition cursor-pointer"
-                  aria-pressed="false"
-                  aria-label="Save skill changes"
-                >
-                  <Save className="w-4 h-4" strokeWidth={2} />
-                  Save
-                </button>
-              )}
               <button
                 type="button"
                 onClick={toggleSkillsExpand}
@@ -820,27 +734,12 @@ export default function SkillsLinksDetailsForm({
             </div>
           </div>
 
-          {/* Skills Feedback */}
-          {Object.values(skillFeedback).some((f) => f) && (
-            <div
-              className={`p-4 text-sm ${Object.values(skillFeedback).every((f) => f.includes("success"))
-                  ? "bg-green-50 text-green-700 border border-green-200"
-                  : "bg-red-50 text-red-700 border border-red-200"
-                }`}
-            >
-              {Object.values(skillFeedback)
-                .filter((f) => f)
-                .join(" | ")}
-            </div>
-          )}
-
           {/* Skills Content */}
           {skillsExpanded && (
             <div className="p-4 sm:p-5 md:p-6">
               <div className="space-y-3">
                 {skills.map((skill, index) => {
                   const feedback = skillFeedback[skill.id];
-
                   return (
                     <div key={skill.id}>
                       {feedback && (
@@ -864,16 +763,16 @@ export default function SkillsLinksDetailsForm({
                               type="text"
                               value={skill.skillName}
                               onChange={(e) =>
-                                handleSkillChange(
-                                  index,
-                                  "skillName",
-                                  e.target.value
-                                )
+                                handleSkillChange(index, "skillName", e.target.value)
                               }
                               aria-required={true}
-                              aria-invalid={!!(errors[`skill-${index}-skillName`] || errors.skills)}
+                              aria-invalid={
+                                !!(
+                                  errors[`skill-${index}-skillName`] || errors.skills
+                                )
+                              }
                               placeholder="Enter Skill Name..."
-                              className={`w-full px-3 py-2 sm:py-2.5 border rounded-lg focus:outline-none focus:ring-2 text-xs sm:text-sm pr-8 ${(errors[`skill-${index}-skillName`] || errors.skills)
+                              className={`w-full px-3 py-2 sm:py-2.5 border rounded-lg focus:outline-none focus:ring-2 text-xs sm:text-sm pr-8 ${errors[`skill-${index}-skillName`] || errors.skills
                                   ? "border-red-500 focus:ring-red-400"
                                   : "border-gray-300 focus:ring-orange-400 focus:border-transparent"
                                 }`}
@@ -896,19 +795,13 @@ export default function SkillsLinksDetailsForm({
                               <select
                                 value={skill.skillLevel}
                                 onChange={(e) =>
-                                  handleSkillChange(
-                                    index,
-                                    "skillLevel",
-                                    e.target.value
-                                  )
+                                  handleSkillChange(index, "skillLevel", e.target.value)
                                 }
                                 className="w-full px-3 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent text-xs sm:text-sm appearance-none bg-white pr-8"
                               >
                                 <option value="">Select Skill Level</option>
                                 <option value="Beginner">Beginner</option>
-                                <option value="Intermediate">
-                                  Intermediate
-                                </option>
+                                <option value="Intermediate">Intermediate</option>
                                 <option value="Advanced">Advanced</option>
                                 <option value="Expert">Expert</option>
                               </select>
@@ -918,17 +811,14 @@ export default function SkillsLinksDetailsForm({
                             </div>
                           </div>
 
-                          {skills.length > 2 && ( // Allow deletion if more than 2 default rows
+                          {skills.length > 2 && (
                             <button
                               type="button"
                               onClick={() => removeSkill(index)}
                               className="w-9 h-9 flex items-center justify-center rounded border-2 border-red-500 hover:bg-red-50 transition-colors flex-shrink-0 cursor-pointer"
                               title="Delete this skill"
                             >
-                              <Trash2
-                                className="w-4 h-4 text-red-500"
-                                strokeWidth={2.5}
-                              />
+                              <Trash2 className="w-4 h-4 text-red-500" strokeWidth={2.5} />
                             </button>
                           )}
                         </div>
@@ -951,6 +841,31 @@ export default function SkillsLinksDetailsForm({
                   Add Skill
                 </button>
               </div>
+
+              {/* Skills Save Row — inside the expanded content div */}
+              <div className="flex items-center justify-end gap-2 mt-8 pt-4 border-t border-gray-200">
+                {Object.values(skillFeedback).some((f) => f) && (
+                  <span
+                    className={`text-xs px-2 py-1 rounded-full ${Object.values(skillFeedback).every((f) => f.includes("success"))
+                        ? "bg-green-100 text-green-700"
+                        : "bg-red-100 text-red-700"
+                      }`}
+                  >
+                    {Object.values(skillFeedback).filter((f) => f).join(" | ")}
+                  </span>
+                )}
+                {Object.keys(skillChanges).length > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleSaveAllSkills}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-lg hover:from-orange-500 hover:to-orange-600 transition cursor-pointer"
+                    aria-label="Save skill changes"
+                  >
+                    <Save className="w-4 h-4" strokeWidth={2} />
+                    Save
+                  </button>
+                )}
+              </div>
             </div>
           )}
         </div>
@@ -967,19 +882,6 @@ export default function SkillsLinksDetailsForm({
                 Links
               </h3>
               <div className="flex gap-2 items-center">
-                {/* SAVE BUTTON FOR LINKS (Moved to Header) */}
-                {Object.keys(linkChanges).length > 0 && (
-                  <button
-                    type="button"
-                    onClick={handleSaveAllLinks}
-                    className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-md text-sm font-medium shadow-sm hover:from-orange-500 hover:to-orange-600 transition cursor-pointer"
-                    aria-pressed="false"
-                    aria-label="Save link changes"
-                  >
-                    <Save className="w-4 h-4" strokeWidth={2} />
-                    Save
-                  </button>
-                )}
                 <button
                   type="button"
                   onClick={toggleLinksExpand}
@@ -994,74 +896,40 @@ export default function SkillsLinksDetailsForm({
               </div>
             </div>
 
-            {/* Links Feedback */}
-            {linkFeedback[link.id] && (
-              <div
-                className={`p-4 text-sm ${linkFeedback[link.id].includes("success")
-                    ? "bg-green-50 text-green-700 border border-green-200"
-                    : "bg-red-50 text-red-700 border border-red-200"
-                  }`}
-              >
-                {linkFeedback[link.id]}
-              </div>
-            )}
-
             {/* Links Content */}
             {linksExpanded && (
               <div className="p-4 sm:p-5 md:p-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Row 1: LinkedIn & GitHub */}
-                  {renderLinkField(
-                    link,
-                    linkIndex,
-                    "LinkedIn Profile",
-                    "linkedinProfile",
-                    "link_id_linkedin"
-                  )}
-                  {renderLinkField(
-                    link,
-                    linkIndex,
-                    "GitHub Profile",
-                    "githubProfile",
-                    "link_id_github"
-                  )}
+                  {renderLinkField(link, linkIndex, "LinkedIn Profile", "linkedinProfile", "link_id_linkedin")}
+                  {renderLinkField(link, linkIndex, "GitHub Profile", "githubProfile", "link_id_github")}
+                  {renderLinkField(link, linkIndex, "Portfolio URL", "portfolioUrl", "link_id_portfolio")}
+                  {renderLinkField(link, linkIndex, "Portfolio Description", "portfolioDescription", "link_id_portfolio", true)}
+                  {renderLinkField(link, linkIndex, "Publication URL", "publicationUrl", "link_id_publication")}
+                  {renderLinkField(link, linkIndex, "Publication Description", "publicationDescription", "link_id_publication", true)}
+                </div>
 
-                  {/* Row 2: Portfolio URL (Standard field) */}
-                  {renderLinkField(
-                    link,
-                    linkIndex,
-                    "Portfolio URL",
-                    "portfolioUrl",
-                    "link_id_portfolio"
+                {/* Links Save Row — inside the expanded content div */}
+                <div className="flex items-center justify-end gap-2 mt-8 pt-4 border-t border-gray-200">
+                  {linkFeedback[link.id] && (
+                    <span
+                      className={`text-xs px-2 py-1 rounded-full ${linkFeedback[link.id].includes("success")
+                          ? "bg-green-100 text-green-700"
+                          : "bg-red-100 text-red-700"
+                        }`}
+                    >
+                      {linkFeedback[link.id]}
+                    </span>
                   )}
-
-                  {/* Row 3: Portfolio Description (TextArea) */}
-                  {renderLinkField(
-                    link,
-                    linkIndex,
-                    "Portfolio Description",
-                    "portfolioDescription",
-                    "link_id_portfolio",
-                    true
-                  )}
-
-                  {/* Row 4: Publication URL */}
-                  {renderLinkField(
-                    link,
-                    linkIndex,
-                    "Publication URL",
-                    "publicationUrl",
-                    "link_id_publication"
-                  )}
-
-                  {/* Row 5: Publication Description (TextArea) */}
-                  {renderLinkField(
-                    link,
-                    linkIndex,
-                    "Publication Description",
-                    "publicationDescription",
-                    "link_id_publication",
-                    true
+                  {Object.keys(linkChanges).length > 0 && (
+                    <button
+                      type="button"
+                      onClick={handleSaveAllLinks}
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-lg hover:from-orange-500 hover:to-orange-600 transition cursor-pointer"
+                      aria-label="Save link changes"
+                    >
+                      <Save className="w-4 h-4" strokeWidth={2} />
+                      Save
+                    </button>
                   )}
                 </div>
               </div>
@@ -1070,10 +938,7 @@ export default function SkillsLinksDetailsForm({
         ))}
 
         {/* Action Buttons */}
-        {/* Validation Feedback & Action Buttons */}
         <div className="flex flex-col gap-4">
-
-
           {skills && skills.length < 2 ? (
             <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
               <p className="text-sm font-medium text-red-800">Missing mandatory field:</p>
@@ -1093,7 +958,8 @@ export default function SkillsLinksDetailsForm({
             </button>
             <button
               type="submit"
-              disabled={false} style={{
+              disabled={false}
+              style={{
                 background: "linear-gradient(180deg, #FF9D48 0%, #FF8251 100%)",
               }}
               className="px-6 sm:px-8 py-2.5 sm:py-3 text-white rounded-xl font-medium text-xs sm:text-sm transition-colors shadow-sm cursor-pointer disabled:cursor-not-allowed"

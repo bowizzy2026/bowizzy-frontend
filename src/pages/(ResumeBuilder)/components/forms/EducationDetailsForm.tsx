@@ -50,7 +50,7 @@ const subjectStreams = [
 
 const resultFormats = [
   { value: "Percentage", label: "Percentage" },
-  { value: "CGPA", label: "CGPA" },
+  { value: "Cgpa", label: "Cgpa" },
   { value: "GPA", label: "GPA" },
   { value: "Grade", label: "Grade" },
 ];
@@ -389,7 +389,7 @@ export const EducationDetailsForm: React.FC<EducationDetailsFormProps> = ({
 
     return (
       data.preUniversityEnabled !==
-        initialDataRef.current.preUniversityEnabled ||
+      initialDataRef.current.preUniversityEnabled ||
       current.instituteName !== initial.instituteName ||
       current.boardType !== initial.boardType ||
       current.subjectStream !== initial.subjectStream ||
@@ -1029,7 +1029,7 @@ export const EducationDetailsForm: React.FC<EducationDetailsFormProps> = ({
 
       setHigherEduFeedback((prev) => ({ ...prev, [edu.id]: feedbackMessage }));
       setHiddenSaveIds(prev => new Set([...prev, edu.id]));
-      
+
       setTimeout(() => {
         setHigherEduFeedback((prev) => {
           const updated = { ...prev };
@@ -1363,11 +1363,10 @@ export const EducationDetailsForm: React.FC<EducationDetailsFormProps> = ({
                   updateHigherEducation(id, "endYear", e.target.value)
                 }
                 disabled={education.currentlyPursuing}
-                className={`w-full px-3 py-2.5 border rounded-lg focus:outline-none focus:ring-2 text-sm disabled:bg-gray-100 ${
-                  errors[`higherEducation.${id}.endYear`]
-                    ? "border-red-500 focus:ring-red-400"
-                    : "border-gray-300 focus:ring-orange-400 focus:border-transparent"
-                }`}
+                className={`w-full px-3 py-2.5 border rounded-lg focus:outline-none focus:ring-2 text-sm disabled:bg-gray-100 ${errors[`higherEducation.${id}.endYear`]
+                  ? "border-red-500 focus:ring-red-400"
+                  : "border-gray-300 focus:ring-orange-400 focus:border-transparent"
+                  }`}
               />
               {errors[`higherEducation.${id}.endYear`] && (
                 <p className="mt-1 text-xs text-red-500">
@@ -1415,11 +1414,10 @@ export const EducationDetailsForm: React.FC<EducationDetailsFormProps> = ({
           <div className="flex items-center justify-end gap-2 mt-8 pt-4 border-t border-gray-200">
             {feedback && (
               <span
-                className={`text-xs px-2 py-1 rounded-full ${
-                  feedback.includes("successfully")
-                    ? "bg-green-100 text-green-700"
-                    : "bg-red-100 text-red-700"
-                }`}
+                className={`text-xs px-2 py-1 rounded-full ${feedback.includes("successfully")
+                  ? "bg-green-100 text-green-700"
+                  : "bg-red-100 text-red-700"
+                  }`}
               >
                 {feedback}
               </span>
@@ -1514,11 +1512,10 @@ export const EducationDetailsForm: React.FC<EducationDetailsFormProps> = ({
         <div className="flex items-center justify-end gap-2 mt-8 pt-4 border-t border-gray-200">
           {sslcFeedback && (
             <span
-              className={`text-xs px-2 py-1 rounded-full ${
-                sslcFeedback.includes("successfully")
-                  ? "bg-green-100 text-green-700"
-                  : "bg-red-100 text-red-700"
-              }`}
+              className={`text-xs px-2 py-1 rounded-full ${sslcFeedback.includes("successfully")
+                ? "bg-green-100 text-green-700"
+                : "bg-red-100 text-red-700"
+                }`}
             >
               {sslcFeedback}
             </span>
@@ -1621,11 +1618,10 @@ export const EducationDetailsForm: React.FC<EducationDetailsFormProps> = ({
         <div className="flex items-center justify-end gap-2 mt-8 pt-4 border-t border-gray-200">
           {puFeedback && (
             <span
-              className={`text-xs px-2 py-1 rounded-full ${
-                puFeedback.includes("successfully")
-                  ? "bg-green-100 text-green-700"
-                  : "bg-red-100 text-red-700"
-              }`}
+              className={`text-xs px-2 py-1 rounded-full ${puFeedback.includes("successfully")
+                ? "bg-green-100 text-green-700"
+                : "bg-red-100 text-red-700"
+                }`}
             >
               {puFeedback}
             </span>

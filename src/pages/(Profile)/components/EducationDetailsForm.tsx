@@ -81,7 +81,7 @@ export const branchesByDegree: Record<string, string[]> = {
     "Data Science",
   ],
 
-  MBA: [
+  "MBA": [
     "Finance",
     "Marketing",
     "HR",
@@ -90,7 +90,7 @@ export const branchesByDegree: Record<string, string[]> = {
     "International Business",
   ],
 
-  PhD: [
+  "PhD": [
     "Computer Science",
     "Engineering",
     "Management",
@@ -1224,18 +1224,6 @@ export default function EducationDetailsForm({
             )}
           </h3>
           <div className="flex gap-2 items-center">
-            {changed && (
-              <button
-                type="button"
-                onClick={handleSave}
-                className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-md text-sm font-medium shadow-sm hover:from-orange-500 hover:to-orange-600 transition cursor-pointer"
-                aria-pressed="false"
-                aria-label="Save education changes"
-              >
-                <Save className="w-4 h-4" strokeWidth={2} />
-                Save
-              </button>
-            )}
             <button
               type="button"
               onClick={() => handleEducationExpandToggle(id, isExtra)}
@@ -1263,17 +1251,6 @@ export default function EducationDetailsForm({
           </div>
         </div>
 
-        {feedback && (
-          <div
-            className={`p-4 text-sm ${feedback.includes("successfully")
-                ? "bg-green-50 text-green-700"
-                : "bg-red-50 text-red-700"
-              }`}
-          >
-            {feedback}
-          </div>
-        )}
-
         {expanded && (
           <div className="p-4 sm:p-5 md:p-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
@@ -1300,7 +1277,7 @@ export default function EducationDetailsForm({
                     <option value="M.Tech">M.Tech</option>
                     <option value="M.Sc">M.Sc</option>
                     <option value="MBA">MBA</option>
-                    <option value="BBA">MCA</option>
+                    <option value="MCA">MCA</option>
                     <option value="Diploma">Diploma</option>
                     <option value="PhD">PhD</option>
                   </select>
@@ -1339,8 +1316,8 @@ export default function EducationDetailsForm({
                       onChange={(e) => handleChange("fieldOfStudy", e.target.value)}
                       placeholder="Enter Field Of Study"
                       className={`w-full px-3 py-2 sm:py-2.5 border rounded-lg focus:outline-none focus:ring-2 text-xs sm:text-sm ${errors[`${prefix}-fieldOfStudy`]
-                          ? "border-red-500 focus:ring-red-400"
-                          : "border-gray-300 focus:ring-orange-400 focus:border-transparent"
+                        ? "border-red-500 focus:ring-red-400"
+                        : "border-gray-300 focus:ring-orange-400 focus:border-transparent"
                         }`}
                     />
                   </div>
@@ -1360,8 +1337,8 @@ export default function EducationDetailsForm({
                   }
                   placeholder="Enter Institution Name"
                   className={`w-full px-3 py-2 sm:py-2.5 border rounded-lg focus:outline-none focus:ring-2 text-xs sm:text-sm ${errors[`${prefix}-institutionName`]
-                      ? "border-red-500 focus:ring-red-400"
-                      : "border-gray-300 focus:ring-orange-400 focus:border-transparent"
+                    ? "border-red-500 focus:ring-red-400"
+                    : "border-gray-300 focus:ring-orange-400 focus:border-transparent"
                     }`}
                 />
                 {errors[`${prefix}-institutionName`] && (
@@ -1384,8 +1361,8 @@ export default function EducationDetailsForm({
                   }
                   placeholder="Enter University/ Board Name"
                   className={`w-full px-3 py-2 sm:py-2.5 border rounded-lg focus:outline-none focus:ring-2 text-xs sm:text-sm ${errors[`${prefix}-universityBoard`]
-                      ? "border-red-500 focus:ring-red-400"
-                      : "border-gray-300 focus:ring-orange-400 focus:border-transparent"
+                    ? "border-red-500 focus:ring-red-400"
+                    : "border-gray-300 focus:ring-orange-400 focus:border-transparent"
                     }`}
                 />
                 {errors[`${prefix}-universityBoard`] && (
@@ -1429,8 +1406,8 @@ export default function EducationDetailsForm({
                     max={getCurrentMonth()}
                     disabled={education.currentlyPursuing}
                     className={`w-full px-3 py-2 sm:py-2.5 border rounded-lg focus:outline-none focus:ring-2 text-xs sm:text-sm disabled:bg-gray-100 ${errors[`${prefix}-endYear`]
-                        ? "border-red-500 focus:ring-red-400"
-                        : "border-gray-300 focus:ring-orange-400 focus:border-transparent"
+                      ? "border-red-500 focus:ring-red-400"
+                      : "border-gray-300 focus:ring-orange-400 focus:border-transparent"
                       }`}
                   />
                 </div>
@@ -1491,8 +1468,8 @@ export default function EducationDetailsForm({
                   onChange={(e) => handleChange("result", e.target.value)}
                   placeholder="Enter Result"
                   className={`w-full px-3 py-2 sm:py-2.5 border rounded-lg focus:outline-none focus:ring-2 text-xs sm:text-sm ${errors[`${prefix}-result`]
-                      ? "border-red-500 focus:ring-red-400"
-                      : "border-gray-300 focus:ring-orange-400 focus:border-transparent"
+                    ? "border-red-500 focus:ring-red-400"
+                    : "border-gray-300 focus:ring-orange-400 focus:border-transparent"
                     }`}
                 />
                 {errors[`${prefix}-result`] && (
@@ -1501,6 +1478,30 @@ export default function EducationDetailsForm({
                   </p>
                 )}
               </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 mt-8 pt-4 border-t border-gray-200">
+              {feedback && (
+                <span
+                  className={`text-xs px-2 py-1 rounded-full ${feedback.includes("successfully")
+                    ? "bg-green-100 text-green-700"
+                    : "bg-red-100 text-red-700"
+                    }`}
+                >
+                  {feedback}
+                </span>
+              )}
+              {changed && (
+                <button
+                  type="button"
+                  onClick={handleSave}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-lg hover:from-orange-500 hover:to-orange-600 transition cursor-pointer"
+                  aria-label="Save education changes"
+                >
+                  <Save className="w-4 h-4" strokeWidth={2} />
+                  Save
+                </button>
+              )}
             </div>
           </div>
         )}
@@ -1573,18 +1574,6 @@ export default function EducationDetailsForm({
               SSLC (10th Standard)<span className="text-red-500">*</span>
             </h3>
             <div className="flex gap-2 items-center">
-              {sslcChanged && (
-                <button
-                  type="button"
-                  onClick={handleSaveSslc}
-                  className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-md text-sm font-medium shadow-sm hover:from-orange-500 hover:to-orange-600 transition cursor-pointer"
-                  aria-pressed="false"
-                  aria-label="Save SSLC changes"
-                >
-                  <Save className="w-4 h-4" strokeWidth={2} />
-                  Save
-                </button>
-              )}
               <button
                 type="button"
                 onClick={() => setSslcExpanded(!sslcExpanded)}
@@ -1598,17 +1587,6 @@ export default function EducationDetailsForm({
               </button>
             </div>
           </div>
-
-          {sslcFeedback && (
-            <div
-              className={`p-4 text-sm ${sslcFeedback.includes("successfully")
-                  ? "bg-green-50 text-green-700"
-                  : "bg-red-50 text-red-700"
-                }`}
-            >
-              {sslcFeedback}
-            </div>
-          )}
 
           {sslcExpanded && (
             <div className="p-4 sm:p-5 md:p-6">
@@ -1624,8 +1602,8 @@ export default function EducationDetailsForm({
                     onChange={handleSslcChange}
                     placeholder="Enter Institute Name"
                     className={`w-full px-3 py-2 sm:py-2.5 border rounded-lg focus:outline-none focus:ring-2 text-xs sm:text-sm ${errors["sslc-institutionName"]
-                        ? "border-red-500 focus:ring-red-400"
-                        : "border-gray-300 focus:ring-orange-400 focus:border-transparent"
+                      ? "border-red-500 focus:ring-red-400"
+                      : "border-gray-300 focus:ring-orange-400 focus:border-transparent"
                       }`}
                   />
                   {errors["sslc-institutionName"] && (
@@ -1696,8 +1674,8 @@ export default function EducationDetailsForm({
                     onChange={handleSslcChange}
                     placeholder="Enter Result"
                     className={`w-full px-3 py-2 sm:py-2.5 border rounded-lg focus:outline-none focus:ring-2 text-xs sm:text-sm ${errors["sslc-result"]
-                        ? "border-red-500 focus:ring-red-400"
-                        : "border-gray-300 focus:ring-orange-400 focus:border-transparent"
+                      ? "border-red-500 focus:ring-red-400"
+                      : "border-gray-300 focus:ring-orange-400 focus:border-transparent"
                       }`}
                   />
                   {errors["sslc-result"] && (
@@ -1706,6 +1684,30 @@ export default function EducationDetailsForm({
                     </p>
                   )}
                 </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 mt-8 pt-4 border-t border-gray-200">
+                {sslcFeedback && (
+                  <span
+                    className={`text-xs px-2 py-1 rounded-full ${sslcFeedback.includes("successfully")
+                      ? "bg-green-100 text-green-700"
+                      : "bg-red-100 text-red-700"
+                      }`}
+                  >
+                    {sslcFeedback}
+                  </span>
+                )}
+                {sslcChanged && (
+                  <button
+                    type="button"
+                    onClick={handleSaveSslc}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-lg hover:from-orange-500 hover:to-orange-600 transition cursor-pointer"
+                    aria-label="Save SSLC changes"
+                  >
+                    <Save className="w-4 h-4" strokeWidth={2} />
+                    Save
+                  </button>
+                )}
               </div>
             </div>
           )}
@@ -1718,18 +1720,6 @@ export default function EducationDetailsForm({
               Pre-university (12th Standard)
             </h3>
             <div className="flex gap-2 items-center">
-              {puChanged && (
-                <button
-                  type="button"
-                  onClick={handleSavePu}
-                  className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-md text-sm font-medium shadow-sm hover:from-orange-500 hover:to-orange-600 transition cursor-pointer"
-                  aria-pressed="false"
-                  aria-label="Save pre-university changes"
-                >
-                  <Save className="w-4 h-4" strokeWidth={2} />
-                  Save
-                </button>
-              )}
               <button
                 type="button"
                 onClick={() => setPuExpanded(!puExpanded)}
@@ -1743,17 +1733,6 @@ export default function EducationDetailsForm({
               </button>
             </div>
           </div>
-
-          {puFeedback && (
-            <div
-              className={`p-4 text-sm ${puFeedback.includes("successfully")
-                  ? "bg-green-50 text-green-700"
-                  : "bg-red-50 text-red-700"
-                }`}
-            >
-              {puFeedback}
-            </div>
-          )}
 
           {puExpanded && (
             <div className="p-4 sm:p-5 md:p-6">
@@ -1769,8 +1748,8 @@ export default function EducationDetailsForm({
                     onChange={handlePuChange}
                     placeholder="Enter Institute Name"
                     className={`w-full px-3 py-2 sm:py-2.5 border rounded-lg focus:outline-none focus:ring-2 text-xs sm:text-sm ${errors["pu-institutionName"]
-                        ? "border-red-500 focus:ring-red-400"
-                        : "border-gray-300 focus:ring-orange-400 focus:border-transparent"
+                      ? "border-red-500 focus:ring-red-400"
+                      : "border-gray-300 focus:ring-orange-400 focus:border-transparent"
                       }`}
                   />
                   {errors["pu-institutionName"] && (
@@ -1860,8 +1839,8 @@ export default function EducationDetailsForm({
                     onChange={handlePuChange}
                     placeholder="Enter Result"
                     className={`w-full px-3 py-2 sm:py-2.5 border rounded-lg focus:outline-none focus:ring-2 text-xs sm:text-sm ${errors["pu-result"]
-                        ? "border-red-500 focus:ring-red-400"
-                        : "border-gray-300 focus:ring-orange-400 focus:border-transparent"
+                      ? "border-red-500 focus:ring-red-400"
+                      : "border-gray-300 focus:ring-orange-400 focus:border-transparent"
                       }`}
                   />
                   {errors["pu-result"] && (
@@ -1870,6 +1849,30 @@ export default function EducationDetailsForm({
                     </p>
                   )}
                 </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 mt-8 pt-4 border-t border-gray-200">
+                {puFeedback && (
+                  <span
+                    className={`text-xs px-2 py-1 rounded-full ${puFeedback.includes("successfully")
+                      ? "bg-green-100 text-green-700"
+                      : "bg-red-100 text-red-700"
+                      }`}
+                  >
+                    {puFeedback}
+                  </span>
+                )}
+                {puChanged && (
+                  <button
+                    type="button"
+                    onClick={handleSavePu}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-lg hover:from-orange-500 hover:to-orange-600 transition cursor-pointer"
+                    aria-label="Save pre-university changes"
+                  >
+                    <Save className="w-4 h-4" strokeWidth={2} />
+                    Save
+                  </button>
+                )}
               </div>
             </div>
           )}

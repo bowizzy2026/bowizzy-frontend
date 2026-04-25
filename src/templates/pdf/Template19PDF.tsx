@@ -135,7 +135,7 @@ const Template19PDF: React.FC<Template19PDFProps> = ({ data, primaryColor = '#11
                 <View style={{ marginTop: 12 }}>
                   <Text style={styles.sectionHeading}>Education</Text>
                   <View style={{ ...styles.divider, backgroundColor: '#999' }} />
-                  <View style={{ marginTop: 8 }}>{education.higherEducation.filter(edu => edu.enabled).map((edu: any, i: number) => (
+                  <View style={{ marginTop: 8 }}>{[...education.higherEducation].filter(edu => edu.enabled).reverse().map((edu: any, i: number) => (
                     <View key={i} style={{ marginBottom: 8 }}>
                       <Text style={{ fontSize: 10, fontFamily: 'Times-Bold' }}>{edu.instituteName}</Text>
                       <Text style={{ color: '#151616', marginTop: 4 }}>{edu.degree}{edu.fieldOfStudy ? ` (${edu.fieldOfStudy}) — ${edu.universityBoard}` : ''}</Text>

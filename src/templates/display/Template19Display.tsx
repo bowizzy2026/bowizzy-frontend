@@ -84,7 +84,7 @@ const Template19Display: React.FC<Template19DisplayProps> = ({
                 <div style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: 1.2, color: primaryColor, fontWeight: 700 }}>Education</div>
                 <div style={{ height: 1, background: '#999', marginTop: 6, width: '80%' }} />
                 <div style={{ marginTop: 8 }}>
-                  {education.higherEducation.filter(edu => edu.enabled).map((edu: any, i: number) => (
+                  {[...education.higherEducation].filter(edu => edu.enabled).reverse().map((edu: any, i: number) => (
                     <div key={i} style={{ marginBottom: 12 }}>
                       <div style={{ fontWeight: 700 }}>{edu.instituteName}</div>
                       <div style={{ color: '#151616', marginTop: 4 }}>{edu.degree}{edu.fieldOfStudy ? ` (${edu.fieldOfStudy}) — ${edu.universityBoard}` : ''}</div>
