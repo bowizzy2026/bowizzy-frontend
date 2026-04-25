@@ -2,6 +2,7 @@ import React from "react";
 import DOMPurify from 'dompurify';
 import { Document, Page, Text, View, StyleSheet, Svg, Path, Image } from "@react-pdf/renderer";
 import type { ResumeData } from "@/types/resume";
+import logo from '@/assets/bowizzy.png';
 
 const styles = StyleSheet.create({
   page: {
@@ -274,6 +275,11 @@ const Template11PDF: React.FC<Template11PDFProps> = ({ data, primaryColor = '#11
     <Document>
       <Page size="A4" style={styles.page}>
 
+        {/* Faded Watermark */}
+        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center', zIndex: -1 }} fixed>
+          <Image src={logo} style={{ width: 400, opacity: 0.2 }} />
+        </View>
+
         {/* ── Header ── */}
         <View style={{ paddingTop: 18, paddingBottom: 6, paddingLeft: 36, paddingRight: 36 }}>
           <Text style={{ fontSize: 36, fontFamily: pdfFontFamilyBold, color: primaryColor, marginBottom: 0, lineHeight: 1, textAlign: 'left' }}>
@@ -345,23 +351,23 @@ const Template11PDF: React.FC<Template11PDFProps> = ({ data, primaryColor = '#11
                     const bKey = parseYearKey(b.endYear || b.startYear || '');
                     return aKey - bKey;
                   }).map((edu: any, idx: number) => (
-                <View key={idx} style={{ marginBottom: 8 }}>
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <Text style={{ fontSize: 11, fontFamily: pdfFontFamilyBold, color: '#000000', flex: 1, marginRight: 8 }}>{edu.instituteName}</Text>
-                    <Text style={{ fontSize: 10, color: '#000000', fontFamily: pdfFontFamilyBold }}>
-                      {formatMonthYear(edu.startYear)} - {edu.currentlyPursuing ? 'Present' : formatMonthYear(edu.endYear)}
-                    </Text>
-                  </View>
-                  <Text style={{ fontSize: 11, color: '#000000', fontFamily: pdfFontFamily, marginTop: 3 }}>
-                    {getFullDegreeName(edu.degree)}{edu.fieldOfStudy ? ` in ${edu.fieldOfStudy}` : ''}
-                  </Text>
-                  {edu.resultFormat && edu.result ? (
-                    <Text style={{ fontSize: 10, color: '#000000', fontFamily: pdfFontFamily, marginTop: 3 }}>
-                      {edu.resultFormat}: {edu.result}
-                    </Text>
-                  ) : null}
-                </View>
-              ))}
+                    <View key={idx} style={{ marginBottom: 8 }}>
+                      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <Text style={{ fontSize: 11, fontFamily: pdfFontFamilyBold, color: '#000000', flex: 1, marginRight: 8 }}>{edu.instituteName}</Text>
+                        <Text style={{ fontSize: 10, color: '#000000', fontFamily: pdfFontFamilyBold }}>
+                          {formatMonthYear(edu.startYear)} - {edu.currentlyPursuing ? 'Present' : formatMonthYear(edu.endYear)}
+                        </Text>
+                      </View>
+                      <Text style={{ fontSize: 11, color: '#000000', fontFamily: pdfFontFamily, marginTop: 3 }}>
+                        {getFullDegreeName(edu.degree)}{edu.fieldOfStudy ? ` in ${edu.fieldOfStudy}` : ''}
+                      </Text>
+                      {edu.resultFormat && edu.result ? (
+                        <Text style={{ fontSize: 10, color: '#000000', fontFamily: pdfFontFamily, marginTop: 3 }}>
+                          {edu.resultFormat}: {edu.result}
+                        </Text>
+                      ) : null}
+                    </View>
+                  ))}
                 </>
               )}
 
