@@ -212,7 +212,7 @@ export default function AiResumeLanding() {
             >
               {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
               AI Builder
-              {!isLoading && <ArrowRight className="w-4 h-4" />}
+              {/* {!isLoading && <ArrowRight className="w-4 h-4" />} */}
             </button>
             <button
               onClick={() => navigate("/ResumeBuilder")}
