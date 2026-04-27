@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Plus, Trash2, X, MessageSquare } from "lucide-react";
 import type { ChatSession } from "./types";
 
@@ -36,6 +36,8 @@ export default function ChatList({
     const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
     return bTime - aTime;
   });
+
+  const [sessionToDelete, setSessionToDelete] = useState<string | null>(null);
   return (
     <>
       {/* Mobile overlay */}
@@ -96,7 +98,10 @@ export default function ChatList({
                     {formatDate(session.createdAt)}
                   </span>
                   <span
-                    onClick={(e) => onDeleteSession(session.id, e)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSessionToDelete(session.id);
+                    }}
                     className="opacity-0 group-hover:opacity-100 p-0.5 text-gray-400 hover:text-red-500 transition cursor-pointer shrink-0"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -122,6 +127,35 @@ export default function ChatList({
           )}
         </div>
       </aside>
+
+      {/* Delete Confirmation Popup */}
+      {sessionToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-sm w-full p-6 animate-in fade-in zoom-in duration-200">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Delete Chat Session?</h3>
+            <p className="text-sm text-gray-600 mb-6">
+              Deleting this chat will lose your resume and data. You will need to pay again for building a new resume. Are you sure you want to proceed?
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setSessionToDelete(null)}
+                className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={(e) => {
+                  onDeleteSession(sessionToDelete, e as unknown as React.MouseEvent);
+                  setSessionToDelete(null);
+                }}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
