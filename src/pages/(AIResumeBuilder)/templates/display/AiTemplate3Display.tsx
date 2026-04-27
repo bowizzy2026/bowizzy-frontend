@@ -46,7 +46,7 @@ const AiTemplate3Display: React.FC<Props> = ({ data, primaryColor = '#2d3748' })
 
         <p style={sidebarSectionTitle}>Education</p>
         <div style={{ height: 1, backgroundColor: '#e2e8f0', marginBottom: 6 }} />
-        {education.higherEducation.filter(e => e.enabled).map((edu: any, i) => (
+        {education.higherEducation.filter(e => e.enabled).reverse().map((edu: any, i) => (
           <div key={i} style={{ marginBottom: 8 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <p style={{ fontSize: 9, fontWeight: 700, color: '#fff', margin: 0 }}>{edu.degree}</p>

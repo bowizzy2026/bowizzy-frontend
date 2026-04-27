@@ -95,7 +95,7 @@ const AiTemplate5Display: React.FC<Props> = ({ data, primaryColor = '#0f766e' })
       )}
 
       <SectionTitle title="Education" />
-      {education.higherEducation.filter(e => e.enabled).map((edu: any, i) => (
+      {education.higherEducation.filter(e => e.enabled).reverse().map((edu: any, i) => (
         <div key={i} style={{ marginBottom: 6 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
             <strong style={{ fontSize: 10 }}>{edu.degree} — {edu.fieldOfStudy}</strong>

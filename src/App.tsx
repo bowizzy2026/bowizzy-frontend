@@ -8,6 +8,7 @@ import {
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import WelcomeBonusManager from "./components/WelcomeBonusManager";
 import {
   Sidebar,
   SidebarFooter,
@@ -143,6 +144,7 @@ function LayoutWrapper({ children }: { children: React.ReactNode }) {
 
   return (
     <SidebarProvider>
+      <WelcomeBonusManager />
       <Sidebar className="overflow-y-auto z-50">
         <SidebarHeader>
           <div className="flex items-center justify-center p-6">

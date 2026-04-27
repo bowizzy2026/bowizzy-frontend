@@ -98,7 +98,7 @@ const AiTemplate7PDF: React.FC<Props> = ({ data, primaryColor = '#374151' }) => 
           </>
         )}
         <SectionHeader title="Education" color={primaryColor} />
-        {education.higherEducation.filter(e => e.enabled).map((edu: any, i) => (
+        {education.higherEducation.filter(e => e.enabled).reverse().map((edu: any, i) => (
           <View key={i} style={{ marginBottom: 6 }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
 

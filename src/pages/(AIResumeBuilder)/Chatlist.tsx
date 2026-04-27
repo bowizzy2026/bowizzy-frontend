@@ -83,15 +83,14 @@ export default function ChatList({
               <button
                 key={session.id}
                 onClick={() => onSelectSession(session.id)}
-                className={`w-full text-left p-2.5 rounded-lg transition group ${
-                  currentSessionId === session.id
-                    ? "bg-orange-50 border border-orange-200"
-                    : "hover:bg-gray-50 border border-transparent"
-                }`}
+                className={`w-full text-left p-2.5 rounded-lg transition group ${currentSessionId === session.id
+                  ? "bg-orange-50 border border-orange-200"
+                  : "hover:bg-gray-50 border border-transparent"
+                  }`}
               >
                 <div className="flex items-center justify-between gap-1">
                   <span className="text-sm font-medium text-gray-800 truncate flex-1">
-                    {session.title}
+                    AI_RESUME_CHAT #{session.id}
                   </span>
                   <span className="text-xs text-gray-400 ml-2 shrink-0">
                     {formatDate(session.createdAt)}
@@ -105,11 +104,10 @@ export default function ChatList({
                 </div>
                 <div className="flex items-center gap-2 mt-0.5">
                   <span
-                    className={`text-xs px-1.5 py-0.5 rounded font-medium ${
-                      session.mode === "jd"
-                        ? "bg-purple-50 text-purple-600"
-                        : "bg-gray-100 text-gray-500"
-                    }`}
+                    className={`text-xs px-1.5 py-0.5 rounded font-medium ${session.mode === "jd"
+                      ? "bg-purple-50 text-purple-600"
+                      : "bg-gray-100 text-gray-500"
+                      }`}
                   >
                     {session.mode === "jd" ? "JD" : "AI Mode"}
                   </span>

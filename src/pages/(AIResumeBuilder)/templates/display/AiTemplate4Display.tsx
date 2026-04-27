@@ -89,7 +89,7 @@ const AiTemplate4Display: React.FC<Props> = ({ data, primaryColor = '#b91c1c' })
 
       <p style={sectionStyle}>Education</p>
       <div style={dividerStyle} />
-      {education.higherEducation.filter(e => e.enabled).map((edu: any, i) => (
+      {education.higherEducation.filter(e => e.enabled).reverse().map((edu: any, i) => (
         <div key={i} style={{ marginBottom: 6 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
             <strong style={{ fontSize: 10 }}>{edu.degree} — {edu.fieldOfStudy}</strong>

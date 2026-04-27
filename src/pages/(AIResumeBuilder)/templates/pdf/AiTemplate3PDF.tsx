@@ -58,7 +58,7 @@ const AiTemplate3PDF: React.FC<Props> = ({ data, primaryColor = '#2d3748' }) => 
             {/* Education in sidebar */}
             <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#e2e8f0', letterSpacing: 1.5, textTransform: 'uppercase', marginTop: 18, marginBottom: 4 }}>Education</Text>
             <View style={{ height: 1, backgroundColor: '#e2e8f0', marginBottom: 6 }} />
-            {education.higherEducation.filter(e => e.enabled).map((edu: any, i) => (
+            {education.higherEducation.filter(e => e.enabled).reverse().map((edu: any, i) => (
               <View key={i} style={{ marginBottom: 8 }}>
                 <View style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#fff' }}>{edu.degree}</Text>

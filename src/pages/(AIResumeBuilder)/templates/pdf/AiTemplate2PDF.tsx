@@ -22,9 +22,9 @@ const renderBullets = (html?: string) => {
 };
 const fmtDate = (s?: string) => {
   if (!s) return '';
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   const m = String(s).match(/^(\d{4})-(\d{2})/);
-  if (m) { const mm = parseInt(m[2], 10); return mm >= 1 && mm <= 12 ? `${months[mm-1]} ${m[1]}` : m[1]; }
+  if (m) { const mm = parseInt(m[2], 10); return mm >= 1 && mm <= 12 ? `${months[mm - 1]} ${m[1]}` : m[1]; }
   return String(s);
 };
 const fmtYear = (s?: string) => { if (!s) return ''; const m = String(s).match(/(\d{4})/); return m ? m[1] : String(s); };
@@ -36,7 +36,7 @@ const styles = StyleSheet.create({
   content: { paddingHorizontal: 40, paddingTop: 16 },
   sectionHeading: { fontSize: 10, fontFamily: 'Helvetica-Bold', letterSpacing: 2, textTransform: 'uppercase', marginTop: 14, marginBottom: 2 },
   divider: { height: 1.5, width: '100%', marginBottom: 6 },
-  body: { fontSize: 9, color: '#333', lineHeight: 1.5,textAlgin: 'justify' },
+  body: { fontSize: 9, color: '#333', lineHeight: 1.5, textAlgin: 'justify' },
   itemTitle: { fontSize: 10, fontFamily: 'Helvetica-Bold' },
   itemSub: { fontSize: 9, color: '#555' },
 });
@@ -102,7 +102,7 @@ const AiTemplate2PDF: React.FC<Props> = ({ data, primaryColor = '#1e3a5f' }) => 
           {/* Education */}
           <Text style={{ ...styles.sectionHeading, color: primaryColor }}>Education</Text>
           <View style={{ ...styles.divider, backgroundColor: primaryColor }} />
-          {education.higherEducation.filter(e => e.enabled).map((edu: any, i) => (
+          {education.higherEducation.filter(e => e.enabled).reverse().map((edu: any, i) => (
             <View key={i} style={{ marginBottom: 6 }}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                 <Text style={styles.itemTitle}>{edu.degree} — {edu.fieldOfStudy}</Text>
@@ -159,4 +159,4 @@ const AiTemplate2PDF: React.FC<Props> = ({ data, primaryColor = '#1e3a5f' }) => 
     </Document>
   );
 };
-export default AiTemplate2PDF;
+export default AiTemplate2PDF;

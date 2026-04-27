@@ -100,7 +100,7 @@ const AiTemplate6Display: React.FC<Props> = ({ data, primaryColor = '#4338ca' })
             <div style={{ marginBottom: 14 }}>
               <p style={sectionTitle}>Education</p>
               <div style={{ height: 1, backgroundColor: primaryColor, marginBottom: 6 }} />
-              {education.higherEducation.filter(e => e.enabled).map((edu: any, i) => (
+              {education.higherEducation.filter(e => e.enabled).reverse().map((edu: any, i) => (
                 <div key={i} style={{ marginBottom: 8 }}>
                   <p style={{ fontSize: 9, fontWeight: 700, margin: 0 }}>{edu.degree}</p>
                   <p style={{ fontSize: 8, color: '#555', margin: 0 }}>{edu.instituteName}</p>

@@ -104,7 +104,7 @@ const AiTemplate9PDF: React.FC<Props> = ({ data, primaryColor = '#334155' }) => 
           <View style={{ flexDirection: 'row', gap: 30, marginTop: 4 }}>
             <View style={{ flex: 1 }}>
               <SectionTitle title="Education" color={primaryColor} />
-              {education.higherEducation.filter(e => e.enabled).map((edu: any, i) => (
+              {education.higherEducation.filter(e => e.enabled).reverse().map((edu: any, i) => (
                 <View key={i} style={{ marginBottom: 7 }}>
                   <Text style={{ fontSize: 10, fontFamily: 'Helvetica-Bold', color: '#0f172a' }}>{edu.degree} — {edu.fieldOfStudy}</Text>
                   <Text style={{ fontSize: 9, color: '#64748b' }}>{edu.instituteName}</Text>

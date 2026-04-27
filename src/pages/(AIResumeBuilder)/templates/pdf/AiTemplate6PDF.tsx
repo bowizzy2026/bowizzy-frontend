@@ -104,7 +104,7 @@ const AiTemplate6PDF: React.FC<Props> = ({ data, primaryColor = '#4338ca' }) => 
               <View style={{ marginBottom: 14 }}>
                 <Text style={{ fontSize: 10, fontFamily: 'Helvetica-Bold', color: primaryColor, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 4 }}>Education</Text>
                 <View style={{ height: 1, backgroundColor: primaryColor, marginBottom: 6 }} />
-                {education.higherEducation.filter(e => e.enabled).map((edu: any, i) => (
+                {education.higherEducation.filter(e => e.enabled).reverse().map((edu: any, i) => (
                   <View key={i} style={{ marginBottom: 8 }}>
                     <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold' }}>{edu.degree}</Text>
                     <Text style={{ fontSize: 8, color: '#555' }}>{edu.instituteName}</Text>
