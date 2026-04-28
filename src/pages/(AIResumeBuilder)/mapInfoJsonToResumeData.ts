@@ -25,7 +25,9 @@ export function mapInfoJsonToResumeData(info: any): ResumeData {
   // Parse education into sslc, puc, higher (include "other" as higher education)
   const sslcEdu = eduList.find((e: any) => e.education_type === "sslc");
   const pucEdu = eduList.find((e: any) => e.education_type === "puc");
-  const higherEdus = eduList.filter((e: any) => e.education_type === "higher" || e.education_type === "other");
+  const higherEdus = eduList.filter(
+    (e: any) => !["sslc", "puc"].includes(e.education_type)
+  );
 
   // Merge user skills + AI-generated skills
   const rawSkills: any[] = info.skills || [];
@@ -124,11 +126,11 @@ export function mapInfoJsonToResumeData(info: any): ResumeData {
     })),
     skillsLinks: {
       skills: allSkills.map((s: any, i: number) => ({
-          id: `skill-${i}`,
-          skillName: s.skill_name || "",
-          skillLevel: s.skill_level === "N/A" ? "" : (s.skill_level || ""),
-          enabled: true,
-        })),
+        id: `skill-${i}`,
+        skillName: s.skill_name || "",
+        skillLevel: s.skill_level === "N/A" ? "" : (s.skill_level || ""),
+        enabled: true,
+      })),
       links: {
         linkedinProfile: linkedinLink?.url || pd.linkedin_url || "",
         linkedinEnabled: !!(linkedinLink?.url || pd.linkedin_url),
