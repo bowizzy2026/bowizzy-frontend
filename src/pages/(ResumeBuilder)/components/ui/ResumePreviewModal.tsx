@@ -431,12 +431,12 @@ const PaymentBreakdownModal: React.FC<PaymentBreakdownModalProps> = ({
                     <div key={idx} className="flex items-center justify-between py-1.5">
                       <span
                         className={`text-sm ${row.highlight
-                            ? 'text-green-600 font-medium'
-                            : row.muted
-                              ? 'text-gray-400'
-                              : row.bold
-                                ? 'text-gray-700 font-semibold'
-                                : 'text-gray-600'
+                          ? 'text-green-600 font-medium'
+                          : row.muted
+                            ? 'text-gray-400'
+                            : row.bold
+                              ? 'text-gray-700 font-semibold'
+                              : 'text-gray-600'
                           }`}
                       >
                         {row.label}
@@ -809,6 +809,8 @@ const ResumePreviewModal: React.FC<ResumePreviewModalProps> = ({
         onPaymentSuccess={() => {
           setResumeUnlocked(true);
           setShowPayMsg(false);
+          window.location.reload();
+
 
         }}
         templateId={templateId}
@@ -1177,8 +1179,8 @@ const ResumePreviewModal: React.FC<ResumePreviewModalProps> = ({
                         setShowNameDialog(true);
                       }}
                       className={`px-6 py-2.5 text-sm font-medium rounded-full flex items-center gap-2 transition-colors ${isTemplateLocked && !resumeUnlocked
-                          ? 'bg-orange-500 hover:bg-orange-600 text-white'
-                          : 'text-white bg-orange-500 hover:bg-orange-600'
+                        ? 'bg-orange-500 hover:bg-orange-600 text-white'
+                        : 'text-white bg-orange-500 hover:bg-orange-600'
                         }`}
                     >
                       {isTemplateLocked && !resumeUnlocked ? (
