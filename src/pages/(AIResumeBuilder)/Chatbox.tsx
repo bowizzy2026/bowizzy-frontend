@@ -600,6 +600,7 @@ function PreStartState({
   const handlePaymentSuccess = () => {
     setShowPaymentModal(false);
     onStart();
+    setTimeout(() => window.location.reload(), 800);
   };
 
   return (

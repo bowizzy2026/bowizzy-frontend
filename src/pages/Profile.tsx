@@ -282,11 +282,10 @@ export default function Profile() {
                 >
                   {/* Sliding Orange Background */}
                   <div
-                    className={`absolute top-0 h-full bg-orange-400 rounded-full transition-all duration-300 ease-in-out ${
-                      activeButton === "upload"
-                        ? "left-1/2 w-1/2"
-                        : "left-0 w-1/2"
-                    }`}
+                    className={`absolute top-0 h-full bg-orange-400 rounded-full transition-all duration-300 ease-in-out ${activeButton === "upload"
+                      ? "left-1/2 w-1/2"
+                      : "left-0 w-1/2"
+                      }`}
                     style={{ zIndex: 0 }}
                   />
 
@@ -295,9 +294,8 @@ export default function Profile() {
                     {/* Add Details Myself Button */}
                     <button
                       onClick={handleAddDetailsMyself}
-                      className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 font-medium text-xs sm:text-sm md:text-[15px] transition-colors duration-300 rounded-l-full cursor-pointer px-2 ${
-                        activeButton === "add" ? "text-white" : "text-gray-800"
-                      }`}
+                      className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 font-medium text-xs sm:text-sm md:text-[15px] transition-colors duration-300 rounded-l-full cursor-pointer px-2 ${activeButton === "add" ? "text-white" : "text-gray-800"
+                        }`}
                     >
                       <FileText
                         size={16}
@@ -309,7 +307,7 @@ export default function Profile() {
                     </button>
 
                     {/* Upload Resume Button */}
-                    <button
+                    {/* <button
                       onClick={handleUploadResumeClick}
                       className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 font-medium text-xs sm:text-sm md:text-[15px] transition-colors duration-300 rounded-r-full cursor-pointer px-2 ${
                         activeButton === "upload"
@@ -327,6 +325,17 @@ export default function Profile() {
                       <span className="whitespace-nowrap sm:hidden">
                         Upload Resume
                       </span>
+                    </button> */}
+                    <button
+                      disabled
+                      className="flex-1 flex items-center justify-center gap-1 sm:gap-2 font-medium text-xs sm:text-sm md:text-[15px] text-gray-400 rounded-r-full cursor-not-allowed px-2 relative"
+                    >
+                      <Upload size={16} className="sm:w-[18px] sm:h-[18px] flex-shrink-0" />
+                      <span className="whitespace-nowrap hidden sm:inline">Upload Resume (PDF/Word)</span>
+                      <span className="whitespace-nowrap sm:hidden">Upload Resume</span>
+                      <span className="ml-1.5 text-[10px] bg-orange-100 text-orange-500 font-semibold px-1.5 py-0.5 rounded-full leading-none">
+                        Soon
+                      </span>
                     </button>
                   </div>
                 </div>
@@ -340,33 +349,29 @@ export default function Profile() {
                         onClick={handleBrowseClick}
                         onDrop={handleFileDrop}
                         onDragOver={handleDragOver}
-                        className={`flex-1 border-2 rounded-2xl px-4 sm:px-6 py-3 flex items-center justify-between gap-2 cursor-pointer transition-colors ${
-                          fileError
-                            ? "border-red-500 bg-red-50"
-                            : "border-gray-300 hover:bg-gray-50"
-                        }`}
+                        className={`flex-1 border-2 rounded-2xl px-4 sm:px-6 py-3 flex items-center justify-between gap-2 cursor-pointer transition-colors ${fileError
+                          ? "border-red-500 bg-red-50"
+                          : "border-gray-300 hover:bg-gray-50"
+                          }`}
                       >
                         <div className="flex items-center min-w-0 pr-2">
                           {selectedFile ? (
                             <FileText
                               size={16}
-                              className={`sm:w-[18px] sm:h-[18px] flex-shrink-0 mr-2 ${
-                                fileError ? "text-red-600" : "text-gray-600"
-                              }`}
+                              className={`sm:w-[18px] sm:h-[18px] flex-shrink-0 mr-2 ${fileError ? "text-red-600" : "text-gray-600"
+                                }`}
                             />
                           ) : (
                             <Upload
                               size={16}
-                              className={`sm:w-[18px] sm:h-[18px] flex-shrink-0 mr-2 ${
-                                fileError ? "text-red-600" : "text-gray-600"
-                              }`}
+                              className={`sm:w-[18px] sm:h-[18px] flex-shrink-0 mr-2 ${fileError ? "text-red-600" : "text-gray-600"
+                                }`}
                             />
                           )}
 
                           <span
-                            className={`text-xs sm:text-sm md:text-[15px] truncate ${
-                              fileError ? "text-red-600" : "text-gray-600"
-                            }`}
+                            className={`text-xs sm:text-sm md:text-[15px] truncate ${fileError ? "text-red-600" : "text-gray-600"
+                              }`}
                           >
                             {selectedFile
                               ? selectedFile.name
@@ -396,11 +401,10 @@ export default function Profile() {
                       <button
                         onClick={handleSubmit}
                         disabled={!selectedFile || submitting}
-                        className={`px-6 sm:px-8 py-3.5 rounded-2xl font-medium text-sm sm:text-[15px] transition-colors duration-300 shadow-sm ${
-                          !selectedFile || submitting
-                            ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                            : "bg-orange-400 hover:bg-orange-500 text-white cursor-pointer"
-                        }`}
+                        className={`px-6 sm:px-8 py-3.5 rounded-2xl font-medium text-sm sm:text-[15px] transition-colors duration-300 shadow-sm ${!selectedFile || submitting
+                          ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                          : "bg-orange-400 hover:bg-orange-500 text-white cursor-pointer"
+                          }`}
                       >
                         {submitting ? "Submitting..." : "Submit"}
                       </button>

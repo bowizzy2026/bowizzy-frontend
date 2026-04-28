@@ -394,12 +394,11 @@ export default function Dashboard() {
                       strokeWidth="10"
                       fill="none"
                       strokeDasharray={`${2 * Math.PI * 56}`}
-                      strokeDashoffset={`${
-                        2 *
+                      strokeDashoffset={`${2 *
                         Math.PI *
                         56 *
                         (1 - profileProgress.percentage / 100)
-                      }`}
+                        }`}
                       strokeLinecap="round"
                     />
                     <defs>
@@ -476,55 +475,55 @@ export default function Dashboard() {
                       {(() => {
                         const displayDate = upcomingInterview?.date || dashboardData.upcomingInterview.date;
                         return displayDate && displayDate !== "" ? displayDate : "Coming soon";
-                      })()} 
+                      })()}
                     </p>
                     {upcomingInterview && !noSchedule && (
                       <div className="flex gap-2">
                         <button
                           onClick={async () => {
-                          // Call the interview-slot API (to ensure backend hit) then navigate to details
-                          try {
-                            const slotId = upcomingInterview?.interview_slot_id;
-                            const scheduleId = upcomingInterview?.interview_schedule_id;
-                            const user = JSON.parse(localStorage.getItem("user") || "{}");
-                            const userId = user?.user_id;
-                            const token = user?.token;
+                            // Call the interview-slot API (to ensure backend hit) then navigate to details
+                            try {
+                              const slotId = upcomingInterview?.interview_slot_id;
+                              const scheduleId = upcomingInterview?.interview_schedule_id;
+                              const user = JSON.parse(localStorage.getItem("user") || "{}");
+                              const userId = user?.user_id;
+                              const token = user?.token;
 
-                            if (slotId && userId && token) {
-                              // call the slot endpoint as requested (e.g. /users/81/mock-interview/interview-slot/59)
-                              await getInterviewSlotById(userId, token, slotId);
-                              navigate(`/interview-prep/interview-details/${slotId}`);
-                              return;
-                            }
-
-                            if (scheduleId && userId && token) {
-                              const resp = await getInterviewScheduleById(userId, token, scheduleId);
-                              const resolvedSlotId = resp?.interview_slot_id ?? resp?.interview_slot?.id;
-                              if (resolvedSlotId) {
-                                // ensure the slot endpoint is called
-                                await getInterviewSlotById(userId, token, resolvedSlotId);
-                                navigate(`/interview-prep/interview-details/${resolvedSlotId}`);
+                              if (slotId && userId && token) {
+                                // call the slot endpoint as requested (e.g. /users/81/mock-interview/interview-slot/59)
+                                await getInterviewSlotById(userId, token, slotId);
+                                navigate(`/interview-prep/interview-details/${slotId}`);
                                 return;
                               }
-                            }
 
-                            // Fallback: if we have a slot id in the object, navigate
-                            if (upcomingInterview?.interview_slot_id) {
-                              navigate(`/interview-prep/interview-details/${upcomingInterview.interview_slot_id}`);
-                              return;
-                            }
+                              if (scheduleId && userId && token) {
+                                const resp = await getInterviewScheduleById(userId, token, scheduleId);
+                                const resolvedSlotId = resp?.interview_slot_id ?? resp?.interview_slot?.id;
+                                if (resolvedSlotId) {
+                                  // ensure the slot endpoint is called
+                                  await getInterviewSlotById(userId, token, resolvedSlotId);
+                                  navigate(`/interview-prep/interview-details/${resolvedSlotId}`);
+                                  return;
+                                }
+                              }
 
-                            // Final fallback: go to the listing page
-                            navigate("/interview-prep");
-                          } catch (err) {
-                            console.error('Failed to load interview details', err);
-                            navigate('/interview-prep');
-                          }
-                        }}
-                        className="px-3 py-1 rounded text-xs text-white font-medium cursor-pointer hover:shadow-md transform transition hover:-translate-y-0.5"
-                        style={{ background: gradientColor }}
-                      >
-                        View Details
+                              // Fallback: if we have a slot id in the object, navigate
+                              if (upcomingInterview?.interview_slot_id) {
+                                navigate(`/interview-prep/interview-details/${upcomingInterview.interview_slot_id}`);
+                                return;
+                              }
+
+                              // Final fallback: go to the listing page
+                              navigate("/interview-prep");
+                            } catch (err) {
+                              console.error('Failed to load interview details', err);
+                              navigate('/interview-prep');
+                            }
+                          }}
+                          className="px-3 py-1 rounded text-xs text-white font-medium cursor-pointer hover:shadow-md transform transition hover:-translate-y-0.5"
+                          style={{ background: gradientColor }}
+                        >
+                          View Details
                         </button>
                         <button
                           onClick={() => setShowCancelModal(true)}
@@ -540,7 +539,7 @@ export default function Dashboard() {
 
               <div className="bg-white rounded-lg p-4 shadow-sm">
                 <h2 className="text-xs font-semibold mb-3 uppercase tracking-wide">
-                  Prep Smarter
+                  Prep Smarter(Coming Soon)
                 </h2>
                 <div className="grid grid-cols-5 gap-2">
                   {dashboardData.prepSmarter.map((item, index) => {
@@ -608,12 +607,11 @@ export default function Dashboard() {
                       strokeWidth="6"
                       fill="none"
                       strokeDasharray={`${2 * Math.PI * 32}`}
-                      strokeDashoffset={`${
-                        2 *
+                      strokeDashoffset={`${2 *
                         Math.PI *
                         32 *
                         (1 - dashboardData.linkedInScore / 100)
-                      }`}
+                        }`}
                       strokeLinecap="round"
                     />
                     <defs>
@@ -716,7 +714,9 @@ export default function Dashboard() {
                 >
                   Join Community
                 </button>
-                <button className="px-4 py-1.5 rounded-lg text-sm font-medium border border-gray-300">
+                <button
+                  onClick={() => window.open('https://nammaqa.com/meetups/', '_blank')}
+                  className="px-4 py-1.5 rounded-lg text-sm font-medium border border-gray-300">
                   View Event
                 </button>
               </div>

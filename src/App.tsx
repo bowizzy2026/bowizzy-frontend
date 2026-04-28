@@ -33,7 +33,8 @@ import {
   Phone,
   User,
   Video,
-  BrainCircuit
+  BrainCircuit,
+  Globe,
 } from "lucide-react";
 
 import Dashboard from "./pages/Dashboard";
@@ -62,6 +63,9 @@ import ResumeEditor from "./pages/(ResumeBuilder)/ResumeEditor";
 import Premium from "./pages/Premium";
 import AiResumeLanding from "./pages/AiResumeLanding";
 import AIBuilder from "./pages/(AIResumeBuilder)/AiBuilder";
+import PortfolioLanding from "./pages/PortfolioLanding";
+import PortfolioList from "./pages/(Portfolio)/PortfolioList";
+import CreatePortfolio from "./pages/(Portfolio)/CreatePortfolio";
 
 const isAuthenticated = () => {
   const raw = localStorage.getItem("user");
@@ -87,7 +91,7 @@ const careerMap = [
     label: "My resumes",
   },
   {
-    href: "/interview-prep",
+    href: "#",
     icon: <Video color="#3B3B3B" size={16} />,
     label: "Interview Prep",
   },
@@ -95,6 +99,11 @@ const careerMap = [
     href: "/ai-resume-builder",
     icon: <BrainCircuit color="#3B3B3B" size={16} />,
     label: "AI Resume Builder",
+  },
+  {
+    href: "/portfolio",
+    icon: <Globe color="#3B3B3B" size={16} />,
+    label: "Portfolio",
   },
   // {
   //   href: "/linkedin-optimization",
@@ -179,7 +188,12 @@ function LayoutWrapper({ children }: { children: React.ReactNode }) {
                   className="p-5 flex items-center"
                   key={item.label + idx}
                 >
-                  <a href={item.href}>
+                  <a href={item.href} onClick={(e) => {
+                    if (item.href === "#") {
+                      e.preventDefault();
+                      alert("Coming Soon!");
+                    }
+                  }}>
                     {item.icon}
                     <span className="ml-4" style={{ fontSize: "14px" }}>
                       {item.label}
@@ -537,7 +551,37 @@ function App() {
           </LayoutWrapper>
         </ProtectedRoute>
       )
-    }
+    },
+    {
+      path: "portfolio",
+      Component: () => (
+        <ProtectedRoute>
+          <LayoutWrapper>
+            <PortfolioLanding />
+          </LayoutWrapper>
+        </ProtectedRoute>
+      ),
+    },
+    {
+      path: "portfolio/list",
+      Component: () => (
+        <ProtectedRoute>
+          <LayoutWrapper>
+            <PortfolioList />
+          </LayoutWrapper>
+        </ProtectedRoute>
+      ),
+    },
+    {
+      path: "portfolio/create",
+      Component: () => (
+        <ProtectedRoute>
+          <LayoutWrapper>
+            <CreatePortfolio />
+          </LayoutWrapper>
+        </ProtectedRoute>
+      ),
+    },
   ]);
 
   return <RouterProvider router={router} />;
