@@ -331,10 +331,10 @@ export default function Profile() {
                       className="flex-1 flex items-center justify-center gap-1 sm:gap-2 font-medium text-xs sm:text-sm md:text-[15px] text-gray-400 rounded-r-full cursor-not-allowed px-2 relative"
                     >
                       <Upload size={16} className="sm:w-[18px] sm:h-[18px] flex-shrink-0" />
-                      <span className="whitespace-nowrap hidden sm:inline">Upload Resume (PDF/Word)</span>
+                      <span className="whitespace-nowrap hidden sm:inline">Upload Resume</span>
                       <span className="whitespace-nowrap sm:hidden">Upload Resume</span>
                       <span className="ml-1.5 text-[10px] bg-orange-100 text-orange-500 font-semibold px-1.5 py-0.5 rounded-full leading-none">
-                        Soon
+                        Coming Soon
                       </span>
                     </button>
                   </div>
