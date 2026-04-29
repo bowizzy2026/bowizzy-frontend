@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { ArrowRight } from "lucide-react";
 import DashNav from "@/components/dashnav/dashnav";
 import { useNavigate } from "react-router-dom";
@@ -28,6 +28,18 @@ const InterviewPrep = () => {
     const [showCancelModal, setShowCancelModal] = useState(false);
     const [slotToCancel, setSlotToCancel] = useState(null);
     const [cancelling, setCancelling] = useState(false);
+    const [showModeDropdown, setShowModeDropdown] = useState(false);
+    const modeDropdownRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (modeDropdownRef.current && !modeDropdownRef.current.contains(e.target as Node)) {
+                setShowModeDropdown(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
 
     const handlePayNow = (slotId) => {
         navigate(`/interview-prep/pay/${slotId}`);
@@ -363,16 +375,34 @@ const InterviewPrep = () => {
                                 <h2 className="text-[#3A3A3A] text-lg font-semibold">
                                     Upcoming Interview(s)
                                 </h2>
-                                <button
-                                    onClick={() => navigate("/interview-prep/mock-interview")}
-                                    className="flex items-center gap-1 px-4 py-2 rounded-lg text-white text-sm font-semibold cursor-pointer"
-                                    style={{
-                                        background:
-                                            "linear-gradient(180deg, #FF9D48 0%, #FF8251 100%)",
-                                    }}
-                                >
-                                    + New Interview
-                                </button>
+                                <div className="relative" ref={modeDropdownRef}>
+                                    <button
+                                        onClick={() => setShowModeDropdown(prev => !prev)}
+                                        className="flex items-center gap-1 px-4 py-2 rounded-lg text-white text-sm font-semibold cursor-pointer"
+                                        style={{
+                                            background:
+                                                "linear-gradient(180deg, #FF9D48 0%, #FF8251 100%)",
+                                        }}
+                                    >
+                                        + New Interview
+                                    </button>
+                                    {showModeDropdown && (
+                                        <div className="absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden">
+                                            <button
+                                                onClick={() => { setShowModeDropdown(false); navigate("/interview-prep/give-mock-interview?mode=online"); }}
+                                                className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-orange-50 hover:text-[#FF8351] transition-colors font-medium"
+                                            >
+                                                Online
+                                            </button>
+                                            <button
+                                                onClick={() => { setShowModeDropdown(false); navigate("/interview-prep/give-mock-interview?mode=offline"); }}
+                                                className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-orange-50 hover:text-[#FF8351] transition-colors font-medium"
+                                            >
+                                                Offline
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
 
                             <div className="space-y-3">
@@ -421,7 +451,7 @@ const InterviewPrep = () => {
                             )}
                         </div>
 
-                        <div className="bg-white rounded-2xl p-5">
+                        {/* <div className="bg-white rounded-2xl p-5">
                             <h2 className="text-[#3A3A3A] text-lg font-semibold mb-4">
                                 Interview(s) given till now
                             </h2>
@@ -475,7 +505,7 @@ const InterviewPrep = () => {
                                     </div>
                                 ))}
                             </div>
-                        </div>
+                        </div> */}
 
                         <div className="bg-gradient-to-r from-[#FF9D48] to-[#FF8251] rounded-2xl p-6 text-white">
                             <h3 className="text-xs font-semibold mb-2 uppercase tracking-wide">

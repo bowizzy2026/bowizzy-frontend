@@ -191,12 +191,12 @@ function LayoutWrapper({ children }: { children: React.ReactNode }) {
                 >
                   <a
                     href={item.href}
-                    onClick={(e) => {
-                      if ((item as any).comingSoon) {
-                        e.preventDefault();
-                        alert("Coming Soon!");
-                      }
-                    }}
+                  // onClick={(e) => {
+                  //   if ((item as any).comingSoon) {
+                  //     e.preventDefault();
+                  //     alert("Coming Soon!");
+                  //   }
+                  // }}
                   >
                     {item.icon}
                     <span className="ml-4" style={{ fontSize: "14px" }}>
