@@ -189,7 +189,7 @@ const Template20PDF: React.FC<Template20PDFProps> = ({ data, primaryColor = '#11
             <View style={{ flexDirection: 'row' }}>
               <View style={{ width: 150 }}><Text style={styles.sectionHeading}>EDUCATION</Text></View>
               <View style={{ flex: 1 }}>
-                {education.higherEducation.filter(edu => edu.enabled).map((edu: any, i: number) => (
+                {education.higherEducation.filter(edu => edu.enabled).reverse().map((edu: any, i: number) => (
                   <View key={i} style={{ marginBottom: 12 }}>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                       <Text>{edu.instituteName}</Text>

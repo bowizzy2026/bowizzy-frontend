@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
-import { Calendar, Clock, X } from "lucide-react";
+import { Calendar, Clock, X, ArrowLeft } from "lucide-react";
 import DashNav from "@/components/dashnav/dashnav";
 import { useNavigate, useParams } from "react-router-dom";
-import { 
-    getInterviewSlotById, 
-    updateInterviewSlot 
+import {
+    getInterviewSlotById,
+    updateInterviewSlot
 } from "@/services/interviewPrepService";
 import { getPersonalDetailsByUserId } from "@/services/personalService";
 
@@ -79,9 +79,10 @@ const InterviewDetails = () => {
         candidate_name: "",
         candidate_title: "",
         candidate_company: "",
-        candidate_image: ""
+        candidate_image: "",
+        meeting_link: ""
     });
-    
+
 
     const [timerLabel, setTimerLabel] = useState("Starts Soon");
     const [meetingState, setMeetingState] = useState("upcoming");
@@ -100,7 +101,8 @@ const InterviewDetails = () => {
                 start: res.start_time_utc,
                 end: res.end_time_utc,
                 resume_url: res.resume_url,
-                interview_status: res.interview_status ?? ""
+                interview_status: res.interview_status ?? "",
+                meeting_link: res.meeting_link ?? ""
             }));
 
             // Then fetch candidate profile from profile API (personal details)
@@ -142,11 +144,11 @@ const InterviewDetails = () => {
                 const diff = startMs - now;
                 setTimerLabel(`Starts in ${formatDuration(diff)}`);
                 setMeetingState("upcoming");
-            } 
+            }
             else if (now >= startMs && now < endMs) {
                 setTimerLabel("Join Now");
                 setMeetingState("ongoing");
-            } 
+            }
             else {
                 setTimerLabel("Interview Ended");
                 setMeetingState("ended");
@@ -179,8 +181,15 @@ const InterviewDetails = () => {
             setCancelling(false);
         }
     };
-    const hideCancelButton =
-        data.interview_status === "cancelled" || meetingState === "ended";
+    const hideCancelButton = (() => {
+        if (data.interview_status === "cancelled") return true;
+        if (meetingState === "ended" || meetingState === "ongoing") return true;
+        // Hide 10 mins before start
+        const startMs = new Date(data.start).getTime();
+        const now = Date.now();
+        if (startMs - now <= 10 * 60 * 1000) return true;
+        return false;
+    })();
 
     const notes = [
         "The job role and experience for your interview will be based on your profile. To schedule an interview for a different role, please create a new role in your profile section.",
@@ -261,9 +270,17 @@ const InterviewDetails = () => {
 
             {/* MAIN CONTENT AREA */}
             <div className="flex-1 overflow-auto">
-                <div className="max-w-7xl mx-auto p-6 flex flex-col lg:flex-row gap-6">
+                <div className="max-w-7xl mx-auto p-6">
+                    <button 
+                        onClick={() => navigate('/interview-prep')} 
+                        className="flex items-center gap-2 text-gray-600 hover:text-[#FF8351] mb-4 transition-colors w-fit"
+                    >
+                        <ArrowLeft size={20} />
+                        <span className="font-semibold">Back</span>
+                    </button>
 
-                    <div className="flex-1 bg-white p-6 rounded-xl shadow-sm">
+                    <div className="flex flex-col lg:flex-row gap-6">
+                        <div className="flex-1 bg-white p-6 rounded-xl shadow-sm">
 
                         <div className="mb-6">
                             <div className="flex items-center justify-between mb-4">
@@ -274,7 +291,13 @@ const InterviewDetails = () => {
                                 {meetingState === 'ongoing' && data.interview_status !== 'cancelled' && (
                                     <div className="flex-shrink-0">
                                         <button
-                                            // onClick={() => navigate('/interview-prep/candidate-information-connect')}
+                                            onClick={() => {
+                                                if (data.meeting_link) {
+                                                    window.open(data.meeting_link, '_blank');
+                                                } else {
+                                                    alert("Meeting link not available.");
+                                                }
+                                            }}
                                             className={`px-4 py-2 text-white font-semibold rounded-full shadow-sm bg-[#FF9D48] hover:bg-[#ff8e2a]`}
                                         >
                                             Connect Now
@@ -363,7 +386,11 @@ const InterviewDetails = () => {
                                 <button
                                     onClick={() => {
                                         if (meetingState === "ongoing") {
-                                            // navigate('/interview-prep/candidate-information-connect');
+                                            if (data.meeting_link) {
+                                                window.open(data.meeting_link, '_blank');
+                                            } else {
+                                                alert("Meeting link not available.");
+                                            }
                                         }
                                     }}
                                     className="flex-1 py-3 text-white rounded-lg font-semibold flex items-center justify-center cursor-pointer"
@@ -378,6 +405,7 @@ const InterviewDetails = () => {
                     <div className="w-full lg:w-[320px] flex-shrink-0">
                         <NoteSidebar notes={notes} />
                     </div>
+                </div>
 
                 </div>
             </div>

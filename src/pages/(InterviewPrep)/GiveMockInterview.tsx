@@ -934,7 +934,7 @@ const GiveMockInterview = () => {
                             Interview as Candidate Not Available
                         </h2>
                         <p className="text-gray-600 text-sm mb-6">
-                            You have applied as an interviewer and currently cannot take interviews as a candidate. 
+                            You have applied as an interviewer and currently cannot take interviews as a candidate.
                             If you'd like to switch roles, please contact support.
                         </p>
                         <button
@@ -1364,15 +1364,15 @@ const GiveMockInterview = () => {
                                         const viewUrl = cloudinaryData.url || selectedTemplateDetail?.template_file_url || selectedTemplateDetail?.template_file || selectedTemplateDetail?.url || resolveTemplateUrl(selTemplate) || bookingData.resumeUrl;
 
                                         return (
-                                            <div className="mt-3 flex items-center justify-between bg-white rounded-lg p-3 border border-gray-200">
-                                                <div className="flex items-center gap-3">
-                                                    <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 7h10M7 11h6m-3 8h.01M3 7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v7a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"></path></svg>
-                                                    <div className="text-sm text-[#3A3A3A] max-w-[12rem] truncate" title={displayName}>
+                                            <div className="mt-3 flex items-center justify-between bg-white rounded-lg p-3 border border-gray-200 gap-2">
+                                                <div className="flex items-center gap-3 min-w-0 flex-1">
+                                                    <svg className="w-10 h-10 shrink-0 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 7h10M7 11h6m-3 8h.01M3 7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v7a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"></path></svg>
+                                                    <div className="text-sm text-[#3A3A3A] truncate" title={displayName}>
                                                         {displayName}
                                                     </div>
                                                 </div>
 
-                                                <div className="flex items-center gap-3">
+                                                <div className="flex items-center gap-3 shrink-0">
                                                     {viewUrl && (
                                                         <a href={viewUrl} target="_blank" rel="noreferrer" className="text-xs text-[#3B82F6] underline">View</a>
                                                     )}

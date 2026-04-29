@@ -215,7 +215,7 @@ const Template17PDF: React.FC<Template17PDFProps> = ({ data, primaryColor = '#11
               <Text style={styles.sectionHeading}>Education</Text>
               <View style={{ height: 1, backgroundColor: '#ddd', marginTop: 6, width: '100%' }} />
               <View style={{ marginTop: 8 }}>
-                {education.higherEducation.filter(edu => edu.enabled).map((edu: any, i: number) => (
+                {education.higherEducation.filter(edu => edu.enabled).reverse().map((edu: any, i: number) => (
                   <View key={i} style={{ marginBottom: 10 }}>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                       <Text style={{ fontSize: 11, fontFamily: pdfFontFamilyBold }}>{edu.instituteName}</Text>

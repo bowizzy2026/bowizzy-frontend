@@ -149,9 +149,12 @@ const Template13PDF: React.FC<Template13PDFProps> = ({ data, primaryColor = '#11
   const pdfFontFamilyBold = getPdfFontFamilyBold(fontFamily);
 
   const contactParts = [personal.address, personal.email, personal.mobileNumber].filter(Boolean);
-  const linkedinPresent = (skillsLinks && (skillsLinks as any).links && (skillsLinks as any).links.linkedinProfile) || (personal as any).linkedinProfile;
-  const githubPresent = (skillsLinks && (skillsLinks as any).links && (skillsLinks as any).links.githubProfile) || (personal as any).githubProfile;
-  const pdfContactLine = [...contactParts, ...(linkedinPresent ? [linkedinPresent] : []), ...(githubPresent ? [githubPresent] : [])].join(' | ');
+  const links = (skillsLinks as any)?.links;
+  const linkedinPresent = links ? (links.linkedinEnabled !== false ? links.linkedinProfile : null) : (personal as any).linkedinProfile;
+  const githubPresent = links ? (links.githubEnabled !== false ? links.githubProfile : null) : (personal as any).githubProfile;
+  const portfolioPresent = links ? (links.portfolioEnabled !== false ? links.portfolioUrl : null) : null;
+  const publicationPresent = links ? (links.publicationEnabled !== false ? links.publicationUrl : null) : null;
+  const pdfContactLine = [...contactParts, ...(linkedinPresent ? [linkedinPresent] : []), ...(githubPresent ? [githubPresent] : []), ...(portfolioPresent ? [portfolioPresent] : []), ...(publicationPresent ? [publicationPresent] : [])].join(' | ');
 
   return (
     <Document>
@@ -187,6 +190,18 @@ const Template13PDF: React.FC<Template13PDFProps> = ({ data, primaryColor = '#11
               <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 8 }}>
                 <Svg width={10} height={10} viewBox="0 0 24 24"><Path d="M12 .5C5.73 .5 .5 5.73 .5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.27-.01-1-.02-1.96-3.2.7-3.88-1.55-3.88-1.55-.53-1.35-1.3-1.71-1.3-1.71-1.06-.72.08-.71.08-.71 1.18.08 1.8 1.21 1.8 1.21 1.04 1.78 2.73 1.27 3.4.97.11-.76.41-1.27.74-1.56-2.55-.29-5.23-1.28-5.23-5.68 0-1.25.45-2.27 1.2-3.07-.12-.29-.52-1.45.11-3.02 0 0 .98-.31 3.2 1.17.93-.26 1.93-.39 2.92-.39.99 0 1.99.13 2.92.39 2.22-1.48 3.2-1.17 3.2-1.17.63 1.57.23 2.73.11 3.02.75.8 1.2 1.82 1.2 3.07 0 4.41-2.69 5.39-5.25 5.67.42.36.8 1.08.8 2.18 0 1.57-.01 2.84-.01 3.23 0 .31.21.68.8.56C20.71 21.39 24 17.08 24 12c0-6.27-5.23-11.5-12-11.5z" fill="#111827" /></Svg>
                 <Text style={[styles.contact, { marginLeft: 6 }]}>{githubPresent}</Text>
+              </View>
+            )}
+            {portfolioPresent && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 8 }}>
+                <Svg width={10} height={10} viewBox="0 0 24 24"><Path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /><Path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></Svg>
+                <Text style={[styles.contact, { marginLeft: 6 }]}>{portfolioPresent}</Text>
+              </View>
+            )}
+            {publicationPresent && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 8 }}>
+                <Svg width={10} height={10} viewBox="0 0 24 24"><Path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /><Path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></Svg>
+                <Text style={[styles.contact, { marginLeft: 6 }]}>{publicationPresent}</Text>
               </View>
             )}
           </View>

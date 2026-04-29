@@ -149,7 +149,7 @@ const Template20Display: React.FC<Template20DisplayProps> = ({
             >
               Education
             </div>          <div style={{ flex: 1 }}>
-              {education.higherEducation.filter(edu => edu.enabled).map((edu: any, i: number) => (
+              {education.higherEducation.filter(edu => edu.enabled).reverse().map((edu: any, i: number) => (
                 <div key={i} style={{ marginBottom: 12 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <div style={{ fontWeight: 800, color: '#000' }}>{edu.instituteName}</div>
