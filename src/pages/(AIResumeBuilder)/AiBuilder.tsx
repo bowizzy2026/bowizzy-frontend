@@ -41,12 +41,12 @@ function formatDate(dateStr?: string | null): string {
 
 const HARDCODED_QUESTIONS = [
   "Can you give me a brief about yourself?",
-  "Are these your projects? Feel free to remove any that don't apply or mention additional projects you'd like to add.",
-  "Are these your work experiences? Feel free to remove any that don't apply or mention additional experiences you'd like to add.",
-  "Are these your education details? Feel free to remove any that don't apply or mention additional education you'd like to add.",
-  "Are these your skills? Feel free to remove any that don't apply or mention additional skills you'd like to add.",
-  "Are these your links? Remove any you don't want included or mention any additional links.",
-  "Are these your certificates? Remove any you don't want included or mention any additional certificates.",
+  "Are these your projects? Feel free to remove any that don't apply or mention additional projects you'd like to add. If you are adding any projects, please make sure to enter the project title , start date and end date",
+  "Alright great! Are these your work experiences? Feel free to remove any that don't apply or mention additional experiences you'd like to add. If you are adding any work experience, please make sure to enter the Company's name you have worked for . your job title , start date and end date ",
+  "Wonderful ! Are these your education details? Feel free to remove any that don't apply or mention additional education you'd like to add.If you are adding any education detail, please make sure to enter your institutions's name , the board type and the year of passing ",
+  "Sounds good ! Are these your skills? Feel free to remove any that don't apply or mention additional skills you'd like to add.",
+  "Nice ! Are these your links?  Feel free to remove any you don't want included or mention any additional links.",
+  "Are these your certificates?  Feel free to remove any you don't want included or mention any additional certificates.",
 ];
 
 // ── Types ─────────────────────────────────────────────────────────────────────
