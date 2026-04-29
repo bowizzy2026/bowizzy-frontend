@@ -261,13 +261,6 @@ export default function TemplateSelection() {
                 <span className="text-[#7F7F7F] text-sm">
                   Choose a template that best fits your professional style
                 </span>
-                {loadingSub ? (
-                  <span className="text-sm text-gray-400">Checking plan...</span>
-                ) : (
-                  <span className="text-xs px-2 py-1 rounded-md bg-[#F3F4F6] text-[#374151]">
-                    {planType ? planType.toUpperCase() : "FREE"}
-                  </span>
-                )}
               </div>
             </div>
 
