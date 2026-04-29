@@ -133,6 +133,8 @@ export default function AIBuilder() {
   const [chatAnswers, setChatAnswers] = useState<Record<string, SessionAnswers>>({});
   const [chipStates, setChipStates] = useState<Record<string, ChipState>>({});
   const [resumeDataCache, setResumeDataCache] = useState<Record<string, unknown> | null>(null);
+  // ── NEW: track which sessions have completed resume generation ────────────
+  const [completedSessions, setCompletedSessions] = useState<Record<string, boolean>>({});
 
   // ── Fetch sessions ────────────────────────────────────────────────────────
 
@@ -573,6 +575,8 @@ export default function AIBuilder() {
               prev.map((s) => s.id === sessionId ? { ...s, infoJson: infoJsonFromApi } : s)
             );
           }
+          // ── NEW: mark this session as completed so the chatbox hides ──
+          setCompletedSessions((prev) => ({ ...prev, [sessionId]: true }));
           await appendBotMessage(
             sessionId,
             "Great! I've gathered all your details and generated your resume content. Your resume is ready with an enhanced technical summary, project descriptions, and work experience highlights. You can now review and download it."
@@ -641,6 +645,8 @@ export default function AIBuilder() {
               onChipDelete={handleChipDelete}
               onChipUndo={handleChipUndo}
               chipMessageId={activeChipState?.messageId ?? null}
+              // ── NEW: hide the input area once resume is generated ──────
+              isCompleted={completedSessions[currentSession.id] ?? false}
             />
           ) : (
             <div className="flex-1 flex items-center justify-center p-6 bg-white">

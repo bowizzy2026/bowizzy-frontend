@@ -403,6 +403,8 @@ interface ChatBoxProps {
   onChipUndo?: (id: string) => void;
   // ID of the message that should render chips below it
   chipMessageId?: string | null;
+  // Hide input bar once resume generation is complete
+  isCompleted?: boolean;
 }
 
 export default function ChatBox({
@@ -420,6 +422,7 @@ export default function ChatBox({
   onChipDelete,
   onChipUndo,
   chipMessageId,
+  isCompleted = false,
 }: ChatBoxProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -540,8 +543,8 @@ export default function ChatBox({
         accept=".pdf,.doc,.docx,.txt"
       />
 
-      {/* Input bar — only visible after start */}
-      {started && (
+      {/* Input bar — only visible after start and before completion */}
+      {started && !isCompleted && (
         <div className="bg-white border-t border-gray-200 px-4 pt-3 pb-4">
           <div className="max-w-2xl mx-auto">
             <div className="flex items-center gap-2">
