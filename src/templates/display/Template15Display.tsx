@@ -126,7 +126,7 @@ const Template15Display: React.FC<Template15DisplayProps> = ({
             </div>
 
             <div style={{ marginTop: 8 }}>
-              {education.higherEducation.filter(edu => edu.enabled).sort((a: any, b: any) => 0).map((edu, i) => (
+              {education.higherEducation.filter(edu => edu.enabled).reverse().map((edu, i) => (
                 <div key={`he-${i}`} style={{ marginBottom: 8 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <div style={{ fontWeight: 700 }}>{edu.instituteName}</div>

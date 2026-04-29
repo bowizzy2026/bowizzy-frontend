@@ -150,7 +150,7 @@ const Template18Display: React.FC<Template18DisplayProps> = ({
               <div style={{ height: 1, background: '#ddd', marginTop: 6, width: '100%' }} />
             </div>
             <div style={{ marginTop: 8 }}>
-              {education.higherEducation.filter(edu => edu.enabled).map((edu: any, i: number) => (
+              {education.higherEducation.filter(edu => edu.enabled).reverse().map((edu: any, i: number) => (
                 <div key={i} style={{ marginBottom: 12 }}>
                   <div style={{ color: '#000', marginTop: 4, fontWeight: 800 }}>{edu.instituteName}{edu.universityBoard ? ` — ${edu.universityBoard}` : ''}</div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6 }}>

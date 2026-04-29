@@ -204,56 +204,56 @@ const Template12PDF: React.FC<Template12PDFProps> = ({ data, primaryColor = '#11
         </>)}
 
         {hasEducation && (<>
-        {/* divider before education */}
-        <View style={{ height: 1, backgroundColor: '#333', width: '100%', marginVertical: 12 }} />
+          {/* divider before education */}
+          <View style={{ height: 1, backgroundColor: '#333', width: '100%', marginVertical: 12 }} />
 
-        {/* Education */}
-        <View style={{ height: 12 }} />
-        <View style={styles.grid}>
-          <View style={styles.leftCol}>
+          {/* Education */}
+          <View style={{ height: 12 }} />
+          <View style={styles.grid}>
+            <View style={styles.leftCol}>
               <Text style={{ ...styles.sectionHeading, fontFamily: pdfFontFamilyBold, color: primaryColor }}>EDUCATION</Text>
-          </View>
-          <View style={styles.rightCol}>
-            {education.higherEducation.filter(edu => edu.enabled).map((edu: any, i: number) => (
-              <View key={i} style={{ marginBottom: 8 }}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                  <Text style={{ ...styles.itemTitle, fontFamily: pdfFontFamilyBold }}>{edu.degree}</Text>
-                  <Text style={{ ...styles.itemSub, fontFamily: pdfFontFamilyBold }}>{edu.currentlyPursuing ? 'Present' : formatMonthYear(edu.endYear)}</Text>
+            </View>
+            <View style={styles.rightCol}>
+              {education.higherEducation.filter(edu => edu.enabled).reverse().map((edu: any, i: number) => (
+                <View key={i} style={{ marginBottom: 8 }}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                    <Text style={{ ...styles.itemTitle, fontFamily: pdfFontFamilyBold }}>{edu.degree}</Text>
+                    <Text style={{ ...styles.itemSub, fontFamily: pdfFontFamilyBold }}>{edu.currentlyPursuing ? 'Present' : formatMonthYear(edu.endYear)}</Text>
+                  </View>
+                  <Text style={{ fontSize: 10, color: '#2b2a2a', marginTop: 4 }}>{edu.instituteName}</Text>
+                  {edu.resultFormat && edu.result && (
+                    <Text style={{ fontSize: 10, color: '#2b2a2a', marginTop: 4 }}>{edu.resultFormat}: {edu.result}</Text>
+                  )}
                 </View>
-                <Text style={{ fontSize: 10, color: '#2b2a2a', marginTop: 4 }}>{edu.instituteName}</Text>
-                {edu.resultFormat && edu.result && (
-                  <Text style={{ fontSize: 10, color: '#2b2a2a', marginTop: 4 }}>{edu.resultFormat}: {edu.result}</Text>
-                )}
-              </View>
-            ))}
+              ))}
 
-            {education.preUniversityEnabled && education.preUniversity.instituteName && (
-              <View style={{ marginBottom: 8 }}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                  <Text style={{ ...styles.itemTitle, fontFamily: pdfFontFamilyBold }}>PUC</Text>
-                  <Text style={{ ...styles.itemSub, fontFamily: pdfFontFamilyBold }}>{formatMonthYear(education.preUniversity.yearOfPassing) || ''}</Text>
+              {education.preUniversityEnabled && education.preUniversity.instituteName && (
+                <View style={{ marginBottom: 8 }}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                    <Text style={{ ...styles.itemTitle, fontFamily: pdfFontFamilyBold }}>PUC</Text>
+                    <Text style={{ ...styles.itemSub, fontFamily: pdfFontFamilyBold }}>{formatMonthYear(education.preUniversity.yearOfPassing) || ''}</Text>
+                  </View>
+                  <Text style={{ fontSize: 10, color: '#2b2a2a', marginTop: 4 }}>{education.preUniversity.instituteName}</Text>
+                  {education.preUniversity.resultFormat && education.preUniversity.result && (
+                    <Text style={{ fontSize: 10, color: '#2b2a2a', marginTop: 4 }}>{education.preUniversity.resultFormat}: {education.preUniversity.result}</Text>
+                  )}
                 </View>
-                <Text style={{ fontSize: 10, color: '#2b2a2a', marginTop: 4 }}>{education.preUniversity.instituteName}</Text>
-                {education.preUniversity.resultFormat && education.preUniversity.result && (
-                  <Text style={{ fontSize: 10, color: '#2b2a2a', marginTop: 4 }}>{education.preUniversity.resultFormat}: {education.preUniversity.result}</Text>
-                )}
-              </View>
-            )}
+              )}
 
-            {education.sslcEnabled && education.sslc.instituteName && (
-              <View style={{ marginBottom: 8 }}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                  <Text style={{ ...styles.itemTitle, fontFamily: pdfFontFamilyBold }}>SSLC</Text>
-                  <Text style={{ ...styles.itemSub, fontFamily: pdfFontFamilyBold }}>{formatMonthYear(education.sslc.yearOfPassing) || ''}</Text>
+              {education.sslcEnabled && education.sslc.instituteName && (
+                <View style={{ marginBottom: 8 }}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                    <Text style={{ ...styles.itemTitle, fontFamily: pdfFontFamilyBold }}>SSLC</Text>
+                    <Text style={{ ...styles.itemSub, fontFamily: pdfFontFamilyBold }}>{formatMonthYear(education.sslc.yearOfPassing) || ''}</Text>
+                  </View>
+                  <Text style={{ fontSize: 10, color: '#2b2a2a', marginTop: 4 }}>{education.sslc.instituteName}</Text>
+                  {education.sslc.resultFormat && education.sslc.result && (
+                    <Text style={{ fontSize: 10, color: '#2b2a2a', marginTop: 4 }}>{education.sslc.resultFormat}: {education.sslc.result}</Text>
+                  )}
                 </View>
-                <Text style={{ fontSize: 10, color: '#2b2a2a', marginTop: 4 }}>{education.sslc.instituteName}</Text>
-                {education.sslc.resultFormat && education.sslc.result && (
-                  <Text style={{ fontSize: 10, color: '#2b2a2a', marginTop: 4 }}>{education.sslc.resultFormat}: {education.sslc.result}</Text>
-                )}
-              </View>
-            )}
+              )}
+            </View>
           </View>
-        </View>
         </>)}
 
         {skillsLinks.linksEnabled && (
@@ -281,22 +281,22 @@ const Template12PDF: React.FC<Template12PDFProps> = ({ data, primaryColor = '#11
         )}
 
         {hasSkills && (<>
-        {/* divider before skills */}
-        <View style={{ height: 1, backgroundColor: '#333', width: '100%', marginVertical: 12 }} />
+          {/* divider before skills */}
+          <View style={{ height: 1, backgroundColor: '#333', width: '100%', marginVertical: 12 }} />
 
-        <View style={{ height: 12 }} />
-        <View style={styles.grid}>
-          <View style={styles.leftCol}><Text style={{ ...styles.sectionHeading, fontSize: 10, fontFamily: pdfFontFamilyBold, color: primaryColor }}>SKILLS</Text></View>
-          <View style={styles.rightCol}><Text style={{ color: '#2b2a2a' }}>{skillsLinks.skills.filter((s: any) => s.enabled && s.skillName).map((s: any) => s.skillName).join(', ')}</Text></View>
-        </View>
+          <View style={{ height: 12 }} />
+          <View style={styles.grid}>
+            <View style={styles.leftCol}><Text style={{ ...styles.sectionHeading, fontSize: 10, fontFamily: pdfFontFamilyBold, color: primaryColor }}>SKILLS</Text></View>
+            <View style={styles.rightCol}><Text style={{ color: '#2b2a2a' }}>{skillsLinks.skills.filter((s: any) => s.enabled && s.skillName).map((s: any) => s.skillName).join(', ')}</Text></View>
+          </View>
         </>)}
 
         {hasCerts && (<>
-        <View style={{ height: 1, backgroundColor: '#333', width: '100%', marginVertical: 12 }} />
-        <View style={styles.grid}>
-          <View style={styles.leftCol}><Text style={{ ...styles.sectionHeading, fontSize: 10, fontFamily: pdfFontFamilyBold, color: primaryColor }}>CERTIFICATIONS</Text></View>
-          <View style={styles.rightCol}><Text style={{ color: '#2b2a2a' }}>{certifications.filter((c: any) => c.enabled && c.certificateTitle).map((c: any) => c.certificateTitle).join(', ')}</Text></View>
-        </View>
+          <View style={{ height: 1, backgroundColor: '#333', width: '100%', marginVertical: 12 }} />
+          <View style={styles.grid}>
+            <View style={styles.leftCol}><Text style={{ ...styles.sectionHeading, fontSize: 10, fontFamily: pdfFontFamilyBold, color: primaryColor }}>CERTIFICATIONS</Text></View>
+            <View style={styles.rightCol}><Text style={{ color: '#2b2a2a' }}>{certifications.filter((c: any) => c.enabled && c.certificateTitle).map((c: any) => c.certificateTitle).join(', ')}</Text></View>
+          </View>
         </>)}
 
         {/* Footer */}

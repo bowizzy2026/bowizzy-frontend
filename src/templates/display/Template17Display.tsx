@@ -68,7 +68,7 @@ const Template17Display: React.FC<Template17DisplayProps> = ({
             {personal.email && <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 8 }}><FiMail style={{ color: '#000' }} /><a href={`mailto:${personal.email}`} style={{ color: '#000', textDecoration: 'none' }}>{personal.email}</a></div>}
             {personal.mobileNumber && <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 8 }}><FiPhone style={{ color: '#000' }} /><a href={`tel:${personal.mobileNumber}`} style={{ color: '#000', textDecoration: 'none' }}>{personal.mobileNumber}</a></div>}
             {(personal.address || personal.city || personal.state) && <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 8 }}><FiMapPin style={{ color: '#000', scale: 2 }} /><div>{[personal.address, personal.city, personal.state, personal.pincode].filter(Boolean).join(', ')}</div></div>}
-            {skillsLinks.links.linkedinProfile && <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 8 }}><FiLinkedin style={{ color: '#000', scale: 2 }} /><a href={skillsLinks.links.linkedinProfile} target="_blank" rel="noreferrer" style={{ color: '#000', textDecoration: 'none' }}>{skillsLinks.links.linkedinProfile}</a></div>}
+            {skillsLinks.links.linkedinProfile && <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 8 }}><FiLinkedin style={{ marginTop: -4, color: '#000', scale: 1 }} /><a href={skillsLinks.links.linkedinProfile} target="_blank" rel="noreferrer" style={{ color: '#000', textDecoration: 'none' }}>{skillsLinks.links.linkedinProfile}</a></div>}
             {skillsLinks.links.githubProfile && <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 8 }}><FiGithub style={{ color: '#000' }} /><a href={skillsLinks.links.githubProfile} target="_blank" rel="noreferrer" style={{ color: '#000', textDecoration: 'none' }}>{skillsLinks.links.githubProfile}</a></div>}
           </div>
         </div>
@@ -166,7 +166,7 @@ const Template17Display: React.FC<Template17DisplayProps> = ({
               <div style={{ height: 1, background: '#ddd', marginTop: 6, width: '100%' }} />
             </div>
             <div style={{ marginTop: 8 }}>
-              {education.higherEducation.filter(edu => edu.enabled).map((edu: any, i: number) => (
+              {education.higherEducation.filter(edu => edu.enabled).reverse().map((edu: any, i: number) => (
                 <div key={i} style={{ marginBottom: 12 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <div style={{ fontWeight: 700, fontSize: 12 }}>{edu.instituteName}</div>

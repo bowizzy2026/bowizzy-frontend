@@ -451,7 +451,7 @@ export default function Dashboard() {
                     Upcoming Interview
                   </h2>
                   <button
-                    onClick={() => navigate("/interview-prep")}
+                    onClick={() => navigate("#")}
                     className="text-xs cursor-pointer hover:underline"
                     style={{ color: "#FF8251" }}
                   >

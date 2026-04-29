@@ -233,7 +233,7 @@ const Template18PDF: React.FC<Template18PDFProps> = ({ data, primaryColor = '#11
               <Text style={styles.sectionHeading}>Education</Text>
               <View style={styles.divider} />
               <View style={{ marginTop: 8 }}>
-                {education.higherEducation.filter(edu => edu.enabled).map((edu: any, i: number) => (
+                {education.higherEducation.filter(edu => edu.enabled).reverse().map((edu: any, i: number) => (
                   <View key={i} style={{ marginBottom: 10 }}>
                     <Text style={{ marginTop: 6, color: '#000', fontFamily: 'Times-Bold' }}>{edu.instituteName}{edu.universityBoard ? ` — ${edu.universityBoard}` : ''}</Text>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 4 }}>

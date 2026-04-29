@@ -91,7 +91,7 @@ const careerMap = [
     label: "My resumes",
   },
   {
-    href: "#",
+    href: "/interview-prep",
     icon: <Video color="#3B3B3B" size={16} />,
     label: "Interview Prep",
   },
@@ -188,12 +188,7 @@ function LayoutWrapper({ children }: { children: React.ReactNode }) {
                   className="p-5 flex items-center"
                   key={item.label + idx}
                 >
-                  <a href={item.href} onClick={(e) => {
-                    if (item.href === "#") {
-                      e.preventDefault();
-                      alert("Coming Soon!");
-                    }
-                  }}>
+                  <a href={item.href}>
                     {item.icon}
                     <span className="ml-4" style={{ fontSize: "14px" }}>
                       {item.label}

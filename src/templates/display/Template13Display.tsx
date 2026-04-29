@@ -1,6 +1,6 @@
 import React from 'react';
 import DOMPurify from 'dompurify';
-import { FiPhone, FiMail, FiMapPin, FiLinkedin, FiGithub } from 'react-icons/fi';
+import { FiPhone, FiMail, FiMapPin, FiLinkedin, FiGithub, FiLink, FiFileText } from 'react-icons/fi';
 
 import type { ResumeData } from '@/types/resume';
 
@@ -94,8 +94,11 @@ const Template13Display: React.FC<Template13DisplayProps> = ({
             const address = personal.address && String(personal.address);
             const email = personal.email;
             const phone = personal.mobileNumber;
-            const linkedin = (skillsLinks && (skillsLinks as any).links && (skillsLinks as any).links.linkedinProfile) || (personal as any).linkedinProfile;
-            const github = (skillsLinks && (skillsLinks as any).links && (skillsLinks as any).links.githubProfile) || (personal as any).githubProfile;
+            const links = (skillsLinks as any)?.links;
+            const linkedin = links ? (links.linkedinEnabled !== false ? links.linkedinProfile : null) : (personal as any).linkedinProfile;
+            const github = links ? (links.githubEnabled !== false ? links.githubProfile : null) : (personal as any).githubProfile;
+            const portfolio = links ? (links.portfolioEnabled !== false ? links.portfolioUrl : null) : null;
+            const publication = links ? (links.publicationEnabled !== false ? links.publicationUrl : null) : null;
 
             const parts: any[] = [];
             if (address) parts.push(
@@ -112,6 +115,12 @@ const Template13Display: React.FC<Template13DisplayProps> = ({
             );
             if (github) parts.push(
               <span key="gh" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><FiGithub style={{ verticalAlign: 'middle', color: '#111827' }} /><a href={github} target="_blank" rel="noreferrer" style={{ color: '#6b7280', textDecoration: 'none' }}>{github}</a></span>
+            );
+            if (portfolio) parts.push(
+              <span key="port" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><FiLink style={{ verticalAlign: 'middle', color: '#6b7280' }} /><a href={portfolio} target="_blank" rel="noreferrer" style={{ color: '#6b7280', textDecoration: 'none' }}>Portfolio</a></span>
+            );
+            if (publication) parts.push(
+              <span key="pub" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><FiFileText style={{ verticalAlign: 'middle', color: '#6b7280' }} /><a href={publication} target="_blank" rel="noreferrer" style={{ color: '#6b7280', textDecoration: 'none' }}>Publication</a></span>
             );
 
             return parts.reduce((acc, cur, idx) => (idx === 0 ? [cur] : [...acc, <span key={`sep-${idx}`} style={{ margin: '0 6px' }}>|</span>, cur]), [] as any[]);
