@@ -42,13 +42,13 @@ function formatDate(dateStr?: string | null): string {
 function getQuestion(index: number, resumeData?: Record<string, unknown> | null): string {
   const data = (resumeData as Record<string, unknown>) || {};
 
-  const hasProjects   = Array.isArray(data.projects)     && (data.projects as unknown[]).length > 0;
+  const hasProjects = Array.isArray(data.projects) && (data.projects as unknown[]).length > 0;
   const hasExperience = Array.isArray((data.work_experience as Record<string, unknown>)?.experiences)
-                        && ((data.work_experience as Record<string, unknown>).experiences as unknown[]).length > 0;
-  const hasEducation  = Array.isArray(data.education)    && (data.education as unknown[]).length > 0;
-  const hasSkills     = Array.isArray(data.skills)       && (data.skills as unknown[]).length > 0;
-  const hasLinks      = Array.isArray(data.links)        && (data.links as unknown[]).length > 0;
-  const hasCerts      = Array.isArray(data.certificates) && (data.certificates as unknown[]).length > 0;
+    && ((data.work_experience as Record<string, unknown>).experiences as unknown[]).length > 0;
+  const hasEducation = Array.isArray(data.education) && (data.education as unknown[]).length > 0;
+  const hasSkills = Array.isArray(data.skills) && (data.skills as unknown[]).length > 0;
+  const hasLinks = Array.isArray(data.links) && (data.links as unknown[]).length > 0;
+  const hasCerts = Array.isArray(data.certificates) && (data.certificates as unknown[]).length > 0;
 
   switch (index) {
     case 0:
@@ -56,8 +56,8 @@ function getQuestion(index: number, resumeData?: Record<string, unknown> | null)
 
     case 1:
       return hasProjects
-        ? "Great! Please do mention your projects. For each project, please provide the project title, start date, and end date."
-        : "Great! Are these your projects? Feel free to remove any that are not relevant or add additional projects you'd like to include. For any new project, please provide the project title, start date, and end date."
+        ? "Great! Are these your projects? Feel free to remove any that are not relevant or add additional projects you'd like to include. For any new project, please provide the project title, start date, and end date."
+        : "Great! Please do mention your projects. For each project, please provide the project title, start date, and end date."
 
     case 2:
       return hasExperience
@@ -121,7 +121,7 @@ export default function AIBuilder() {
   try {
     const u = JSON.parse(localStorage.getItem("user") || "null");
     token = u?.token || "";
-  } catch {}
+  } catch { }
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [mode, setMode] = useState<"jd" | "non-jd">("non-jd");
@@ -333,7 +333,7 @@ export default function AIBuilder() {
       )
     );
     if (saveToApi) {
-      try { await createChat(sessionId, content, "assistant", null, token); } catch {}
+      try { await createChat(sessionId, content, "assistant", null, token); } catch { }
     }
     return msgId;
   };
@@ -401,11 +401,11 @@ export default function AIBuilder() {
         prev.map((s) =>
           s.id === currentSessionId
             ? {
-                ...s,
-                started: true,
-                messages: [...(Array.isArray(s.messages) ? s.messages : []), openingMsg],
-                title: "Hi, I need help to build my resume.",
-              }
+              ...s,
+              started: true,
+              messages: [...(Array.isArray(s.messages) ? s.messages : []), openingMsg],
+              title: "Hi, I need help to build my resume.",
+            }
             : s
         )
       );
@@ -420,9 +420,9 @@ export default function AIBuilder() {
   const handleSend = async () => {
     if (!inputValue.trim() || !currentSession || isLoading) return;
 
-    const sessionId     = currentSessionId!;
+    const sessionId = currentSessionId!;
     const currentQIndex = questionIndex[sessionId] ?? 0;
-    const nextQIndex    = currentQIndex + 1;
+    const nextQIndex = currentQIndex + 1;
 
     // Snapshot chip state BEFORE clearing
     const snapshotChips = chipStates[sessionId]?.chips ?? [];
@@ -446,13 +446,13 @@ export default function AIBuilder() {
       prev.map((s) =>
         s.id === sessionId
           ? {
-              ...s,
-              messages: [...(Array.isArray(s.messages) ? s.messages : []), userMsg],
-              title:
-                (Array.isArray(s.messages) ? s.messages.length : 0) === 0
-                  ? inputValue.slice(0, 35)
-                  : s.title,
-            }
+            ...s,
+            messages: [...(Array.isArray(s.messages) ? s.messages : []), userMsg],
+            title:
+              (Array.isArray(s.messages) ? s.messages.length : 0) === 0
+                ? inputValue.slice(0, 35)
+                : s.title,
+          }
           : s
       )
     );
@@ -510,12 +510,12 @@ export default function AIBuilder() {
         const botMsgId = await appendBotMessage(sessionId, getQuestion(nextQIndex, resumeDataCache));
         setQuestionIndex((prev) => ({ ...prev, [sessionId]: nextQIndex }));
 
-        if (nextQIndex === 1)      await fetchAndBuildChips(sessionId, "projects",      botMsgId);
-        else if (nextQIndex === 2) await fetchAndBuildChips(sessionId, "experience",    botMsgId);
-        else if (nextQIndex === 3) await fetchAndBuildChips(sessionId, "education",     botMsgId);
-        else if (nextQIndex === 4) await fetchAndBuildChips(sessionId, "skills",        botMsgId);
-        else if (nextQIndex === 5) await fetchAndBuildChips(sessionId, "links",         botMsgId);
-        else if (nextQIndex === 6) await fetchAndBuildChips(sessionId, "certificates",  botMsgId);
+        if (nextQIndex === 1) await fetchAndBuildChips(sessionId, "projects", botMsgId);
+        else if (nextQIndex === 2) await fetchAndBuildChips(sessionId, "experience", botMsgId);
+        else if (nextQIndex === 3) await fetchAndBuildChips(sessionId, "education", botMsgId);
+        else if (nextQIndex === 4) await fetchAndBuildChips(sessionId, "skills", botMsgId);
+        else if (nextQIndex === 5) await fetchAndBuildChips(sessionId, "links", botMsgId);
+        else if (nextQIndex === 6) await fetchAndBuildChips(sessionId, "certificates", botMsgId);
 
       } else {
         // ── All 7 answers collected — build payload ─────────────────────
@@ -530,20 +530,20 @@ export default function AIBuilder() {
         };
 
         const cleanChatAnswers = {
-          about_yourself:          accumulated.about_yourself          ?? "",
-          additional_projects:     accumulated.additional_projects     ?? "",
-          additional_experience:   accumulated.additional_experience   ?? "",
-          additional_education:    accumulated.additional_education    ?? "",
-          additional_skills:       accumulated.additional_skills       ?? "",
-          additional_links:        accumulated.additional_links        ?? "",
+          about_yourself: accumulated.about_yourself ?? "",
+          additional_projects: accumulated.additional_projects ?? "",
+          additional_experience: accumulated.additional_experience ?? "",
+          additional_education: accumulated.additional_education ?? "",
+          additional_skills: accumulated.additional_skills ?? "",
+          additional_links: accumulated.additional_links ?? "",
           additional_certificates: accumulated.additional_certificates ?? "",
         };
 
-        const retained_project_ids     = accumulated.retained_project_ids;
-        const retained_experience_ids  = accumulated.retained_experience_ids;
-        const retained_education_ids   = accumulated.retained_education_ids;
-        const retained_skill_ids       = accumulated.retained_skill_ids;
-        const retained_link_ids        = accumulated.retained_link_ids;
+        const retained_project_ids = accumulated.retained_project_ids;
+        const retained_experience_ids = accumulated.retained_experience_ids;
+        const retained_education_ids = accumulated.retained_education_ids;
+        const retained_skill_ids = accumulated.retained_skill_ids;
+        const retained_link_ids = accumulated.retained_link_ids;
         const retained_certificate_ids = accumulated.retained_certificate_ids;
 
         const generateRes = await fetch(
@@ -552,13 +552,13 @@ export default function AIBuilder() {
             method: "POST",
             headers: { "Content-Type": "application/json", Authorization: `Bearer ${authToken}` },
             body: JSON.stringify({
-              session_id:   sessionId,
+              session_id: sessionId,
               chat_answers: cleanChatAnswers,
-              ...(retained_project_ids     !== undefined && { retained_project_ids }),
-              ...(retained_experience_ids  !== undefined && { retained_experience_ids }),
-              ...(retained_education_ids   !== undefined && { retained_education_ids }),
-              ...(retained_skill_ids       !== undefined && { retained_skill_ids }),
-              ...(retained_link_ids        !== undefined && { retained_link_ids }),
+              ...(retained_project_ids !== undefined && { retained_project_ids }),
+              ...(retained_experience_ids !== undefined && { retained_experience_ids }),
+              ...(retained_education_ids !== undefined && { retained_education_ids }),
+              ...(retained_skill_ids !== undefined && { retained_skill_ids }),
+              ...(retained_link_ids !== undefined && { retained_link_ids }),
               ...(retained_certificate_ids !== undefined && { retained_certificate_ids }),
             }),
           }
@@ -644,24 +644,24 @@ export default function AIBuilder() {
             />
           ) : (
             <div className="flex-1 flex items-center justify-center p-6 bg-white">
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.4, ease: "easeOut" }}
                 className="max-w-md w-full text-center flex flex-col items-center"
               >
-                <motion.div 
+                <motion.div
                   animate={{ y: [0, -8, 0] }}
                   transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
                   className="w-20 h-20 bg-orange-50 rounded-[1.5rem] flex items-center justify-center shadow-sm border border-orange-100 mb-6"
                 >
                   <Sparkles className="w-10 h-10 text-orange-500" />
                 </motion.div>
-                
+
                 <h2 className="text-2xl font-bold text-gray-800 mb-3 tracking-tight">
                   Your AI Career Assistant
                 </h2>
-                
+
                 <p className="text-gray-500 text-sm mb-8 leading-relaxed max-w-sm mx-auto">
                   Build a professional, ATS-optimized resume effortlessly. Start a new session to let our intelligent assistant guide you step-by-step.
                 </p>
