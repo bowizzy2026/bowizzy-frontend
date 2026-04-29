@@ -37,17 +37,59 @@ function formatDate(dateStr?: string | null): string {
   }
 }
 
-// ── Question queue ────────────────────────────────────────────────────────────
+// ── Question generator ────────────────────────────────────────────────────────
 
-const HARDCODED_QUESTIONS = [
-  "Can you give me a brief about yourself?",
-  "Are these your projects? Feel free to remove any that don't apply or mention additional projects you'd like to add. If you are adding any projects, please make sure to enter the project title , start date and end date",
-  "Alright great! Are these your work experiences? Feel free to remove any that don't apply or mention additional experiences you'd like to add. If you are adding any work experience, please make sure to enter the Company's name you have worked for . your job title , start date and end date ",
-  "Wonderful ! Are these your education details? Feel free to remove any that don't apply or mention additional education you'd like to add.If you are adding any education detail, please make sure to enter your institutions's name , the board type and the year of passing ",
-  "Sounds good ! Are these your skills? Feel free to remove any that don't apply or mention additional skills you'd like to add.",
-  "Nice ! Are these your links?  Feel free to remove any you don't want included or mention any additional links.",
-  "Are these your certificates?  Feel free to remove any you don't want included or mention any additional certificates.",
-];
+function getQuestion(index: number, resumeData?: Record<string, unknown> | null): string {
+  const data = (resumeData as Record<string, unknown>) || {};
+
+  const hasProjects   = Array.isArray(data.projects)     && (data.projects as unknown[]).length > 0;
+  const hasExperience = Array.isArray((data.work_experience as Record<string, unknown>)?.experiences)
+                        && ((data.work_experience as Record<string, unknown>).experiences as unknown[]).length > 0;
+  const hasEducation  = Array.isArray(data.education)    && (data.education as unknown[]).length > 0;
+  const hasSkills     = Array.isArray(data.skills)       && (data.skills as unknown[]).length > 0;
+  const hasLinks      = Array.isArray(data.links)        && (data.links as unknown[]).length > 0;
+  const hasCerts      = Array.isArray(data.certificates) && (data.certificates as unknown[]).length > 0;
+
+  switch (index) {
+    case 0:
+      return "Could you please share a brief introduction about yourself?";
+
+    case 1:
+      return hasProjects
+        ? "Great! Please do mention your projects. For each project, please provide the project title, start date, and end date."
+        : "Great! Are these your projects? Feel free to remove any that are not relevant or add additional projects you'd like to include. For any new project, please provide the project title, start date, and end date."
+
+    case 2:
+      return hasExperience
+        ? "Wonderful! Are these your work experiences? Feel free to remove any that do not apply or add additional experiences you'd like to include. For any new work experience, please provide the company name, job title, start date, and end date."
+        : "Wonderful! Please do mention your work experiences. For each experience, please provide the company name, job title, start date, and end date.";
+
+    case 3:
+      return hasEducation
+        ? "Excellent! Are these your education details? Feel free to remove any that are not relevant or add additional education records you'd like to include. For any new education entry, please provide the institution name, board/university type, start date, and end date."
+        : "Excellent! Please do mention your education details. For each entry, please provide the institution name, board/university type, start date, and end date.";
+
+    case 4:
+      return hasSkills
+        ? "Looks good! Are these your skills? Feel free to remove any that do not apply or add additional skills you'd like to include. For each new skill, please mention the skill name and your proficiency level (Beginner, Intermediate, Advanced, or Expert)."
+        : "Looks good! Please do mention your skills. For each skill, please mention the skill name and your proficiency level (Beginner, Intermediate, Advanced, or Expert).";
+
+    case 5:
+      return hasLinks
+        ? "Nice! Are these your professional links? Feel free to remove any you do not want included or add any additional links you'd like to showcase."
+        : "Nice! Please do mention your professional links. Feel free to add any links you'd like to showcase (e.g. LinkedIn, GitHub, portfolio).";
+
+    case 6:
+      return hasCerts
+        ? "Are these your certifications? Feel free to remove any that are not relevant or add additional certifications you'd like to include. For each new certification, please provide the certificate title, month and year achieved, and certificate type (Course Completion, Professional Certification, Achievement, Training, Workshop, or Other)."
+        : "Please do mention your certifications. For each certification, please provide the certificate title, month and year achieved, and certificate type (Course Completion, Professional Certification, Achievement, Training, Workshop, or Other).";
+
+    default:
+      return "";
+  }
+}
+
+const QUESTION_COUNT = 7;
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -90,6 +132,7 @@ export default function AIBuilder() {
   const [questionIndex, setQuestionIndex] = useState<Record<string, number>>({});
   const [chatAnswers, setChatAnswers] = useState<Record<string, SessionAnswers>>({});
   const [chipStates, setChipStates] = useState<Record<string, ChipState>>({});
+  const [resumeDataCache, setResumeDataCache] = useState<Record<string, unknown> | null>(null);
 
   // ── Fetch sessions ────────────────────────────────────────────────────────
 
@@ -141,6 +184,9 @@ export default function AIBuilder() {
       if (!res.ok) return;
       const json = await res.json();
       const data = json.data || json;
+
+      // Cache resume data for question generation
+      setResumeDataCache(data);
 
       let chips: DataChip[] = [];
 
@@ -365,7 +411,7 @@ export default function AIBuilder() {
       );
       await createChat(currentSessionId, openingMsg.content, "user", null, token);
       setQuestionIndex((prev) => ({ ...prev, [currentSessionId]: 0 }));
-      await appendBotMessage(currentSessionId, HARDCODED_QUESTIONS[0]);
+      await appendBotMessage(currentSessionId, getQuestion(0, null));
     } catch (err) { console.error("Failed to start session", err); }
   };
 
@@ -459,9 +505,9 @@ export default function AIBuilder() {
       const u = JSON.parse(localStorage.getItem("user") || "null");
       const authToken = u?.token;
 
-      if (nextQIndex < HARDCODED_QUESTIONS.length) {
+      if (nextQIndex < QUESTION_COUNT) {
         // ── More questions remain ───────────────────────────────────────
-        const botMsgId = await appendBotMessage(sessionId, HARDCODED_QUESTIONS[nextQIndex]);
+        const botMsgId = await appendBotMessage(sessionId, getQuestion(nextQIndex, resumeDataCache));
         setQuestionIndex((prev) => ({ ...prev, [sessionId]: nextQIndex }));
 
         if (nextQIndex === 1)      await fetchAndBuildChips(sessionId, "projects",      botMsgId);

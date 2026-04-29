@@ -125,12 +125,12 @@ function ProfilePopup({
               Complete my profile first
               <ChevronRight className="w-4 h-4" />
             </button>
-            {/* <button
+            <button
               onClick={onContinueWithout}
               className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-gray-500 text-sm font-medium hover:bg-gray-50 transition cursor-pointer"
             >
               Continue without profile
-            </button> */}
+            </button>
           </div>
         </div>
       </div>
