@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { getAllTemplates, getTemplateById } from "@/templates/templateRegistry";
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { Check, Heart } from "lucide-react";
+import { Check, Heart, Eye } from "lucide-react";
 import * as subscriptionService from "@/services/subscriptionService";
 import { Lock, Crown } from "lucide-react";
 import Premium from "@/pages/Premium";
@@ -25,6 +25,8 @@ export default function TemplateSelection() {
   const [savingSelection, setSavingSelection] = useState(false);
   const [ignoredFromBackend, setIgnoredFromBackend] = useState<string[]>([]);
   const [preSelectedTemplates, setPreSelectedTemplates] = useState<string[]>([]);
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [previewTemplate, setPreviewTemplate] = useState<any>(null);
 
   const PAID_EXTRA_TEMPLATE_IDS = ["template9", "template10"];
   const EXTRA_PRICE = 100;
@@ -42,6 +44,12 @@ export default function TemplateSelection() {
     }
     if (locked) return;
     setSelectedTemplate(templateId);
+  };
+
+  const handlePreview = (template: any, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setPreviewTemplate(template);
+    setShowPreviewModal(true);
   };
 
   const toggleSelect = (templateId: string) => {
@@ -438,6 +446,17 @@ export default function TemplateSelection() {
                       className="w-full h-[250px] md:h-[320px] lg:h-[439px] object-contain"
                     />
 
+                    {/* Preview icon — top-center, appears on hover */}
+                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-black/20">
+                      <button
+                        onClick={(e) => handlePreview(template, e)}
+                        className="flex items-center justify-center w-12 h-12 rounded-full bg-white text-gray-800 hover:bg-orange-500 hover:text-white transition-all shadow-lg"
+                        title="Preview template"
+                      >
+                        <Eye size={24} />
+                      </button>
+                    </div>
+
                     {/* Selection checkbox — top-left, selection mode only */}
                     { //selectionMode && (
                       // <div className="absolute top-3 left-3 z-20">
@@ -543,6 +562,48 @@ export default function TemplateSelection() {
               />
               <div className="relative z-10 p-4 w-full max-w-4xl">
                 <Premium modal onClose={() => setShowPremiumModal(false)} />
+              </div>
+            </div>
+          )}
+
+          {/* Preview Modal */}
+          {showPreviewModal && previewTemplate && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center">
+              <div
+                className="absolute inset-0 bg-black/60"
+                onClick={() => setShowPreviewModal(false)}
+              />
+              <div className="relative z-10 p-4 w-full max-w-2xl">
+                <div className="bg-white rounded-lg overflow-hidden shadow-2xl">
+                  <div className="flex items-center justify-between p-4 border-b">
+                    <h2 className="text-xl font-semibold text-gray-800">{previewTemplate.name}</h2>
+                    <button
+                      onClick={() => setShowPreviewModal(false)}
+                      className="text-gray-500 hover:text-gray-700 transition-colors"
+                    >
+                      <svg
+                        className="w-6 h-6"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M6 18L18 6M6 6l12 12"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                  <div className="max-h-[80vh] overflow-auto flex items-center justify-center bg-gray-50">
+                    <img
+                      src={previewTemplate.thumbnail}
+                      alt={previewTemplate.name}
+                      className="w-full h-auto object-contain"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           )}
