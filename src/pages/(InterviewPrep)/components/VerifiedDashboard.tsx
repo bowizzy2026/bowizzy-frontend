@@ -234,6 +234,10 @@ function isInterviewExpired(interview: Interview): boolean {
   if (!interview.start_time_utc) return false;
   return new Date(interview.start_time_utc).getTime() <= Date.now();
 }
+function isInterviewEnded(interview: Interview): boolean {
+  if (!interview.end_time_utc) return false;
+  return new Date(interview.end_time_utc).getTime() <= Date.now();
+}
 
 function isInterviewOlderThan12Hours(interview: Interview): boolean {
   if (!interview.start_time_utc) return false;
@@ -681,17 +685,20 @@ const VerifiedDashboard = ({
               >
                 {scheduledInterviews.map((interview, i) => {
                   const { userId, token } = getAuth();
+                  const expired = isInterviewExpired(interview);
                   return (
                     <InterviewCard
                       key={interview.id ?? i}
                       interview={interview}
                       isScheduled
+                      isPast={expired}
                       userId={userId}
                       token={token}
                       onViewDetails={() =>
                         handleViewDetails(interview, "scheduled")
                       }
-                      onCancelSuccess={handleCancelInterviewSuccess}
+                      onCancelSuccess={expired ? undefined : handleCancelInterviewSuccess}
+                      onGiveFeedback={undefined}
                     />
                   );
                 })}
@@ -771,6 +778,7 @@ const VerifiedDashboard = ({
                   })
                   .map((interview, i) => {
                     const { userId, token } = getAuth();
+                    const expired = isInterviewEnded(interview);
                     return (
                       <InterviewCard
                         key={interview.id ?? i}
@@ -782,7 +790,7 @@ const VerifiedDashboard = ({
                         onViewDetails={() =>
                           handleViewDetails(interview, "scheduled")
                         }
-                        onGiveFeedback={() => handleGiveFeedback(interview)}
+                        onGiveFeedback={expired ? () => handleGiveFeedback(interview) : undefined}
                       />
                     );
                   })}
