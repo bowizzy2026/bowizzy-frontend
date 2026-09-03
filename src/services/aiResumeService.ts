@@ -27,6 +27,7 @@ export async function getAiSessions(token: string): Promise<Pick<ChatSession, "i
     });
 }
 
+
 export async function createAiSession(mode: "jd" | "non-jd", sessionName: string, token: string): Promise<ChatSession> {
     const res = await api.post(
         "/sessions",
